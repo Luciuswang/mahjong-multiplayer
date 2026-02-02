@@ -1,0 +1,23 @@
+{
+  "name": "gomoku-multiplayer",
+  "version": "1.0.0",
+  "description": "五子棋多人联机版 - 支持房间邀请好友对战",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  },
+  "keywords": [
+    "gomoku",
+    "five-in-a-row",
+    "multiplayer",
+    "socket.io",
+    "game"
+  ],
+  "author": "AI Mini Game Platform",
+  "license": "MIT"
+}
