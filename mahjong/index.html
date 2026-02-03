@@ -1217,33 +1217,47 @@
             document.addEventListener(event, unlockAudio, { once: false, passive: true });
         });
         
-        // 播放音频文件
+        // 音频加载状态
+        const audioLoading = {};  // 正在加载的音频
+        
+        // 播放音频文件（优化版：先播蜂鸣音，后台加载）
         function playAudioFile(path, volume = 1.0) {
             if (!speechEnabled) return;
             
             try {
-                // 检查缓存
-                if (audioCache[path]) {
+                // 检查缓存 - 如果已缓存直接播放
+                if (audioCache[path] && audioCache[path].readyState >= 2) {
                     const audio = audioCache[path].cloneNode();
                     audio.volume = volume;
-                    audio.play().catch(e => console.log('音频播放失败:', e));
+                    audio.play().catch(() => {});
                     return;
                 }
                 
-                // 加载并播放
-                const audio = new Audio(path);
-                audio.volume = volume;
-                audio.play().then(() => {
-                    // 成功，缓存音频
+                // 未缓存或未加载完成 - 先播放蜂鸣音
+                const isTile = path.includes('/tiles/');
+                playBeep(isTile ? 600 : 400, 80);
+                
+                // 如果正在加载，不重复请求
+                if (audioLoading[path]) return;
+                
+                // 后台加载并缓存
+                audioLoading[path] = true;
+                const audio = new Audio();
+                audio.preload = 'auto';
+                audio.src = path;
+                
+                audio.addEventListener('canplaythrough', () => {
                     audioCache[path] = audio;
-                }).catch(e => {
-                    console.log('音频播放失败:', path, e);
-                    // 回退到蜂鸣音
-                    playBeep(523, 100);
-                });
+                    delete audioLoading[path];
+                }, { once: true });
+                
+                audio.addEventListener('error', () => {
+                    delete audioLoading[path];
+                }, { once: true });
+                
+                audio.load();
             } catch (e) {
-                console.error('音频错误:', e);
-                playBeep(523, 100);
+                playBeep(523, 80);
             }
         }
         
