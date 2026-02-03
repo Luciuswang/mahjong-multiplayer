@@ -1063,6 +1063,29 @@
         .score-value.positive { color: #2ecc71; }
         .score-value.negative { color: #e74c3c; }
         
+        /* 玩家准备状态 */
+        .player-ready-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .player-ready-item.ready {
+            background: rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+        }
+        .player-ready-item.waiting {
+            background: rgba(241, 196, 15, 0.2);
+            color: #f1c40f;
+        }
+        .player-ready-item.ai-takeover {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+        
         /* 单局结算弹窗 */
         .round-result-modal {
             display: none;
@@ -1736,6 +1759,13 @@
                 <button class="action-btn discard" id="discardBtn" onclick="discardTile()" disabled>出牌</button>
             </div>
             
+            <!-- 接管AI按钮 -->
+            <div id="takeoverContainer" style="display: none; margin: 10px 0;">
+                <button class="btn" id="takeoverBtn" onclick="takeoverAI()" style="background: #e74c3c; animation: pulse 1s infinite;">
+                    <i class="fas fa-hand-paper"></i> 接管AI，恢复控制
+                </button>
+            </div>
+            
             <div class="action-buttons" id="responseButtons">
                 <button class="action-btn hu" onclick="doAction('hu')">胡</button>
                 <button class="action-btn gang" onclick="doAction('gang')">杠</button>
@@ -1793,7 +1823,17 @@
                 第 <span id="roundEndCurrent">1</span>/<span id="roundEndTotal">10</span> 局
             </div>
             
-            <button class="btn" onclick="continueNextRound()" style="margin-top: 20px;">
+            <!-- 倒计时和准备状态 -->
+            <div id="nextRoundCountdown" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                <div style="font-size: 1.2rem; color: var(--gold); margin-bottom: 10px;">
+                    ⏱ 下一局开始: <span id="countdownSeconds">30</span>秒
+                </div>
+                <div id="playersReadyStatus" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                    <!-- 动态生成玩家准备状态 -->
+                </div>
+            </div>
+            
+            <button class="btn" id="continueNextBtn" onclick="continueNextRound()" style="margin-top: 20px;">
                 <i class="fas fa-play"></i> 继续下一局
             </button>
         </div>
@@ -1969,6 +2009,7 @@
         let lastDrawnTileId = null; // 记录刚摸的牌
         let pendingAutoDiscard = false; // 是否等待自动出牌
         let pendingAutoDiscardTileId = null; // 等待自动出牌的牌ID
+        let isAITakeover = false; // 是否被AI接管
         let myGender = 'female'; // 我的语音性别
         let playerGenders = {}; // 存储所有玩家的性别 { oderId: 'male'/'female' }
 
@@ -2632,6 +2673,20 @@
                 lastDrawnTileId = null;
                 selectedTileId = null;
                 
+                // 关闭结算弹窗
+                document.getElementById('roundResultModal').classList.remove('active');
+                
+                // 检查是否被AI接管
+                const myPlayer = gameState.players.find(p => p.seatIndex === mySeatIndex);
+                if (myPlayer && myPlayer.aiTakeover) {
+                    isAITakeover = true;
+                    showTakeoverButton();
+                    showToast('⚠️ AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
+                } else {
+                    isAITakeover = false;
+                    hideTakeoverButton();
+                }
+                
                 // 更新局数和积分显示
                 if (data.currentRound !== undefined) {
                     updateRoundDisplay(data.currentRound, data.totalRounds);
@@ -2853,7 +2908,72 @@
             // 单局结算
             socket.on('round_ended', (data) => {
                 console.log('单局结算:', data);
+                // 重置准备按钮状态
+                const btn = document.getElementById('continueNextBtn');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-play"></i> 继续下一局';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }
                 showRoundResult(data);
+            });
+            
+            // 倒计时更新
+            socket.on('countdown_update', (data) => {
+                console.log('倒计时更新:', data.seconds);
+                const countdownEl = document.getElementById('countdownSeconds');
+                if (countdownEl) {
+                    countdownEl.textContent = data.seconds;
+                    // 最后5秒变红
+                    if (data.seconds <= 5) {
+                        countdownEl.style.color = '#e74c3c';
+                    } else {
+                        countdownEl.style.color = '';
+                    }
+                }
+                // 更新玩家准备状态
+                if (data.readyStatus) {
+                    updatePlayersReadyStatus(data.readyStatus);
+                }
+            });
+            
+            // 准备状态更新
+            socket.on('ready_status_update', (data) => {
+                console.log('准备状态更新:', data);
+                updatePlayersReadyStatus(data.readyStatus);
+                if (data.countdown !== undefined) {
+                    const countdownEl = document.getElementById('countdownSeconds');
+                    if (countdownEl) {
+                        countdownEl.textContent = data.countdown;
+                    }
+                }
+            });
+            
+            // AI接管状态
+            socket.on('ai_takeover_status', (data) => {
+                console.log('AI接管状态:', data);
+                updatePlayersReadyStatus(data.readyStatus);
+                
+                // 检查自己是否被接管
+                const myStatus = data.readyStatus.find(p => p.seatIndex === mySeatIndex);
+                if (myStatus && myStatus.aiTakeover) {
+                    showToast('⚠️ 你未准备，AI将代替你进行游戏', 3000);
+                    isAITakeover = true;
+                }
+            });
+            
+            // 接管AI成功
+            socket.on('takeover_success', (data) => {
+                console.log('接管AI成功:', data);
+                showToast('✅ 已恢复控制权！', 2000);
+                isAITakeover = false;
+                hideTakeoverButton();
+            });
+            
+            // 其他玩家接管AI
+            socket.on('player_takeover', (data) => {
+                console.log('玩家接管AI:', data);
+                showToast(`${data.username} 恢复了控制权`);
             });
             
             // 比赛结束
@@ -3699,27 +3819,114 @@
             document.getElementById('roundEndCurrent').textContent = currentRound;
             document.getElementById('roundEndTotal').textContent = totalRounds;
             
-            // 如果是最后一局，隐藏继续按钮
-            const continueBtn = document.querySelector('#roundResultModal .btn');
+            // 如果是最后一局，隐藏继续按钮和倒计时区域
+            const continueBtn = document.getElementById('continueNextBtn');
+            const countdownArea = document.getElementById('nextRoundCountdown');
             if (currentRound >= totalRounds) {
                 continueBtn.style.display = 'none';
+                countdownArea.style.display = 'none';
             } else {
                 continueBtn.style.display = 'block';
+                countdownArea.style.display = 'block';
+                
+                // 初始化倒计时显示
+                const countdownSeconds = data.countdownSeconds || 30;
+                document.getElementById('countdownSeconds').textContent = countdownSeconds;
+                
+                // 初始化玩家准备状态（显示4个等待中）
+                updatePlayersReadyStatus([]);
             }
             
             document.getElementById('roundResultModal').classList.add('active');
         }
         
+        // 更新玩家准备状态显示
+        function updatePlayersReadyStatus(readyStatus) {
+            const container = document.getElementById('playersReadyStatus');
+            if (!container) return;
+            
+            // 如果没有状态数据，使用游戏中的玩家信息
+            if (!readyStatus || readyStatus.length === 0) {
+                if (gameState && gameState.players) {
+                    readyStatus = gameState.players.map(p => ({
+                        seatIndex: p.seatIndex,
+                        username: p.username,
+                        ready: p.isBot,
+                        isBot: p.isBot,
+                        aiTakeover: false
+                    }));
+                } else {
+                    return;
+                }
+            }
+            
+            container.innerHTML = readyStatus.map(p => {
+                let statusClass = 'waiting';
+                let statusIcon = '⏳';
+                let statusText = '等待中';
+                
+                if (p.isBot) {
+                    statusClass = 'ready';
+                    statusIcon = '🤖';
+                    statusText = 'AI';
+                } else if (p.aiTakeover) {
+                    statusClass = 'ai-takeover';
+                    statusIcon = '🤖';
+                    statusText = 'AI接管';
+                } else if (p.ready) {
+                    statusClass = 'ready';
+                    statusIcon = '✓';
+                    statusText = '已准备';
+                }
+                
+                const isMe = p.seatIndex === mySeatIndex ? ' (我)' : '';
+                
+                return `
+                    <div class="player-ready-item ${statusClass}">
+                        ${statusIcon} ${p.username}${isMe}: ${statusText}
+                    </div>
+                `;
+            }).join('');
+        }
+        
         // 继续下一局
         function continueNextRound() {
-            document.getElementById('roundResultModal').classList.remove('active');
+            // 更新按钮状态
+            const btn = document.getElementById('continueNextBtn');
+            btn.innerHTML = '<i class="fas fa-check"></i> 已准备，等待其他玩家...';
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
             
-            // 直接发送准备状态
+            // 发送准备状态
             isReady = true;
             socket.emit('toggle_ready', { ready: true });
             
-            showToast('等待下一局开始...');
+            showToast('已准备！等待其他玩家...');
             console.log('已发送准备状态，等待下一局');
+        }
+        
+        // 接管AI（恢复控制权）
+        function takeoverAI() {
+            if (socket && isAITakeover) {
+                socket.emit('takeover_ai');
+                showToast('正在接管...');
+            }
+        }
+        
+        // 显示接管AI按钮
+        function showTakeoverButton() {
+            const container = document.getElementById('takeoverContainer');
+            if (container) {
+                container.style.display = 'block';
+            }
+        }
+        
+        // 隐藏接管AI按钮
+        function hideTakeoverButton() {
+            const container = document.getElementById('takeoverContainer');
+            if (container) {
+                container.style.display = 'none';
+            }
         }
         
         // 显示最终结算

@@ -386,10 +386,30 @@ class MahjongRoom {
         const player = this.players.find(p => p.id === socketId);
         if (player) {
             player.ready = ready;
-            this.broadcastRoomUpdate();
+            player.aiTakeover = false; // 玩家主动准备，取消AI接管标记
             
-            // 检查是否可以开始游戏
-            this.checkCanStart();
+            // 如果在倒计时中，广播准备状态
+            if (this.nextRoundTimer) {
+                this.broadcastReadyStatus();
+                
+                // 检查是否全员准备
+                const allReady = this.players.every(p => p.ready);
+                if (allReady) {
+                    console.log(`房间 ${this.code} 全员准备，立即开始`);
+                    clearInterval(this.nextRoundTimer);
+                    this.nextRoundTimer = null;
+                    
+                    setTimeout(() => {
+                        if (!this.gameRunning) {
+                            this.startGame();
+                        }
+                    }, 500);
+                }
+            } else {
+                // 非倒计时状态（首局开始前）
+                this.broadcastRoomUpdate();
+                this.checkCanStart();
+            }
         }
     }
 
@@ -529,6 +549,7 @@ class MahjongRoom {
                 isBot: p.isBot,
                 isHost: p.isHost,
                 offline: p.offline || false,
+                aiTakeover: p.aiTakeover || false,  // AI接管状态
                 handCount: p.hand.length,
                 hand: p.id === playerId ? p.hand : null,
                 melds: p.melds,
@@ -559,8 +580,8 @@ class MahjongRoom {
         if (currentPlayer.isBot) {
             // AI玩家自动行动（无需等待）
             setTimeout(() => this.aiAction(currentPlayer), 500 + Math.random() * 500);
-        } else if (currentPlayer.offline) {
-            // 离线玩家当作AI处理
+        } else if (currentPlayer.offline || currentPlayer.aiTakeover) {
+            // 离线玩家或被AI接管的玩家当作AI处理
             setTimeout(() => this.aiAction(currentPlayer), 500);
         } else {
             // 真人玩家：如果是出牌阶段，设置15秒超时
@@ -919,9 +940,9 @@ class MahjongRoom {
                         this.aiDecideAction(player, action);
                     }
                 }, 500 + Math.random() * 1000);
-            } else if (player.offline || !player.socket) {
-                // 离线玩家自动过
-                console.log(`玩家 ${player.username} 离线，自动过`);
+            } else if (player.offline || !player.socket || player.aiTakeover) {
+                // 离线玩家或被AI接管的玩家自动过
+                console.log(`玩家 ${player.username} 离线/AI接管，自动过`);
                 action.resolved = true;
                 action.action = 'pass';
             } else {
@@ -1532,28 +1553,147 @@ class MahjongRoom {
             // 10局结束，广播比赛结束
             this.endMatch();
         } else {
-            // 广播本局结束
+            // 重置所有玩家准备状态
+            this.players.forEach(p => {
+                p.ready = false;
+                // 标记是否被AI接管（用于后续恢复）
+                if (!p.isBot && !p.offline) {
+                    p.aiTakeover = false;
+                }
+            });
+            
+            // 广播本局结束，包含30秒倒计时
             this.broadcast('round_ended', {
                 roundResult: roundResult,
                 currentRound: this.currentRound,
                 totalRounds: this.totalRounds,
-                matchScores: this.matchScores
+                matchScores: this.matchScores,
+                countdownSeconds: 30
             });
             
-            // AI玩家自动准备下一局
-            setTimeout(() => {
-                this.players.forEach(p => {
-                    if (p.isBot) {
-                        p.ready = true;
-                    } else {
-                        p.ready = false;
-                    }
-                });
-                this.broadcastRoomUpdate();
-                // 检查是否可以开始下一局（当玩家也准备好时）
-                this.checkCanStart();
-            }, 1000);
+            // 启动30秒倒计时
+            this.startNextRoundCountdown();
         }
+    }
+    
+    // 启动下一局倒计时
+    startNextRoundCountdown() {
+        const COUNTDOWN_SECONDS = 30;
+        this.nextRoundCountdown = COUNTDOWN_SECONDS;
+        
+        // 清除之前的倒计时
+        if (this.nextRoundTimer) {
+            clearInterval(this.nextRoundTimer);
+        }
+        
+        // AI玩家立即准备
+        this.players.forEach(p => {
+            if (p.isBot) {
+                p.ready = true;
+            }
+        });
+        
+        // 广播初始准备状态
+        this.broadcastReadyStatus();
+        
+        // 每秒更新倒计时
+        this.nextRoundTimer = setInterval(() => {
+            this.nextRoundCountdown--;
+            
+            // 广播倒计时
+            this.broadcast('countdown_update', {
+                seconds: this.nextRoundCountdown,
+                readyStatus: this.getReadyStatus()
+            });
+            
+            if (this.nextRoundCountdown <= 0) {
+                clearInterval(this.nextRoundTimer);
+                this.nextRoundTimer = null;
+                this.forceStartNextRound();
+            }
+        }, 1000);
+    }
+    
+    // 获取玩家准备状态
+    getReadyStatus() {
+        return this.players.map(p => ({
+            seatIndex: p.seatIndex,
+            username: p.username,
+            ready: p.ready,
+            isBot: p.isBot,
+            aiTakeover: p.aiTakeover || false
+        }));
+    }
+    
+    // 广播准备状态
+    broadcastReadyStatus() {
+        this.broadcast('ready_status_update', {
+            readyStatus: this.getReadyStatus(),
+            countdown: this.nextRoundCountdown
+        });
+    }
+    
+    // 强制开始下一局（倒计时结束）
+    forceStartNextRound() {
+        console.log(`房间 ${this.code} 倒计时结束，强制开始下一局`);
+        
+        // 未准备的真人玩家由AI接管
+        this.players.forEach(p => {
+            if (!p.isBot && !p.ready && !p.offline) {
+                console.log(`玩家 ${p.username} 未准备，AI接管`);
+                p.aiTakeover = true;
+                p.ready = true; // 标记为准备好，以便开始游戏
+            }
+        });
+        
+        // 广播AI接管状态
+        this.broadcast('ai_takeover_status', {
+            readyStatus: this.getReadyStatus()
+        });
+        
+        // 开始下一局
+        setTimeout(() => {
+            if (!this.gameRunning) {
+                this.startGame();
+            }
+        }, 500);
+    }
+    
+    // 玩家接管AI（游戏中恢复控制权）
+    takeoverAI(socketId) {
+        const player = this.players.find(p => p.id === socketId);
+        if (!player) return { error: '玩家不存在' };
+        
+        if (!player.aiTakeover) {
+            return { error: '你没有被AI接管' };
+        }
+        
+        console.log(`玩家 ${player.username} 接管AI，恢复控制权`);
+        player.aiTakeover = false;
+        
+        // 通知该玩家恢复控制
+        if (player.socket) {
+            player.socket.emit('takeover_success', {
+                message: '已恢复控制权！',
+                seatIndex: player.seatIndex
+            });
+        }
+        
+        // 广播状态更新
+        this.broadcast('player_takeover', {
+            username: player.username,
+            seatIndex: player.seatIndex
+        });
+        
+        // 如果正好轮到这个玩家，设置出牌超时
+        if (this.gameState.currentPlayerIndex === player.seatIndex && 
+            this.gameState.turnPhase === 'discard') {
+            this.setDiscardTimeout(player);
+        }
+        
+        this.broadcastGameState();
+        
+        return { success: true };
     }
     
     // 结束整场比赛
@@ -1728,6 +1868,14 @@ io.on('connection', (socket) => {
         const room = playerSockets.get(socket.id);
         if (room) {
             room.setPlayerReady(socket.id, data.ready);
+        }
+    });
+    
+    // 接管AI（游戏中恢复控制权）
+    socket.on('takeover_ai', () => {
+        const room = playerSockets.get(socket.id);
+        if (room && room.gameRunning) {
+            room.takeoverAI(socket.id);
         }
     });
 
