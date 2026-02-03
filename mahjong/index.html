@@ -83,20 +83,22 @@
             width: 100%;
         }
 
-        /* 性别选择器 */
-        .gender-select-group {
+        /* 语音选择器 */
+        .voice-select-group {
             margin-bottom: 20px;
         }
         
-        .gender-selector {
+        .voice-selector {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
-        .gender-btn {
+        .voice-btn {
             flex: 1;
-            padding: 12px 20px;
-            font-size: 1rem;
+            min-width: 80px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 10px;
             background: rgba(255,255,255,0.1);
@@ -106,23 +108,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
         
-        .gender-btn:hover {
+        .voice-btn:hover {
             border-color: var(--gold);
             color: #fff;
         }
         
-        .gender-btn.active {
+        .voice-btn.active {
             border-color: var(--gold);
             background: linear-gradient(135deg, rgba(212,175,55,0.3) 0%, rgba(184,134,11,0.3) 100%);
             color: var(--gold);
             font-weight: bold;
         }
         
-        .gender-btn i {
-            font-size: 1.2rem;
+        .voice-btn i {
+            font-size: 1rem;
         }
 
         .menu-btn {
@@ -693,16 +695,19 @@
         <div id="scoreboardPreview" class="scoreboard-preview"></div>
         
         <div class="menu-container">
-            <!-- 性别语音选择 -->
-            <div class="gender-select-group">
+            <!-- 语音选择 -->
+            <div class="voice-select-group">
                 <label style="color: var(--gold); margin-bottom: 10px; display: block;">
-                    <i class="fas fa-venus-mars"></i> 选择语音
+                    <i class="fas fa-volume-up"></i> 选择语音
                 </label>
-                <div class="gender-selector">
-                    <button type="button" class="gender-btn active" id="genderFemale" onclick="selectGender('female')">
-                        <i class="fas fa-venus"></i> 女声
+                <div class="voice-selector">
+                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
+                        <i class="fas fa-venus"></i> 女声1
                     </button>
-                    <button type="button" class="gender-btn" id="genderMale" onclick="selectGender('male')">
+                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
+                        <i class="fas fa-venus"></i> 女声2
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
                         <i class="fas fa-mars"></i> 男声
                     </button>
                 </div>
@@ -1155,16 +1160,17 @@
         let speechReady = false;
         let voiceList = [];
         
-        // 性别语音选择
-        let playerGender = 'female';  // 玩家语音性别
-        const aiGenders = ['male', 'female', 'male'];  // AI 1/2/3 的性别
+        // 语音选择
+        let playerVoice = 'female01';  // 玩家语音类型
+        const aiVoices = ['male', 'female02', 'male'];  // AI 1/2/3 的语音
         
-        // 选择性别
-        function selectGender(gender) {
-            playerGender = gender;
-            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
-            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
-            console.log('选择语音性别:', gender);
+        // 选择语音
+        function selectVoice(voice) {
+            playerVoice = voice;
+            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
+            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
+            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
+            console.log('选择语音:', voice);
         }
         
         // ==================== 音频播放系统 ====================
@@ -1173,7 +1179,8 @@
         
         // 音频格式配置（统一使用mp3）
         const AUDIO_FORMATS = {
-            female: '.mp3',
+            female01: '.mp3',
+            female02: '.mp3',
             male: '.mp3'
         };
         
@@ -1240,43 +1247,44 @@
             }
         }
         
-        // 获取玩家性别（0=玩家，1/2/3=AI）
-        function getPlayerGenderByIndex(playerIndex) {
+        // 获取玩家语音（0=玩家，1/2/3=AI）
+        function getPlayerVoiceByIndex(playerIndex) {
             if (playerIndex === 0) {
-                return playerGender;  // 玩家自己的性别
+                return playerVoice;  // 玩家自己的语音
             }
-            return aiGenders[playerIndex - 1] || 'female';  // AI 性别
+            return aiVoices[playerIndex - 1] || 'female01';  // AI 语音
         }
         
-        // 音量配置（降低女声来平衡，因为 volume 最大只能是 1.0）
+        // 音量配置（根据不同语音调整平衡）
         const AUDIO_VOLUMES = {
-            female: 0.6,  // 降低女声音量
-            male: 1.0     // 男声满音量
+            female01: 0.6,  // 女声1
+            female02: 0.8,  // 女声2
+            male: 1.0       // 男声
         };
         
-        // 播放牌的音频（支持男女声，注意：单人模式在 mahjong/ 子目录）
-        function playTileAudio(tile, gender = 'female') {
+        // 播放牌的音频（支持多种语音，注意：单人模式在 mahjong/ 子目录）
+        function playTileAudio(tile, voice = 'female01') {
             const name = getTileAudioName(tile);
-            const format = AUDIO_FORMATS[gender] || '.mp3';
-            const volume = AUDIO_VOLUMES[gender] || 1.0;
-            playAudioFile(`../audio/${gender}/tiles/${name}${format}`, volume);
+            const format = AUDIO_FORMATS[voice] || '.mp3';
+            const volume = AUDIO_VOLUMES[voice] || 1.0;
+            playAudioFile(`../audio/${voice}/tiles/${name}${format}`, volume);
         }
         
-        // 播放动作音频（支持男女声）
-        function playActionAudio(action, gender = 'female') {
-            const format = AUDIO_FORMATS[gender] || '.mp3';
-            const volume = AUDIO_VOLUMES[gender] || 1.0;
-            playAudioFile(`../audio/${gender}/actions/${action}${format}`, volume);
+        // 播放动作音频（支持多种语音）
+        function playActionAudio(action, voice = 'female01') {
+            const format = AUDIO_FORMATS[voice] || '.mp3';
+            const volume = AUDIO_VOLUMES[voice] || 1.0;
+            playAudioFile(`../audio/${voice}/actions/${action}${format}`, volume);
         }
         
-        // 预加载音频 - 只预加载选定性别的动作音频，避免卡顿
+        // 预加载音频 - 只预加载选定语音的动作音频，避免卡顿
         function preloadAudio() {
-            // 只预加载当前选择性别的动作音频（最重要的几个）
+            // 只预加载当前选择语音的动作音频（最重要的几个）
             const actions = ['peng', 'gang', 'hu', 'zimo'];
-            const format = AUDIO_FORMATS[playerGender] || '.mp3';
+            const format = AUDIO_FORMATS[playerVoice] || '.mp3';
             
             actions.forEach(a => {
-                const path = `../audio/${playerGender}/actions/${a}${format}`;
+                const path = `../audio/${playerVoice}/actions/${a}${format}`;
                 const audio = new Audio(path);
                 audio.load();
                 audioCache[path] = audio;
@@ -1377,10 +1385,10 @@
         
         // 不同玩家的音调配置
         const PLAYER_VOICE = {
-            0: { pitch: 1.2, rate: 0.95, gender: 'female' },  // 玩家：女声
-            1: { pitch: 0.8, rate: 0.9, gender: 'male' },     // 东家：男声1
-            2: { pitch: 0.9, rate: 1.0, gender: 'male' },     // 南家：男声2
-            3: { pitch: 0.7, rate: 0.85, gender: 'male' }     // 北家：男声3
+            0: { pitch: 1.2, rate: 0.95, voice: 'female01' },  // 玩家：女声1
+            1: { pitch: 0.8, rate: 0.9, voice: 'male' },       // 东家：男声
+            2: { pitch: 0.9, rate: 1.0, voice: 'female02' },   // 南家：女声2
+            3: { pitch: 0.7, rate: 0.85, voice: 'male' }       // 北家：男声
         };
         
         // 女声语音关键词
@@ -1499,14 +1507,14 @@
             }
         }
         
-        // 语音播报（根据性别选择不同语音）+ 备用音效
-        function speak(text, rate = 1.0, pitch = 1.0, gender = 'female') {
+        // 语音播报（根据语音类型选择不同语音）+ 备用音效
+        function speak(text, rate = 1.0, pitch = 1.0, voice = 'female01') {
             if (!speechEnabled) {
                 return;
             }
             
             // 备用：播放提示音
-            playBeep(gender === 'female' ? 523 : 392, 60);
+            playBeep(voice.startsWith('female') ? 523 : 392, 60);
             
             if (!window.speechSynthesis) {
                 vibrate(30);
@@ -1523,10 +1531,10 @@
                 utterance.pitch = pitch;
                 utterance.volume = 1.0;
                 
-                // 根据性别选择语音
-                if (gender === 'female' && femaleVoice) {
+                // 根据语音类型选择语音
+                if (voice.startsWith('female') && femaleVoice) {
                     utterance.voice = femaleVoice;
-                } else if (gender === 'male' && maleVoice) {
+                } else if (voice === 'male' && maleVoice) {
                     utterance.voice = maleVoice;
                 }
                 
@@ -1537,16 +1545,16 @@
             }
         }
         
-        // 用指定玩家的声音播报（女声给玩家，男声给AI）
+        // 用指定玩家的声音播报
         function speakAs(playerIndex, text) {
-            const voice = PLAYER_VOICE[playerIndex] || PLAYER_VOICE[0];
-            speak(text, voice.rate, voice.pitch, voice.gender);
+            const voiceConfig = PLAYER_VOICE[playerIndex] || PLAYER_VOICE[0];
+            speak(text, voiceConfig.rate, voiceConfig.pitch, voiceConfig.voice);
         }
         
-        // 播报打出的牌（使用音频文件，支持男女声）
+        // 播报打出的牌（使用音频文件，支持多种语音）
         function speakDiscard(tile, playerIndex = 0) {
             const tileName = getTileSpeechName(tile);
-            const gender = getPlayerGenderByIndex(playerIndex);
+            const voice = getPlayerVoiceByIndex(playerIndex);
             
             // 显示谁出的牌（帮助区分）
             const playerNames = ['你', '东家', '南家', '北家'];
@@ -1554,29 +1562,29 @@
                 showToast(`${playerNames[playerIndex]}：${tileName}`, 800);
             }
             
-            // 使用音频文件播放（传入玩家性别）
-            playTileAudio(tile, gender);
+            // 使用音频文件播放（传入玩家语音）
+            playTileAudio(tile, voice);
         }
         
-        // 播报碰牌（玩家碰，用玩家性别）
+        // 播报碰牌（玩家碰，用玩家语音）
         function speakPeng(tile) {
-            playActionAudio('peng', playerGender);
+            playActionAudio('peng', playerVoice);
         }
         
-        // 播报杠牌（玩家杠，用玩家性别）
+        // 播报杠牌（玩家杠，用玩家语音）
         function speakGang(tile) {
-            playActionAudio('gang', playerGender);
+            playActionAudio('gang', playerVoice);
         }
         
-        // 播报听牌（玩家听，用玩家性别）
+        // 播报听牌（玩家听，用玩家语音）
         function speakTing() {
-            playActionAudio('ting', playerGender);
+            playActionAudio('ting', playerVoice);
         }
         
         // 播报胡牌（需要传入胡牌者索引）
         function speakHu(winnerIndex = 0) {
-            const gender = getPlayerGenderByIndex(winnerIndex);
-            playActionAudio('hu', gender);
+            const voice = getPlayerVoiceByIndex(winnerIndex);
+            playActionAudio('hu', voice);
         }
         
         // 播报放炮（带爆炸音效）
@@ -2147,9 +2155,9 @@
                 const display = getTileDisplay(tile);
                 showToast(`摸到花牌：${display.value} 🌸`);
                 
-                // 播放花牌音频 + 补花音频（玩家性别）
-                playTileAudio(tile, playerGender);
-                setTimeout(() => playActionAudio('buhua', playerGender), 400);
+                // 播放花牌音频 + 补花音频（玩家语音）
+                playTileAudio(tile, playerVoice);
+                setTimeout(() => playActionAudio('buhua', playerVoice), 400);
                 
                 // 直接补花（不用setTimeout，更快）
                 autoDrawFlowerReplace();
@@ -2179,9 +2187,9 @@
                 const display = getTileDisplay(tile);
                 showToast(`又摸到花牌：${display.value} 🌸`);
                 
-                // 播放花牌音频 + 补花音频（玩家性别）
-                playTileAudio(tile, playerGender);
-                setTimeout(() => playActionAudio('buhua', playerGender), 400);
+                // 播放花牌音频 + 补花音频（玩家语音）
+                playTileAudio(tile, playerVoice);
+                setTimeout(() => playActionAudio('buhua', playerVoice), 400);
                 
                 updateUI();
                 

@@ -164,7 +164,7 @@ class MahjongRoom {
     }
 
     // 添加玩家
-    addPlayer(socket, username, avatar, gender = 'female') {
+    addPlayer(socket, username, avatar, voice = 'female01') {
         if (this.players.length >= 4) {
             return null;
         }
@@ -248,7 +248,7 @@ class MahjongRoom {
             id: socket.id,
             username: username,
             avatar: avatar || '👤',
-            gender: gender || 'female',  // 语音性别
+            voice: voice || 'female01',  // 语音类型
             socket: socket,
             ready: false,
             seatIndex: seatIndex,
@@ -281,14 +281,14 @@ class MahjongRoom {
         const seatIndex = this.players.length;
         const aiNames = ['AI小明', 'AI小红', 'AI小刚', 'AI小丽'];
         const aiAvatars = ['🤖', '🎮', '💻', '🎯'];
-        // AI性别：小明、小刚是男，小红、小丽是女
-        const aiGenders = ['male', 'female', 'male', 'female'];
+        // AI语音：小明用男声，小红用女声2，小刚用男声，小丽用女声1
+        const aiVoices = ['male', 'female02', 'male', 'female01'];
         
         const aiPlayer = {
             id: 'ai_' + Date.now() + '_' + seatIndex,
             username: aiNames[seatIndex] || 'AI玩家',
             avatar: aiAvatars[seatIndex] || '🤖',
-            gender: aiGenders[seatIndex] || 'female',  // AI语音性别
+            voice: aiVoices[seatIndex] || 'female01',  // AI语音类型
             socket: null,
             ready: true,
             seatIndex: seatIndex,
@@ -542,7 +542,7 @@ class MahjongRoom {
                 id: p.id,
                 username: p.username,
                 avatar: p.avatar,
-                gender: p.gender || 'female',  // 语音性别
+                voice: p.voice || 'female01',  // 语音类型
                 seatIndex: p.seatIndex,
                 wind: p.wind,
                 windName: WIND_NAMES[p.wind],
@@ -1766,7 +1766,7 @@ class MahjongRoom {
                 id: p.id,
                 username: p.username,
                 avatar: p.avatar,
-                gender: p.gender || 'female',  // 语音性别
+                voice: p.voice || 'female01',  // 语音类型
                 seatIndex: p.seatIndex,
                 wind: p.wind,
                 windName: WIND_NAMES[p.wind],
@@ -1807,7 +1807,7 @@ io.on('connection', (socket) => {
 
     // 创建房间
     socket.on('create_room', (data) => {
-        const { username, avatar, gender } = data;
+        const { username, avatar, voice } = data;
         let code;
         do {
             code = generateRoomCode();
@@ -1816,18 +1816,18 @@ io.on('connection', (socket) => {
         const room = new MahjongRoom(code, socket.id, username);
         gameRooms.set(code, room);
         
-        room.addPlayer(socket, username, avatar, gender || 'female');
+        room.addPlayer(socket, username, avatar, voice || 'female01');
         
         socket.emit('room_created', { roomCode: code });
     });
 
     // 加入房间
     socket.on('join_room', (data) => {
-        const { roomCode, username, avatar, gender } = data;
+        const { roomCode, username, avatar, voice } = data;
         const code = roomCode.toUpperCase().trim();
         const room = gameRooms.get(code);
         
-        console.log(`玩家 ${username} (${gender || 'female'}) 尝试加入房间 ${code}, 当前房间数: ${gameRooms.size}`);
+        console.log(`玩家 ${username} (${voice || 'female01'}) 尝试加入房间 ${code}, 当前房间数: ${gameRooms.size}`);
         
         if (!room) {
             // 列出所有房间供调试
@@ -1858,7 +1858,7 @@ io.on('connection', (socket) => {
             }
         }
         
-        room.addPlayer(socket, username, avatar, gender || 'female');
+        room.addPlayer(socket, username, avatar, voice || 'female01');
         socket.emit('room_joined', { roomCode: room.code });
         console.log(`玩家 ${username} 成功加入房间 ${code}`);
     });

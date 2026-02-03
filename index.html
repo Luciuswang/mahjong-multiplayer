@@ -141,16 +141,18 @@
             text-transform: none;
         }
 
-        /* 性别选择器 */
-        .gender-selector {
+        /* 语音选择器 */
+        .voice-selector {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
-        .gender-btn {
+        .voice-btn {
             flex: 1;
-            padding: 12px 20px;
-            font-size: 1rem;
+            min-width: 80px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 10px;
             background: rgba(255,255,255,0.1);
@@ -160,23 +162,23 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
         
-        .gender-btn:hover {
+        .voice-btn:hover {
             border-color: var(--gold);
             color: #fff;
         }
         
-        .gender-btn.active {
+        .voice-btn.active {
             border-color: var(--gold);
             background: linear-gradient(135deg, rgba(212,175,55,0.3) 0%, rgba(184,134,11,0.3) 100%);
             color: var(--gold);
             font-weight: bold;
         }
         
-        .gender-btn i {
-            font-size: 1.2rem;
+        .voice-btn i {
+            font-size: 1rem;
         }
 
         .btn {
@@ -1591,12 +1593,15 @@
             </div>
             
             <div class="input-group">
-                <label><i class="fas fa-venus-mars"></i> 语音性别</label>
-                <div class="gender-selector">
-                    <button type="button" class="gender-btn active" id="genderFemale" onclick="selectGender('female')">
-                        <i class="fas fa-venus"></i> 女声
+                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <div class="voice-selector">
+                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
+                        <i class="fas fa-venus"></i> 女声1
                     </button>
-                    <button type="button" class="gender-btn" id="genderMale" onclick="selectGender('male')">
+                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
+                        <i class="fas fa-venus"></i> 女声2
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
                         <i class="fas fa-mars"></i> 男声
                     </button>
                 </div>
@@ -2015,8 +2020,8 @@
         let pendingAutoDiscard = false; // 是否等待自动出牌
         let pendingAutoDiscardTileId = null; // 等待自动出牌的牌ID
         let isAITakeover = false; // 是否被AI接管
-        let myGender = 'female'; // 我的语音性别
-        let playerGenders = {}; // 存储所有玩家的性别 { oderId: 'male'/'female' }
+        let myVoice = 'female01'; // 我的语音类型
+        let playerVoices = {}; // 存储所有玩家的语音类型
 
         // 牌面显示
         const TYPE_NAMES = { wan: '万', tiao: '条', tong: '筒' };
@@ -2175,7 +2180,8 @@
         
         // 音频格式配置（统一使用mp3）
         const AUDIO_FORMATS = {
-            female: '.mp3',
+            female01: '.mp3',
+            female02: '.mp3',
             male: '.mp3'
         };
         
@@ -2190,19 +2196,19 @@
             return `${tile.type}${tile.value}`; // 数字牌: wan1, tong2, etc.
         }
         
-        // 根据玩家ID获取性别
-        function getPlayerGender(playerId) {
-            return playerGenders[playerId] || 'female';
+        // 根据玩家ID获取语音
+        function getPlayerVoice(playerId) {
+            return playerVoices[playerId] || 'female01';
         }
         
-        // 根据座位索引获取玩家性别
-        function getPlayerGenderBySeat(seatIndex) {
-            if (!gameState || !gameState.players) return 'female';
+        // 根据座位索引获取玩家语音
+        function getPlayerVoiceBySeat(seatIndex) {
+            if (!gameState || !gameState.players) return 'female01';
             const player = gameState.players.find(p => p.seatIndex === seatIndex);
-            if (player && player.gender) {
-                return player.gender;
+            if (player && player.voice) {
+                return player.voice;
             }
-            return playerGenders[player?.id] || 'female';
+            return playerVoices[player?.id] || 'female01';
         }
         
         // 解锁移动设备音频
@@ -2244,25 +2250,26 @@
             }
         }
         
-        // 音量配置（降低女声来平衡，因为 volume 最大只能是 1.0）
+        // 音量配置（根据不同语音调整音量平衡）
         const AUDIO_VOLUMES = {
-            female: 0.6,  // 降低女声音量
-            male: 1.0     // 男声满音量
+            female01: 0.6,  // 女声1
+            female02: 0.8,  // 女声2
+            male: 1.0       // 男声
         };
         
-        // 播放牌的音频（支持男女声）
-        function playTileAudio(tile, gender = 'female') {
+        // 播放牌的音频（支持多种语音）
+        function playTileAudio(tile, voice = 'female01') {
             const name = getTileAudioName(tile);
-            const format = AUDIO_FORMATS[gender] || '.mp3';
-            const volume = AUDIO_VOLUMES[gender] || 1.0;
-            playAudioFile(`audio/${gender}/tiles/${name}${format}`, volume);
+            const format = AUDIO_FORMATS[voice] || '.mp3';
+            const volume = AUDIO_VOLUMES[voice] || 1.0;
+            playAudioFile(`audio/${voice}/tiles/${name}${format}`, volume);
         }
         
-        // 播放动作音频（支持男女声）
-        function playActionAudio(action, gender = 'female') {
-            const format = AUDIO_FORMATS[gender] || '.mp3';
-            const volume = AUDIO_VOLUMES[gender] || 1.0;
-            playAudioFile(`audio/${gender}/actions/${action}${format}`, volume);
+        // 播放动作音频（支持多种语音）
+        function playActionAudio(action, voice = 'female01') {
+            const format = AUDIO_FORMATS[voice] || '.mp3';
+            const volume = AUDIO_VOLUMES[voice] || 1.0;
+            playAudioFile(`audio/${voice}/actions/${action}${format}`, volume);
         }
         
         // 音频懒加载队列
@@ -2276,12 +2283,12 @@
             console.log('音频使用懒加载模式，避免启动卡顿');
         }
         
-        // 游戏开始时预加载当前性别的动作音频
-        function preloadCurrentGenderAudio(gender) {
+        // 游戏开始时预加载当前语音的动作音频
+        function preloadCurrentVoiceAudio(voice) {
             const priorityAudios = ['peng', 'gang', 'hu', 'zimo'];
-            const format = AUDIO_FORMATS[gender] || '.mp3';
+            const format = AUDIO_FORMATS[voice] || '.mp3';
             priorityAudios.forEach(a => {
-                preloadSingleAudio(`audio/${gender}/actions/${a}${format}`);
+                preloadSingleAudio(`audio/${voice}/actions/${a}${format}`);
             });
         }
         
@@ -2517,10 +2524,10 @@
             }
         }
         
-        // 播报出牌（使用音频文件，支持男女声）
-        function speakDiscard(tile, gender = 'female') {
+        // 播报出牌（使用音频文件，支持多种语音）
+        function speakDiscard(tile, voice = 'female01') {
             // 使用音频播放
-            playTileAudio(tile, gender);
+            playTileAudio(tile, voice);
         }
         
         // 播报听牌
@@ -2529,19 +2536,19 @@
             playBeep(880, 150);
         }
         
-        // 播报碰（使用音频，支持男女声）
-        function speakPeng(gender = 'female') {
-            playActionAudio('peng', gender);
+        // 播报碰（使用音频，支持多种语音）
+        function speakPeng(voice = 'female01') {
+            playActionAudio('peng', voice);
         }
         
-        // 播报杠（使用音频，支持男女声）
-        function speakGang(gender = 'female') {
-            playActionAudio('gang', gender);
+        // 播报杠（使用音频，支持多种语音）
+        function speakGang(voice = 'female01') {
+            playActionAudio('gang', voice);
         }
         
-        // 播报胡牌（使用音频，支持男女声）
-        function speakHu(isZimo = false, gender = 'female') {
-            playActionAudio(isZimo ? 'zimo' : 'hu', gender);
+        // 播报胡牌（使用音频，支持多种语音）
+        function speakHu(isZimo = false, voice = 'female01') {
+            playActionAudio(isZimo ? 'zimo' : 'hu', voice);
             // 播放胜利音效
             playBeep(523, 100);
             setTimeout(() => playBeep(659, 100), 100);
@@ -2808,13 +2815,13 @@
             socket.on('tile_discarded', (data) => {
                 const player = gameState.players[data.playerIndex];
                 const playerName = player?.username || '玩家';
-                const playerGender = player?.gender || getPlayerGenderBySeat(data.playerIndex);
+                const playerVoice = player?.voice || getPlayerVoiceBySeat(data.playerIndex);
                 const isMe = data.playerIndex === mySeatIndex;
                 if (!isMe) {
                     showToast(`${playerName}: ${data.tileName}`);
                 }
-                // 语音播报出牌（使用出牌玩家的性别）
-                speakDiscard(data.tile, playerGender);
+                // 语音播报出牌（使用出牌玩家的语音）
+                speakDiscard(data.tile, playerVoice);
             });
 
             socket.on('action_available', (data) => {
@@ -2864,18 +2871,18 @@
             socket.on('action_executed', (data) => {
                 const player = gameState.players.find(p => p.seatIndex === data.playerIndex);
                 const playerName = player?.username || '玩家';
-                const playerGender = player?.gender || getPlayerGenderBySeat(data.playerIndex);
+                const playerVoice = player?.voice || getPlayerVoiceBySeat(data.playerIndex);
                 const isMe = data.playerIndex === mySeatIndex;
                 
                 if (data.action === 'peng') {
                     showToast(`${isMe ? '你' : playerName} 碰！`);
-                    speakPeng(playerGender);
+                    speakPeng(playerVoice);
                 } else if (data.action === 'gang') {
                     showToast(`${isMe ? '你' : playerName} 杠！`);
-                    speakGang(playerGender);
+                    speakGang(playerVoice);
                 } else if (data.action === 'hu') {
                     showToast(`${isMe ? '你' : playerName} 胡了！`);
-                    speakHu(false, playerGender);
+                    speakHu(false, playerVoice);
                 }
             });
 
@@ -3085,12 +3092,13 @@
             document.getElementById('serverRequiredModal').classList.remove('active');
         }
         
-        // 选择性别
-        function selectGender(gender) {
-            myGender = gender;
-            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
-            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
-            console.log('选择语音性别:', gender);
+        // 选择语音
+        function selectVoice(voice) {
+            myVoice = voice;
+            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
+            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
+            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
+            console.log('选择语音:', voice);
         }
         
         // 创建房间
@@ -3100,7 +3108,7 @@
                 return;
             }
             username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
-            socket.emit('create_room', { username, avatar: '👤', gender: myGender });
+            socket.emit('create_room', { username, avatar: '👤', voice: myVoice });
         }
 
         // 加入房间
@@ -3117,7 +3125,7 @@
                 return;
             }
             
-            socket.emit('join_room', { roomCode, username, avatar: '👤', gender: myGender });
+            socket.emit('join_room', { roomCode, username, avatar: '👤', voice: myVoice });
         }
 
         // 显示房间界面
