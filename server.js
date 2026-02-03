@@ -211,11 +211,15 @@ class MahjongRoom {
                         }
                         this.setDiscardTimeout(offlinePlayer);
                         
-                        // 通知玩家轮到他出牌
-                        socket.emit('your_turn', {
-                            phase: 'discard',
-                            message: '轮到你出牌了！'
-                        });
+                        // 通知玩家轮到他出牌（延迟发送确保socket稳定）
+                        setTimeout(() => {
+                            socket.emit('your_turn', {
+                                phase: 'discard',
+                                message: '轮到你出牌了！'
+                            });
+                            // 重新发送倒计时
+                            socket.emit('discard_countdown', { seconds: 15 });
+                        }, 200);
                     } else if (this.gameState.turnPhase === 'draw') {
                         // 摸牌阶段：通知玩家可以摸牌
                         socket.emit('your_turn', {
@@ -589,8 +593,19 @@ class MahjongRoom {
     
     // 【新增】自动出牌（打出最后摸的牌，如果没有则打第一张）
     autoDiscard(player) {
-        if (!this.gameRunning) return;
-        if (player.hand.length === 0) return;
+        if (!this.gameRunning) {
+            console.log('autoDiscard: 游戏未运行，跳过');
+            return;
+        }
+        
+        if (player.hand.length === 0) {
+            console.log(`autoDiscard: 玩家 ${player.username} 手牌为空，可能流局`);
+            // 手牌为空可能是异常情况，检查是否应该结束游戏
+            if (this.gameState.deck.length === 0) {
+                this.endRound('draw', -1, -1, false, false);
+            }
+            return;
+        }
         
         // 优先打出刚摸的牌
         let tileToDiscard = this.gameState.lastDrawnTile;
@@ -610,7 +625,11 @@ class MahjongRoom {
         
         // 执行出牌
         const tileIndex = player.hand.findIndex(t => t.id === tileToDiscard.id);
-        if (tileIndex === -1) return;
+        if (tileIndex === -1) {
+            console.log(`autoDiscard: 找不到要出的牌，尝试出第一张`);
+            tileToDiscard = player.hand[0];
+            if (!tileToDiscard) return;
+        }
         
         const tile = player.hand.splice(tileIndex, 1)[0];
         player.discards.push(tile);
@@ -1072,7 +1091,12 @@ class MahjongRoom {
 
     // AI行动
     aiAction(aiPlayer) {
-        if (!this.gameRunning) return;
+        if (!this.gameRunning) {
+            console.log('aiAction: 游戏未运行，跳过');
+            return;
+        }
+        
+        console.log(`aiAction: 玩家 ${aiPlayer.username} 开始AI行动, 阶段: ${this.gameState.turnPhase}`);
         
         if (this.gameState.turnPhase === 'draw') {
             // 摸牌（包含补花逻辑）

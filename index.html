@@ -2685,6 +2685,10 @@
                 // 【新增】如果不是我的出牌回合，停止倒计时
                 if (!isMyTurn || gameState.turnPhase !== 'discard') {
                     stopDiscardCountdown();
+                } else if (isMyTurn && gameState.turnPhase === 'discard' && !discardCountdownTimer) {
+                    // 轮到自己出牌但没有倒计时在运行，可能是重连后
+                    console.log('检测到出牌阶段无倒计时，启动倒计时');
+                    startDiscardCountdown(15);
                 }
                 
                 if (isMyTurn && gameState.turnPhase === 'draw' && phaseChanged) {
