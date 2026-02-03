@@ -2284,40 +2284,19 @@
         }
         
         // 游戏开始时预加载当前语音的动作音频
+        // 音频全部使用懒加载，不预加载，避免卡顿
         function preloadCurrentVoiceAudio(voice) {
-            const priorityAudios = ['peng', 'gang', 'hu', 'zimo'];
-            const format = AUDIO_FORMATS[voice] || '.mp3';
-            priorityAudios.forEach(a => {
-                preloadSingleAudio(`audio/${voice}/actions/${a}${format}`);
-            });
+            console.log('音频使用懒加载模式');
         }
         
-        // 预加载单个音频
+        // 预加载单个音频（保留接口但不实际加载）
         function preloadSingleAudio(path) {
-            if (audioCache[path]) return;
-            
-            const audio = new Audio();
-            audio.preload = 'auto';
-            audio.src = path;
-            audioCache[path] = audio;
+            // 懒加载模式
         }
         
-        // 分批加载音频
+        // 分批加载音频（保留接口但不实际加载）
         function loadAudioBatch(paths, batchSize = 5, delay = 100) {
-            let index = 0;
-            
-            function loadNext() {
-                if (index >= paths.length) return;
-                if (networkQuality === 'slow') return; // 弱网时停止
-                
-                const batch = paths.slice(index, index + batchSize);
-                batch.forEach(path => preloadSingleAudio(path));
-                index += batchSize;
-                
-                setTimeout(loadNext, delay);
-            }
-            
-            loadNext();
+            // 懒加载模式
         }
         
         // 播放音频（带弱网检测）

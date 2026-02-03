@@ -1277,19 +1277,10 @@
             playAudioFile(`../audio/${voice}/actions/${action}${format}`, volume);
         }
         
-        // 预加载音频 - 只预加载选定语音的动作音频，避免卡顿
+        // 音频全部使用懒加载，不预加载，避免卡顿
         function preloadAudio() {
-            // 只预加载当前选择语音的动作音频（最重要的几个）
-            const actions = ['peng', 'gang', 'hu', 'zimo'];
-            const format = AUDIO_FORMATS[playerVoice] || '.mp3';
-            
-            actions.forEach(a => {
-                const path = `../audio/${playerVoice}/actions/${a}${format}`;
-                const audio = new Audio(path);
-                audio.load();
-                audioCache[path] = audio;
-            });
-            console.log('动作音频预加载完成，其他使用懒加载');
+            // 不预加载任何音频，全部懒加载
+            console.log('音频使用懒加载模式');
         }
         
         // ==================== 资源预加载 ====================
