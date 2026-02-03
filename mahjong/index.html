@@ -2298,9 +2298,9 @@
                     const display = getTileDisplay(tile);
                     showToast(`摸到${display.value} 🌸 补牌中...`);
                     
-                    // 播放花牌音频 + 补花音频（玩家性别）
-                    playTileAudio(tile, playerGender);
-                    setTimeout(() => playActionAudio('buhua', playerGender), 400);
+                    // 播放花牌音频 + 补花音频（玩家语音）
+                    playTileAudio(tile, playerVoice);
+                    setTimeout(() => playActionAudio('buhua', playerVoice), 400);
                     
                     updateUI();
                     
