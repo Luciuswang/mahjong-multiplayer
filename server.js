@@ -35,6 +35,16 @@ const io = socketIo(server, {
     allowUpgrades: true
 });
 
+// 禁用 HTML 文件缓存，确保客户端获取最新代码
+app.use((req, res, next) => {
+    if (req.path.endsWith('.html') || req.path === '/' || req.path.endsWith('/')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+    next();
+});
+
 // 静态文件服务
 app.use(express.static(path.join(__dirname)));
 
