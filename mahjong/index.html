@@ -1291,10 +1291,47 @@
             playAudioFile(`../audio/${voice}/actions/${action}${format}`, volume);
         }
         
-        // 音频全部使用懒加载，不预加载，避免卡顿
+        // 静默预加载常用音频（游戏开始后在后台执行）
+        function silentPreloadAudio(voice) {
+            const actions = ['peng', 'gang', 'hu', 'zimo'];
+            const commonTiles = ['wan1', 'wan2', 'wan3', 'tong1', 'tong2', 'tong3', 'tiao1', 'tiao2', 'tiao3'];
+            
+            let index = 0;
+            const allPaths = [
+                ...actions.map(a => `../audio/${voice}/actions/${a}.mp3`),
+                ...commonTiles.map(t => `../audio/${voice}/tiles/${t}.mp3`)
+            ];
+            
+            function loadNext() {
+                if (index >= allPaths.length) return;
+                const path = allPaths[index++];
+                if (!audioCache[path] && !audioLoading[path]) {
+                    audioLoading[path] = true;
+                    const audio = new Audio();
+                    audio.preload = 'auto';
+                    audio.src = path;
+                    audio.addEventListener('canplaythrough', () => {
+                        audioCache[path] = audio;
+                        delete audioLoading[path];
+                        setTimeout(loadNext, 200);  // 间隔加载，不抢带宽
+                    }, { once: true });
+                    audio.addEventListener('error', () => {
+                        delete audioLoading[path];
+                        setTimeout(loadNext, 100);
+                    }, { once: true });
+                    audio.load();
+                } else {
+                    setTimeout(loadNext, 50);
+                }
+            }
+            
+            loadNext();
+            console.log('开始后台预加载常用音频');
+        }
+        
+        // 保留旧接口
         function preloadAudio() {
-            // 不预加载任何音频，全部懒加载
-            console.log('音频使用懒加载模式');
+            // 由 silentPreloadAudio 在游戏开始时调用
         }
         
         // ==================== 资源预加载 ====================
@@ -1890,6 +1927,11 @@
             document.getElementById('gameContainer').style.display = 'block';
             
             updateUI();
+            
+            // 后台预加载常用音频（延迟执行，不阻塞UI）
+            setTimeout(() => {
+                silentPreloadAudio(playerVoice);
+            }, 1000);
             
             // 显示起手花牌情况
             const playerFlowerCount = gameState.players[0].flowers.length;

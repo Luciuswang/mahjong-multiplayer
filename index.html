@@ -2304,19 +2304,52 @@
         }
         
         // 游戏开始时预加载当前语音的动作音频
-        // 音频全部使用懒加载，不预加载，避免卡顿
-        function preloadCurrentVoiceAudio(voice) {
-            console.log('音频使用懒加载模式');
+        // 静默预加载常用音频（游戏开始后在后台执行）
+        function silentPreloadAudio(voice) {
+            const actions = ['peng', 'gang', 'hu', 'zimo'];
+            const commonTiles = ['wan1', 'wan2', 'wan3', 'tong1', 'tong2', 'tong3', 'tiao1', 'tiao2', 'tiao3'];
+            
+            let index = 0;
+            const allPaths = [
+                ...actions.map(a => `audio/${voice}/actions/${a}.mp3`),
+                ...commonTiles.map(t => `audio/${voice}/tiles/${t}.mp3`)
+            ];
+            
+            function loadNext() {
+                if (index >= allPaths.length) return;
+                const path = allPaths[index++];
+                if (!audioCache[path] && !audioLoading[path]) {
+                    audioLoading[path] = true;
+                    const audio = new Audio();
+                    audio.preload = 'auto';
+                    audio.src = path;
+                    audio.addEventListener('canplaythrough', () => {
+                        audioCache[path] = audio;
+                        delete audioLoading[path];
+                        setTimeout(loadNext, 200);  // 间隔加载，不抢带宽
+                    }, { once: true });
+                    audio.addEventListener('error', () => {
+                        delete audioLoading[path];
+                        setTimeout(loadNext, 100);
+                    }, { once: true });
+                    audio.load();
+                } else {
+                    setTimeout(loadNext, 50);
+                }
+            }
+            
+            loadNext();
+            console.log('开始后台预加载常用音频');
         }
         
-        // 预加载单个音频（保留接口但不实际加载）
+        // 预加载单个音频（保留接口）
         function preloadSingleAudio(path) {
-            // 懒加载模式
+            // 使用静默预加载
         }
         
-        // 分批加载音频（保留接口但不实际加载）
+        // 分批加载音频（保留接口）
         function loadAudioBatch(paths, batchSize = 5, delay = 100) {
-            // 懒加载模式
+            // 使用静默预加载
         }
         
         // 播放音频（带弱网检测）
@@ -2708,6 +2741,11 @@
                 
                 showGameScreen();
                 updateGameUI();
+                
+                // 后台预加载常用音频（延迟执行，不阻塞UI）
+                setTimeout(() => {
+                    silentPreloadAudio(myVoice);
+                }, 1000);
                 
                 // 【增强】处理重连
                 if (data.isReconnect) {
