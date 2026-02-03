@@ -3800,20 +3800,39 @@
             
             document.getElementById('roundResultTitle').textContent = title;
             
-            // 显示积分变化
+            // 显示积分变化（表格样式，无表格线）
             const scoreChangeItems = document.getElementById('scoreChangeItems');
-            scoreChangeItems.innerHTML = '';
-            roundResult.players.forEach((p, idx) => {
+            
+            // 按本局得分排序
+            const sortedPlayers = [...roundResult.players].sort((a, b) => b.roundScore - a.roundScore);
+            
+            let tableHtml = '<table style="width: 100%; border-collapse: collapse;">';
+            tableHtml += '<thead><tr style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">';
+            tableHtml += '<th style="padding: 8px 5px; text-align: left;">排名</th>';
+            tableHtml += '<th style="padding: 8px 5px; text-align: left;">玩家</th>';
+            tableHtml += '<th style="padding: 8px 5px; text-align: right;">本局</th>';
+            tableHtml += '<th style="padding: 8px 5px; text-align: right;">累计</th>';
+            tableHtml += '</tr></thead><tbody>';
+            
+            sortedPlayers.forEach((p, idx) => {
                 const change = p.roundScore;
-                const changeClass = change >= 0 ? 'positive' : 'negative';
+                const changeColor = change > 0 ? '#2ecc71' : change < 0 ? '#e74c3c' : '#fff';
                 const changeText = change >= 0 ? `+${change}` : change;
-                scoreChangeItems.innerHTML += `
-                    <div class="score-change-item">
-                        <span class="score-change-name">${p.username}</span>
-                        <span class="score-change-value ${changeClass}">${changeText} (累计: ${p.totalScore})</span>
-                    </div>
-                `;
+                const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '4️⃣';
+                const totalColor = p.totalScore > 0 ? '#2ecc71' : p.totalScore < 0 ? '#e74c3c' : '#fff';
+                const totalText = p.totalScore >= 0 ? `+${p.totalScore}` : p.totalScore;
+                const rowBg = idx === 0 && change > 0 ? 'rgba(46,204,113,0.15)' : 'transparent';
+                
+                tableHtml += `<tr style="background: ${rowBg};">`;
+                tableHtml += `<td style="padding: 8px 5px;">${medal}</td>`;
+                tableHtml += `<td style="padding: 8px 5px;">${p.username}${p.isBot ? ' (AI)' : ''}</td>`;
+                tableHtml += `<td style="padding: 8px 5px; text-align: right; color: ${changeColor}; font-weight: bold;">${changeText}</td>`;
+                tableHtml += `<td style="padding: 8px 5px; text-align: right; color: ${totalColor};">${totalText}</td>`;
+                tableHtml += '</tr>';
             });
+            
+            tableHtml += '</tbody></table>';
+            scoreChangeItems.innerHTML = tableHtml;
             
             // 显示局数
             document.getElementById('roundEndCurrent').textContent = currentRound;
