@@ -695,20 +695,17 @@
         <div id="scoreboardPreview" class="scoreboard-preview"></div>
         
         <div class="menu-container">
-            <!-- 语音选择 -->
+            <!-- 性别选择 -->
             <div class="voice-select-group">
                 <label style="color: var(--gold); margin-bottom: 10px; display: block;">
-                    <i class="fas fa-volume-up"></i> 选择语音
+                    <i class="fas fa-user"></i> 选择性别
                 </label>
                 <div class="voice-selector">
-                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
-                        <i class="fas fa-venus"></i> 女声1
+                    <button type="button" class="voice-btn active" id="genderFemale" onclick="selectGender('female')">
+                        <i class="fas fa-venus"></i> 女
                     </button>
-                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
-                        <i class="fas fa-venus"></i> 女声2
-                    </button>
-                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
-                        <i class="fas fa-mars"></i> 男声
+                    <button type="button" class="voice-btn" id="genderMale" onclick="selectGender('male')">
+                        <i class="fas fa-mars"></i> 男
                     </button>
                 </div>
             </div>
@@ -1160,17 +1157,23 @@
         let speechReady = false;
         let voiceList = [];
         
-        // 语音选择
-        let playerVoice = 'female01';  // 玩家语音类型
+        // 性别选择（自动匹配语音）
+        let playerGender = 'female';  // 玩家性别
+        let playerVoice = 'female01';  // 玩家语音类型（根据性别自动选择）
         const aiVoices = ['male', 'female02', 'male'];  // AI 1/2/3 的语音
         
-        // 选择语音
-        function selectVoice(voice) {
-            playerVoice = voice;
-            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
-            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
-            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
-            console.log('选择语音:', voice);
+        // 选择性别
+        function selectGender(gender) {
+            playerGender = gender;
+            // 根据性别自动选择语音：女性随机选择female01或female02，男性使用male
+            if (gender === 'female') {
+                playerVoice = Math.random() < 0.5 ? 'female01' : 'female02';
+            } else {
+                playerVoice = 'male';
+            }
+            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
+            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
+            console.log('选择性别:', gender, '语音:', playerVoice);
         }
         
         // ==================== 音频播放系统 ====================
@@ -1406,6 +1409,8 @@
         
         // 页面加载后预加载资源
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化性别选择（默认女，随机语音）
+            selectGender('female');
             // 立即预加载精灵图（最重要）
             preloadSprite();
             // 延迟预加载音频

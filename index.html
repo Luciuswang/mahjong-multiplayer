@@ -1593,16 +1593,13 @@
             </div>
             
             <div class="input-group">
-                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <label><i class="fas fa-user"></i> 选择性别</label>
                 <div class="voice-selector">
-                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
-                        <i class="fas fa-venus"></i> 女声1
+                    <button type="button" class="voice-btn active" id="genderFemale" onclick="selectGender('female')">
+                        <i class="fas fa-venus"></i> 女
                     </button>
-                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
-                        <i class="fas fa-venus"></i> 女声2
-                    </button>
-                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
-                        <i class="fas fa-mars"></i> 男声
+                    <button type="button" class="voice-btn" id="genderMale" onclick="selectGender('male')">
+                        <i class="fas fa-mars"></i> 男
                     </button>
                 </div>
             </div>
@@ -2378,6 +2375,8 @@
         };
         
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化性别选择（默认女，随机语音）
+            selectGender('female');
             // 延迟启动音频预加载
             setTimeout(preloadMultiplayerAudio, 2000);
         });
@@ -3129,13 +3128,20 @@
             document.getElementById('serverRequiredModal').classList.remove('active');
         }
         
-        // 选择语音
-        function selectVoice(voice) {
-            myVoice = voice;
-            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
-            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
-            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
-            console.log('选择语音:', voice);
+        // 选择性别（自动匹配语音）
+        let myGender = 'female';  // 玩家性别
+        
+        function selectGender(gender) {
+            myGender = gender;
+            // 根据性别自动选择语音：女性随机选择female01或female02，男性使用male
+            if (gender === 'female') {
+                myVoice = Math.random() < 0.5 ? 'female01' : 'female02';
+            } else {
+                myVoice = 'male';
+            }
+            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
+            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
+            console.log('选择性别:', gender, '语音:', myVoice);
         }
         
         // 创建房间
