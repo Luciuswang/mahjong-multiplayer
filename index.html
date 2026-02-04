@@ -1592,18 +1592,6 @@
                 <input type="text" id="usernameInput" placeholder="输入昵称" maxlength="8">
             </div>
             
-            <div class="input-group">
-                <label><i class="fas fa-user"></i> 选择性别</label>
-                <div class="voice-selector">
-                    <button type="button" class="voice-btn active" id="genderFemale" onclick="selectGender('female')">
-                        <i class="fas fa-venus"></i> 女
-                    </button>
-                    <button type="button" class="voice-btn" id="genderMale" onclick="selectGender('male')">
-                        <i class="fas fa-mars"></i> 男
-                    </button>
-                </div>
-            </div>
-            
             <button class="btn" onclick="createRoom()">
                 <i class="fas fa-plus-circle"></i> 创建房间
             </button>
@@ -2375,8 +2363,8 @@
         };
         
         document.addEventListener('DOMContentLoaded', () => {
-            // 初始化性别选择（默认女，随机语音）
-            selectGender('female');
+            // 初始化语音
+            initVoice();
             // 延迟启动音频预加载
             setTimeout(preloadMultiplayerAudio, 2000);
         });
@@ -3128,20 +3116,13 @@
             document.getElementById('serverRequiredModal').classList.remove('active');
         }
         
-        // 选择性别（自动匹配语音）
+        // 初始化语音（多人模式默认随机女声）
         let myGender = 'female';  // 玩家性别
         
-        function selectGender(gender) {
-            myGender = gender;
-            // 根据性别自动选择语音：女性随机选择female01或female02，男性使用male
-            if (gender === 'female') {
-                myVoice = Math.random() < 0.5 ? 'female01' : 'female02';
-            } else {
-                myVoice = 'male';
-            }
-            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
-            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
-            console.log('选择性别:', gender, '语音:', myVoice);
+        function initVoice() {
+            // 多人模式默认随机女声
+            myVoice = Math.random() < 0.5 ? 'female01' : 'female02';
+            console.log('初始化语音:', myVoice);
         }
         
         // 创建房间
