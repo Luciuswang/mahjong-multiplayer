@@ -848,15 +848,6 @@
             <div class="mahjong-table">
             <!-- 对手区域 -->
             <div class="opponents-area">
-                <div class="opponent" id="opponent1">
-                    <div class="player-info">
-                        <div class="player-avatar">🤖</div>
-                        <span class="player-name">AI-东</span>
-                        <span class="player-wind">东</span>
-                </div>
-                    <div class="opponent-hand" id="opponent1Hand"></div>
-                    <div class="melds-area" id="opponent1Melds"></div>
-            </div>
                 <div class="opponent" id="opponent2">
                     <div class="player-info">
                         <div class="player-avatar">🤖</div>
@@ -865,6 +856,15 @@
                     </div>
                     <div class="opponent-hand" id="opponent2Hand"></div>
                     <div class="melds-area" id="opponent2Melds"></div>
+                </div>
+                <div class="opponent" id="opponent1">
+                    <div class="player-info">
+                        <div class="player-avatar">🤖</div>
+                        <span class="player-name">AI-东</span>
+                        <span class="player-wind">东</span>
+                    </div>
+                    <div class="opponent-hand" id="opponent1Hand"></div>
+                    <div class="melds-area" id="opponent1Melds"></div>
                 </div>
                 <div class="opponent" id="opponent3">
                     <div class="player-info">
@@ -2321,8 +2321,11 @@
                 }
             }
             
-            // 没有可操作的，继续正常流程
-            gameState.currentPlayer = (gameState.currentPlayer + 1) % 4;
+            // 没有可操作的，继续正常流程（逆时针顺序）
+            // 座位：0=西(玩家), 1=东, 2=南, 3=北
+            // 逆时针：西→北→东→南→西 (0→3→1→2→0)
+            const nextPlayerMap = { 0: 3, 3: 1, 1: 2, 2: 0 };
+            gameState.currentPlayer = nextPlayerMap[gameState.currentPlayer];
             gameState.hasDrawn = false;
             
             console.log('nextPlayer: 轮到玩家', gameState.currentPlayer);
@@ -3428,8 +3431,9 @@
         function continueToNextPlayer() {
             if (gameState.gameOver) return;
             
-            // 原本应该轮到的下一个玩家
-            gameState.currentPlayer = (gameState.lastDiscardPlayer + 1) % 4;
+            // 原本应该轮到的下一个玩家（逆时针）
+            const nextPlayerMap = { 0: 3, 3: 1, 1: 2, 2: 0 };
+            gameState.currentPlayer = nextPlayerMap[gameState.lastDiscardPlayer];
             gameState.hasDrawn = false;
             
             if (gameState.currentPlayer === 0) {

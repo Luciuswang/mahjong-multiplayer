@@ -2238,12 +2238,18 @@
         
         // 播放音频文件（直接播放，同时缓存）
         function playAudioFile(path, volume = 1.0) {
+            console.log('播放音频:', path);
+            
             try {
                 // 检查缓存 - 如果已缓存直接播放
                 if (audioCache[path] && audioCache[path].readyState >= 2) {
                     const audio = audioCache[path].cloneNode();
                     audio.volume = volume;
-                    audio.play().catch(() => {});
+                    audio.play().then(() => {
+                        console.log('缓存音频播放成功');
+                    }).catch(e => {
+                        console.error('缓存音频播放失败:', e);
+                    });
                     return;
                 }
                 
@@ -2257,8 +2263,10 @@
                 audio.play().then(() => {
                     // 播放成功，缓存起来
                     audioCache[path] = audio;
-                }).catch(() => {
+                    console.log('新音频播放成功并缓存');
+                }).catch(e => {
                     // 播放失败，播放蜂鸣音作为反馈
+                    console.error('音频播放失败:', e.message);
                     const isTile = path.includes('/tiles/');
                     playBeep(isTile ? 600 : 400, 80);
                 });
@@ -2268,6 +2276,7 @@
                     audioCache[path] = audio;
                 }, { once: true });
             } catch (e) {
+                console.error('音频异常:', e);
                 playBeep(523, 80);
             }
         }
