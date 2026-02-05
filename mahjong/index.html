@@ -1226,7 +1226,7 @@
         // 音频加载状态
         const audioLoading = {};  // 正在加载的音频
         
-        // 播放音频文件（优化版：先播蜂鸣音，后台加载）
+        // 播放音频文件（直接播放，同时缓存）
         function playAudioFile(path, volume = 1.0) {
             if (!speechEnabled) return;
             
@@ -1239,29 +1239,26 @@
                     return;
                 }
                 
-                // 未缓存或未加载完成 - 先播放蜂鸣音
-                const isTile = path.includes('/tiles/');
-                playBeep(isTile ? 600 : 400, 80);
-                
-                // 如果正在加载，不重复请求
-                if (audioLoading[path]) return;
-                
-                // 后台加载并缓存
-                audioLoading[path] = true;
+                // 未缓存 - 直接创建并播放（同时缓存）
                 const audio = new Audio();
+                audio.volume = volume;
                 audio.preload = 'auto';
                 audio.src = path;
                 
+                // 尝试直接播放
+                audio.play().then(() => {
+                    // 播放成功，缓存起来
+                    audioCache[path] = audio;
+                }).catch(() => {
+                    // 播放失败，播放蜂鸣音作为反馈
+                    const isTile = path.includes('/tiles/');
+                    playBeep(isTile ? 600 : 400, 80);
+                });
+                
+                // 同时缓存（即使播放失败也缓存，下次用）
                 audio.addEventListener('canplaythrough', () => {
                     audioCache[path] = audio;
-                    delete audioLoading[path];
                 }, { once: true });
-                
-                audio.addEventListener('error', () => {
-                    delete audioLoading[path];
-                }, { once: true });
-                
-                audio.load();
             } catch (e) {
                 playBeep(523, 80);
             }
