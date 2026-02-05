@@ -281,8 +281,8 @@ class MahjongRoom {
         const seatIndex = this.players.length;
         const aiNames = ['AI小明', 'AI小红', 'AI小刚', 'AI小丽'];
         const aiAvatars = ['🤖', '🎮', '💻', '🎯'];
-        // AI语音：小明用男声，小红用女声2，小刚用男声，小丽用女声1
-        const aiVoices = ['male', 'female02', 'male', 'female01'];
+        // AI语音：小明用男声1，小红用女声2，小刚用男声2，小丽用女声1
+        const aiVoices = ['male', 'female02', 'male02', 'female01'];
         
         const aiPlayer = {
             id: 'ai_' + Date.now() + '_' + seatIndex,

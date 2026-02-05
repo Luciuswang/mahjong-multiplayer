@@ -695,17 +695,23 @@
         <div id="scoreboardPreview" class="scoreboard-preview"></div>
         
         <div class="menu-container">
-            <!-- 性别选择 -->
+            <!-- 语音选择 -->
             <div class="voice-select-group">
                 <label style="color: var(--gold); margin-bottom: 10px; display: block;">
-                    <i class="fas fa-user"></i> 选择性别
+                    <i class="fas fa-volume-up"></i> 选择语音
                 </label>
                 <div class="voice-selector">
-                    <button type="button" class="voice-btn active" id="genderFemale" onclick="selectGender('female')">
-                        <i class="fas fa-venus"></i> 女
+                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
+                        <i class="fas fa-venus"></i> 女1
                     </button>
-                    <button type="button" class="voice-btn" id="genderMale" onclick="selectGender('male')">
-                        <i class="fas fa-mars"></i> 男
+                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
+                        <i class="fas fa-venus"></i> 女2
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
+                        <i class="fas fa-mars"></i> 男1
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale02" onclick="selectVoice('male02')">
+                        <i class="fas fa-mars"></i> 男2
                     </button>
                 </div>
             </div>
@@ -1157,23 +1163,19 @@
         let speechReady = false;
         let voiceList = [];
         
-        // 性别选择（自动匹配语音）
-        let playerGender = 'female';  // 玩家性别
-        let playerVoice = 'female01';  // 玩家语音类型（根据性别自动选择）
-        const aiVoices = ['male', 'female02', 'male'];  // AI 1/2/3 的语音
+        // 语音选择
+        let playerVoice = 'female01';  // 玩家语音类型
+        const aiVoices = ['male', 'female02', 'male02'];  // AI 东家/南家/北家 的语音
         
-        // 选择性别
-        function selectGender(gender) {
-            playerGender = gender;
-            // 根据性别自动选择语音：女性随机选择female01或female02，男性使用male
-            if (gender === 'female') {
-                playerVoice = Math.random() < 0.5 ? 'female01' : 'female02';
-            } else {
-                playerVoice = 'male';
-            }
-            document.getElementById('genderFemale').classList.toggle('active', gender === 'female');
-            document.getElementById('genderMale').classList.toggle('active', gender === 'male');
-            console.log('选择性别:', gender, '语音:', playerVoice);
+        // 选择语音
+        function selectVoice(voice) {
+            playerVoice = voice;
+            // 更新按钮状态
+            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
+            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
+            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
+            document.getElementById('voiceMale02').classList.toggle('active', voice === 'male02');
+            console.log('选择语音:', voice);
         }
         
         // ==================== 音频播放系统 ====================
@@ -1184,7 +1186,8 @@
         const AUDIO_FORMATS = {
             female01: '.mp3',
             female02: '.mp3',
-            male: '.mp3'
+            male: '.mp3',
+            male02: '.mp3'
         };
         
         // 获取牌的音频文件名（不含扩展名）
@@ -1276,7 +1279,8 @@
         const AUDIO_VOLUMES = {
             female01: 0.6,  // 女声1
             female02: 0.8,  // 女声2
-            male: 1.0       // 男声
+            male: 1.0,      // 男声1
+            male02: 1.0     // 男声2
         };
         
         // 播放牌的音频（支持多种语音，注意：单人模式在 mahjong/ 子目录）
@@ -1409,8 +1413,8 @@
         
         // 页面加载后预加载资源
         document.addEventListener('DOMContentLoaded', () => {
-            // 初始化性别选择（默认女，随机语音）
-            selectGender('female');
+            // 初始化语音选择（默认女声1）
+            selectVoice('female01');
             // 立即预加载精灵图（最重要）
             preloadSprite();
             // 延迟预加载音频
@@ -1432,10 +1436,10 @@
         
         // 不同玩家的音调配置
         const PLAYER_VOICE = {
-            0: { pitch: 1.2, rate: 0.95, voice: 'female01' },  // 玩家：女声1
-            1: { pitch: 0.8, rate: 0.9, voice: 'male' },       // 东家：男声
+            0: { pitch: 1.2, rate: 0.95, voice: 'female01' },  // 玩家：女声1（由用户选择）
+            1: { pitch: 0.8, rate: 0.9, voice: 'male' },       // 东家：男声1
             2: { pitch: 0.9, rate: 1.0, voice: 'female02' },   // 南家：女声2
-            3: { pitch: 0.7, rate: 0.85, voice: 'male' }       // 北家：男声
+            3: { pitch: 0.7, rate: 0.85, voice: 'male02' }     // 北家：男声2
         };
         
         // 女声语音关键词

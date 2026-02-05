@@ -1592,6 +1592,25 @@
                 <input type="text" id="usernameInput" placeholder="输入昵称" maxlength="8">
             </div>
             
+            <!-- 语音选择 -->
+            <div class="input-group">
+                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <div class="voice-selector">
+                    <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
+                        <i class="fas fa-venus"></i> 女1
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
+                        <i class="fas fa-venus"></i> 女2
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
+                        <i class="fas fa-mars"></i> 男1
+                    </button>
+                    <button type="button" class="voice-btn" id="voiceMale02" onclick="selectVoice('male02')">
+                        <i class="fas fa-mars"></i> 男2
+                    </button>
+                </div>
+            </div>
+            
             <button class="btn" onclick="createRoom()">
                 <i class="fas fa-plus-circle"></i> 创建房间
             </button>
@@ -2167,7 +2186,8 @@
         const AUDIO_FORMATS = {
             female01: '.mp3',
             female02: '.mp3',
-            male: '.mp3'
+            male: '.mp3',
+            male02: '.mp3'
         };
         
         // 获取牌的音频文件名
@@ -2259,7 +2279,8 @@
         const AUDIO_VOLUMES = {
             female01: 0.6,  // 女声1
             female02: 0.8,  // 女声2
-            male: 1.0       // 男声
+            male: 1.0,      // 男声1
+            male02: 1.0     // 男声2
         };
         
         // 播放牌的音频（支持多种语音）
@@ -3115,13 +3136,22 @@
             document.getElementById('serverRequiredModal').classList.remove('active');
         }
         
-        // 初始化语音（多人模式默认随机女声）
-        let myGender = 'female';  // 玩家性别
-        
+        // 初始化语音
         function initVoice() {
-            // 多人模式默认随机女声
-            myVoice = Math.random() < 0.5 ? 'female01' : 'female02';
+            // 默认女声1
+            myVoice = 'female01';
             console.log('初始化语音:', myVoice);
+        }
+        
+        // 选择语音
+        function selectVoice(voice) {
+            myVoice = voice;
+            // 更新按钮状态
+            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
+            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
+            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
+            document.getElementById('voiceMale02').classList.toggle('active', voice === 'male02');
+            console.log('选择语音:', voice);
         }
         
         // 创建房间
