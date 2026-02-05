@@ -1165,17 +1165,23 @@
         
         // 语音选择
         let playerVoice = 'female01';  // 玩家语音类型
-        const aiVoices = ['male', 'female02', 'male02'];  // AI 东家/南家/北家 的语音
+        let aiVoices = ['male', 'female02', 'male02'];  // AI 东家/南家/北家 的语音（动态更新）
         
-        // 选择语音
+        // 选择语音（并动态调整 AI 语音避免重复）
         function selectVoice(voice) {
             playerVoice = voice;
+            
+            // 动态分配 AI 语音，避开玩家选择的语音
+            const allVoices = ['female01', 'female02', 'male', 'male02'];
+            const availableVoices = allVoices.filter(v => v !== voice);
+            aiVoices = availableVoices.slice(0, 3);  // 取前 3 个给 AI
+            
             // 更新按钮状态
             document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
             document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
             document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
             document.getElementById('voiceMale02').classList.toggle('active', voice === 'male02');
-            console.log('选择语音:', voice);
+            console.log('选择语音:', voice, 'AI语音:', aiVoices);
         }
         
         // ==================== 音频播放系统 ====================
