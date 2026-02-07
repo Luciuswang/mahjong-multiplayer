@@ -692,9 +692,14 @@
                         <span id="whiteName">白方</span>
                     </div>
                 </div>
-                <button class="btn secondary" style="padding: 8px 16px; font-size: 0.85rem; width: auto;" onclick="leaveGame()">
-                    <i class="fas fa-sign-out-alt"></i> 退出
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="undoBtn" style="padding: 8px 16px; font-size: 0.85rem; width: auto; background: linear-gradient(135deg, #9b59b6, #8e44ad);" onclick="requestUndo()">
+                        <i class="fas fa-undo"></i> 悔棋
+                    </button>
+                    <button class="btn secondary" style="padding: 8px 16px; font-size: 0.85rem; width: auto;" onclick="leaveGame()">
+                        <i class="fas fa-sign-out-alt"></i> 退出
+                    </button>
+                </div>
             </div>
             
             <div class="game-status" id="gameStatus">等待对手...</div>
@@ -718,6 +723,22 @@
             <p class="modal-message" id="resultMessage"></p>
             <button class="btn" onclick="playAgain()">再来一局</button>
             <button class="btn secondary" onclick="backToLobby()" style="margin-top: 10px;">返回大厅</button>
+        </div>
+    </div>
+    
+    <!-- 悔棋请求弹窗 -->
+    <div class="modal" id="undoModal">
+        <div class="modal-content">
+            <h2 class="modal-title">🔄 悔棋请求</h2>
+            <p class="modal-message" id="undoMessage">对方请求悔棋，是否同意？</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn" onclick="acceptUndo()">
+                    <i class="fas fa-check"></i> 同意
+                </button>
+                <button class="btn secondary" onclick="rejectUndo()">
+                    <i class="fas fa-times"></i> 拒绝
+                </button>
+            </div>
         </div>
     </div>
 
@@ -813,7 +834,9 @@
             placeStone(row, col, myColor);
             
             if (isAIMode) {
-                // AI模式
+                // AI模式 - 记录落子历史
+                moveHistory.push({ row, col, color: myColor });
+                
                 isMyTurn = false;
                 updateTurnDisplay();
                 
@@ -935,6 +958,9 @@
             const move = findBestMove();
             if (move) {
                 placeStone(move.row, move.col, 'white');
+                
+                // 记录AI落子历史
+                moveHistory.push({ row: move.row, col: move.col, color: 'white' });
                 
                 if (checkWin(move.row, move.col, 'white')) {
                     showResult(false, 'white');
@@ -1220,8 +1246,45 @@
                 initBoard();
                 renderBoard();
                 updateTurnDisplay();
+                resetUndoState();
                 document.getElementById('resultModal').classList.remove('active');
                 showToast('新一局开始！');
+            });
+            
+            // 悔棋相关事件
+            socket.on('undo_request', (data) => {
+                document.getElementById('undoMessage').textContent = 
+                    `${data.requesterName} 请求悔棋，是否同意？`;
+                document.getElementById('undoModal').classList.add('active');
+            });
+            
+            socket.on('undo_pending', (data) => {
+                showToast(data.message);
+            });
+            
+            socket.on('undo_success', (data) => {
+                // 撤销棋子
+                undoStone(data.row, data.col);
+                
+                // 更新回合
+                isMyTurn = data.currentTurn === myColor;
+                updateTurnDisplay();
+                
+                // 更新悔棋按钮状态
+                if (data.undoUsed) {
+                    updateUndoButton(data.undoUsed);
+                }
+                
+                showToast('悔棋成功！');
+                document.getElementById('undoModal').classList.remove('active');
+            });
+            
+            socket.on('undo_rejected', () => {
+                showToast('对方拒绝了悔棋请求');
+            });
+            
+            socket.on('action_error', (data) => {
+                showToast(data.message);
             });
             
             socket.on('disconnect', () => {
@@ -1360,6 +1423,101 @@
                 }
             }
         }
+        
+        // ==================== 悔棋功能 ====================
+        
+        let undoUsed = false; // 本局是否已使用悔棋
+        let moveHistory = []; // AI模式下的落子历史
+        
+        // 请求悔棋
+        function requestUndo() {
+            if (isAIMode) {
+                // AI模式：直接悔棋
+                if (undoUsed) {
+                    showToast('本局已使用过悔棋机会');
+                    return;
+                }
+                
+                if (moveHistory.length < 2) {
+                    showToast('没有可以悔的棋');
+                    return;
+                }
+                
+                // 撤销自己和AI的最后一步
+                const aiMove = moveHistory.pop();
+                const myMove = moveHistory.pop();
+                
+                undoStone(aiMove.row, aiMove.col);
+                undoStone(myMove.row, myMove.col);
+                
+                undoUsed = true;
+                updateUndoButton({ [myColor]: true });
+                
+                isMyTurn = true;
+                updateTurnDisplay();
+                showToast('悔棋成功！');
+            } else {
+                // 联机模式：发送悔棋请求
+                socket.emit('request_undo');
+            }
+        }
+        
+        // 接受悔棋
+        function acceptUndo() {
+            document.getElementById('undoModal').classList.remove('active');
+            socket.emit('accept_undo');
+        }
+        
+        // 拒绝悔棋
+        function rejectUndo() {
+            document.getElementById('undoModal').classList.remove('active');
+            socket.emit('reject_undo');
+        }
+        
+        // 撤销棋子
+        function undoStone(row, col) {
+            gameBoard[row][col] = null;
+            
+            const boardEl = document.getElementById('board');
+            const cellIndex = row * 15 + col;
+            const cell = boardEl.children[cellIndex];
+            
+            if (cell) {
+                cell.innerHTML = '';
+                cell.classList.remove('disabled');
+            }
+            
+            // 更新最后落子标记
+            const allStones = boardEl.querySelectorAll('.stone');
+            allStones.forEach(s => s.classList.remove('last'));
+            if (allStones.length > 0) {
+                allStones[allStones.length - 1]?.classList.add('last');
+            }
+        }
+        
+        // 更新悔棋按钮状态
+        function updateUndoButton(usedState) {
+            const btn = document.getElementById('undoBtn');
+            if (!btn) return;
+            
+            if (usedState[myColor]) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerHTML = '<i class="fas fa-undo"></i> 已用';
+            }
+        }
+        
+        // 重置悔棋状态
+        function resetUndoState() {
+            undoUsed = false;
+            moveHistory = [];
+            const btn = document.getElementById('undoBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = '<i class="fas fa-undo"></i> 悔棋';
+            }
+        }
 
         // 人机对战
         function playWithAI() {
@@ -1374,6 +1532,7 @@
             isMyTurn = true;
             initBoard();
             renderBoard();
+            resetUndoState(); // 重置悔棋状态
             
             document.getElementById('blackName').textContent = username;
             document.getElementById('whiteName').textContent = 'AI';
