@@ -24,51 +24,7 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
-        /* 横屏提示 */
-        .rotate-hint {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 10000;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .rotate-hint .icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-            animation: rotate-phone 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes rotate-phone {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(90deg); }
-        }
-        
-        .rotate-hint h2 {
-            font-size: 1.5rem;
-            color: var(--gold);
-            margin-bottom: 10px;
-        }
-        
-        .rotate-hint p {
-            color: rgba(255,255,255,0.7);
-            font-size: 1rem;
-        }
-        
-        /* 手机竖屏时显示提示（游戏界面激活时） */
-        @media (max-width: 768px) and (orientation: portrait) {
-            body.in-game .rotate-hint {
-                display: flex;
-            }
-        }
+        /* 横屏提示已移除 - 竖屏模式 */
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
@@ -360,10 +316,12 @@
             flex: 1;
         }
 
-        /* 游戏界面 */
+        /* 游戏界面 - 竖屏优化布局 */
         .game-screen {
-            padding: 10px;
+            padding: 8px;
             justify-content: flex-start;
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         .game-header {
@@ -371,28 +329,29 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 900px;
-            padding: 10px 20px;
+            max-width: 600px;
+            padding: 8px 15px;
             background: rgba(0,0,0,0.5);
             border-radius: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .game-info {
             display: flex;
-            gap: 20px;
+            gap: 12px;
             align-items: center;
         }
 
         .game-info-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            font-size: 0.85rem;
         }
 
         .game-info-icon {
-            width: 30px;
-            height: 30px;
+            width: 26px;
+            height: 26px;
             background: var(--gold);
             border-radius: 50%;
             display: flex;
@@ -400,23 +359,28 @@
             justify-content: center;
             color: #1a1a1a;
             font-weight: bold;
+            font-size: 0.75rem;
         }
 
-        /* 麻将桌 */
+        /* 麻将桌 - 竖屏友好布局 */
         .mahjong-table {
             background: radial-gradient(ellipse at center, #2d8b57 0%, #1a5c3a 50%, #0d3321 100%);
-            border: 8px solid #5d4037;
-            border-radius: 20px;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.5);
+            border: 6px solid #5d4037;
+            border-radius: 15px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.3), 0 5px 20px rgba(0,0,0,0.5);
             width: 100%;
-            max-width: 900px;
-            aspect-ratio: 4/3;
-            position: relative;
-            display: grid;
-            grid-template-rows: 1fr 2fr 1fr;
-            grid-template-columns: 1fr 2fr 1fr;
-            padding: 15px;
-            gap: 10px;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            gap: 8px;
+        }
+
+        /* 对手区域 - 横向排列 */
+        .opponents-row {
+            display: flex;
+            justify-content: space-around;
+            gap: 5px;
         }
 
         /* 玩家区域 */
@@ -425,13 +389,14 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 10px;
+            padding: 5px;
+            flex: 1;
+            min-width: 0;
         }
 
-        .seat-top { grid-row: 1; grid-column: 2; }
-        .seat-left { grid-row: 2; grid-column: 1; }
-        .seat-right { grid-row: 2; grid-column: 3; }
-        .seat-bottom { grid-row: 3; grid-column: 2; }
+        /* 隐藏原 grid 位置 */
+        .seat-top, .seat-left, .seat-right { }
+        .seat-bottom { display: none; }
 
         .seat-info {
             display: flex;
@@ -494,24 +459,25 @@
             justify-content: center;
         }
 
-        /* 中央区域 */
+        /* 中央出牌区域 */
         .table-center {
-            grid-row: 2;
-            grid-column: 2;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
         }
 
         .discard-area {
             background: rgba(0,0,0,0.3);
             border: 2px solid rgba(255,255,255,0.2);
             border-radius: 10px;
-            padding: 15px;
-            min-width: 200px;
-            min-height: 100px;
+            padding: 10px;
+            width: 100%;
+            min-height: 60px;
             display: flex;
             flex-wrap: wrap;
             gap: 3px;
@@ -520,45 +486,49 @@
         }
 
         .last-discard-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: rgba(255,255,255,0.7);
         }
 
-        /* 手牌区域 */
+        /* 手牌区域 - 竖屏优化 */
         .my-hand-area {
             width: 100%;
-            max-width: 900px;
+            max-width: 600px;
             background: rgba(0,0,0,0.4);
-            border-radius: 15px;
-            padding: 15px;
-            margin-top: 10px;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 8px;
         }
 
         .my-hand-label {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--gold);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .my-hand {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             flex-wrap: wrap;
             justify-content: center;
         }
 
         .my-melds {
             display: flex;
-            gap: 15px;
-            margin-top: 10px;
+            gap: 10px;
+            margin-top: 8px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .meld-group {
             display: flex;
             gap: 2px;
             background: rgba(255,255,255,0.1);
-            padding: 5px;
+            padding: 4px;
             border-radius: 5px;
         }
 
@@ -1257,18 +1227,25 @@
             .lobby-title { font-size: 2.5rem; }
             .room-code { font-size: 1.8rem; letter-spacing: 4px; padding: 8px 15px; }
             .players-grid { grid-template-columns: 1fr; }
-            .tile { width: 36px; height: 50px; }
-            .tile.small { width: 22px; height: 31px; }
-            .tile.discarded { width: 26px; height: 36px; }
-            .tile.new-tile { margin-left: 10px; }
+            .tile { width: 34px; height: 47px; }
+            .tile.small { width: 20px; height: 28px; }
+            .tile.discarded { width: 24px; height: 33px; }
+            .tile.new-tile { margin-left: 8px; }
             .chat-area { display: none !important; }
-            .mahjong-table { aspect-ratio: 3/4; }
             .my-hand { gap: 2px; }
             .score-panel { gap: 8px; }
             .score-item { min-width: 60px; padding: 4px 10px; }
+            
+            .opponents-row {
+                flex-wrap: nowrap;
+            }
+            
+            .seat-discards {
+                max-width: 100px;
+            }
         }
         
-        /* 响应式 - 手机 */
+        /* 响应式 - 手机竖屏优化 */
         @media (max-width: 480px) {
             html, body {
                 overflow-x: hidden;
@@ -1283,166 +1260,167 @@
                 padding: 5px;
                 display: flex;
                 flex-direction: column;
-                height: 100vh;
-                height: 100dvh; /* 动态视口高度 */
-                overflow: hidden;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
             
             .game-header {
-                padding: 5px 10px;
+                padding: 5px 8px;
                 margin-bottom: 5px;
                 flex-shrink: 0;
             }
             
             .game-info {
-                gap: 8px;
+                gap: 6px;
                 flex-wrap: nowrap;
             }
             
             .game-info-item {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
             
             .game-info-icon {
-                width: 24px;
-                height: 24px;
-                font-size: 0.7rem;
+                width: 22px;
+                height: 22px;
+                font-size: 0.65rem;
             }
             
             /* 积分面板紧凑化 */
             .score-panel {
-                gap: 5px;
+                gap: 4px;
                 margin-bottom: 5px;
                 flex-shrink: 0;
             }
             
             .score-item {
-                min-width: 50px;
-                padding: 3px 8px;
+                min-width: 45px;
+                padding: 3px 6px;
             }
             
-            .score-name { font-size: 0.7rem; }
-            .score-value { font-size: 0.9rem; }
+            .score-name { font-size: 0.65rem; }
+            .score-value { font-size: 0.85rem; }
             
-            /* 麻将桌优化 */
+            /* 麻将桌优化 - 竖屏布局 */
             .mahjong-table {
-                flex: 1;
-                min-height: 0;
-                aspect-ratio: unset;
-                padding: 8px;
+                padding: 6px;
                 gap: 5px;
                 border-width: 4px;
-                border-radius: 12px;
-                max-height: 45vh;
+                border-radius: 10px;
+            }
+            
+            /* 对手区横向排列 */
+            .opponents-row {
+                gap: 3px;
+            }
+            
+            .opponents-row .seat {
+                padding: 3px;
             }
             
             /* 座位优化 */
             .seat-info {
-                padding: 3px 6px;
-                gap: 3px;
+                padding: 2px 4px;
+                gap: 2px;
+                flex-wrap: wrap;
+                justify-content: center;
             }
             
             .seat-avatar {
-                width: 24px;
-                height: 24px;
-                font-size: 14px;
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
             }
             
             .seat-name {
-                font-size: 0.7rem;
-                max-width: 40px;
+                font-size: 0.65rem;
+                max-width: 35px;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                white-space: nowrap;
             }
             
             .seat-wind {
-                font-size: 0.6rem;
-                padding: 1px 4px;
+                font-size: 0.55rem;
+                padding: 1px 3px;
             }
             
-            /* 牌面大小调整 */
+            /* 牌面大小调整 - 手机优化 */
             .tile {
-                width: 28px;
-                height: 38px;
-                font-size: 18px;
+                width: 30px;
+                height: 42px;
+                font-size: 20px;
                 border-radius: 4px;
             }
             
             .tile.small {
+                width: 16px;
+                height: 22px;
+                font-size: 10px;
+            }
+            
+            .tile.discarded {
                 width: 18px;
                 height: 25px;
                 font-size: 12px;
             }
             
-            .tile.discarded {
-                width: 22px;
-                height: 30px;
-                font-size: 14px;
-            }
-            
             .tile.new-tile {
-                margin-left: 8px;
+                margin-left: 10px;
             }
             
             /* 弃牌区紧凑 */
             .seat-discards {
                 gap: 1px;
+                max-width: 80px;
+                min-height: 28px;
+                padding: 3px;
+            }
+            
+            .my-discards {
                 max-width: 100%;
-                justify-content: center;
+                min-height: 30px;
             }
             
             .seat-tiles {
                 gap: 1px;
             }
             
-            /* 中央区域 */
-            .table-center {
-                padding: 5px;
-            }
-            
-            .deck-info {
-                font-size: 0.8rem;
-                padding: 4px 8px;
-            }
-            
-            /* 手牌区域优化 - 重要 */
+            /* 手牌区域优化 - 竖屏友好 */
             .my-hand-area {
                 flex-shrink: 0;
-                padding: 8px;
-                margin-top: 5px;
+                padding: 10px;
+                margin-top: 8px;
                 border-radius: 10px;
-                max-height: 40vh;
-                overflow-y: auto;
             }
             
             .my-hand-label {
                 font-size: 0.8rem;
-                margin-bottom: 5px;
+                margin-bottom: 6px;
             }
             
             .my-hand {
-                gap: 2px;
+                gap: 3px;
                 flex-wrap: wrap;
                 justify-content: center;
             }
             
             .my-melds {
-                gap: 5px;
-                margin-top: 5px;
+                gap: 6px;
+                margin-top: 6px;
             }
             
             /* 操作按钮 */
             .action-buttons {
-                gap: 8px;
-                margin-top: 8px;
+                gap: 10px;
+                margin-top: 10px;
                 flex-wrap: wrap;
                 justify-content: center;
             }
             
             .action-btn {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-                min-width: 50px;
+                padding: 10px 20px;
+                font-size: 1rem;
+                min-width: 60px;
             }
             
             /* 隐藏聊天 */
@@ -2039,13 +2017,6 @@
         <span id="networkStatus">⚡ 网络较慢</span>
     </div>
 
-    <!-- 横屏提示 -->
-    <div class="rotate-hint" id="rotateHint">
-        <div class="icon">📱</div>
-        <h2>请横屏游戏</h2>
-        <p>为获得更好的游戏体验，请将手机横过来</p>
-    </div>
-
     <!-- 背景粒子效果 -->
     <div class="particles-container" id="particlesContainer"></div>
     
@@ -2219,51 +2190,46 @@
         </div>
 
         <div class="mahjong-table">
-            <!-- 对家（上方） -->
-            <div class="seat seat-top" id="seat-2">
-                <div class="seat-info">
-                    <div class="seat-avatar" id="avatar-2">🤖</div>
-                    <span class="seat-name" id="name-2">等待中</span>
-                    <span class="seat-wind" id="wind-2">西</span>
+            <!-- 对手区域 - 横向排列 -->
+            <div class="opponents-row">
+                <!-- 左家 -->
+                <div class="seat" id="seat-3">
+                    <div class="seat-info">
+                        <div class="seat-avatar" id="avatar-3">🤖</div>
+                        <span class="seat-name" id="name-3">等待中</span>
+                        <span class="seat-wind" id="wind-3">北</span>
+                    </div>
+                    <div class="seat-tiles" id="tiles-3"></div>
+                    <div class="seat-discards" id="discards-3"></div>
                 </div>
-                <div class="seat-tiles" id="tiles-2"></div>
-                <div class="seat-discards" id="discards-2"></div>
+
+                <!-- 对家（中间） -->
+                <div class="seat" id="seat-2">
+                    <div class="seat-info">
+                        <div class="seat-avatar" id="avatar-2">🤖</div>
+                        <span class="seat-name" id="name-2">等待中</span>
+                        <span class="seat-wind" id="wind-2">西</span>
+                    </div>
+                    <div class="seat-tiles" id="tiles-2"></div>
+                    <div class="seat-discards" id="discards-2"></div>
+                </div>
+
+                <!-- 右家 -->
+                <div class="seat" id="seat-1">
+                    <div class="seat-info">
+                        <div class="seat-avatar" id="avatar-1">🤖</div>
+                        <span class="seat-name" id="name-1">等待中</span>
+                        <span class="seat-wind" id="wind-1">南</span>
+                    </div>
+                    <div class="seat-tiles" id="tiles-1"></div>
+                    <div class="seat-discards" id="discards-1"></div>
+                </div>
             </div>
 
-            <!-- 左家 -->
-            <div class="seat seat-left" id="seat-3">
-                <div class="seat-info">
-                    <div class="seat-avatar" id="avatar-3">🤖</div>
-                    <span class="seat-name" id="name-3">等待中</span>
-                    <span class="seat-wind" id="wind-3">北</span>
-                </div>
-                <div class="seat-tiles" id="tiles-3"></div>
-                <div class="seat-discards" id="discards-3"></div>
-            </div>
-
-            <!-- 中央区域（剩余牌数等信息） -->
+            <!-- 中央出牌区域 -->
             <div class="table-center">
                 <div class="deck-info">🀄 剩余: <span id="centerDeckCount">0</span></div>
-            </div>
-
-            <!-- 右家 -->
-            <div class="seat seat-right" id="seat-1">
-                <div class="seat-info">
-                    <div class="seat-avatar" id="avatar-1">🤖</div>
-                    <span class="seat-name" id="name-1">等待中</span>
-                    <span class="seat-wind" id="wind-1">南</span>
-                </div>
-                <div class="seat-tiles" id="tiles-1"></div>
-                <div class="seat-discards" id="discards-1"></div>
-            </div>
-
-            <!-- 自己（下方） -->
-            <div class="seat seat-bottom" id="seat-0">
-                <div class="seat-info">
-                    <div class="seat-avatar" id="avatar-0">👤</div>
-                    <span class="seat-name" id="name-0">我</span>
-                    <span class="seat-wind" id="wind-0">东</span>
-                </div>
+                <!-- 我的出牌区 -->
                 <div class="seat-discards my-discards" id="discards-0"></div>
             </div>
         </div>
@@ -3812,7 +3778,7 @@
                 document.getElementById('chatArea').style.display = 'none';
             }
             document.getElementById('actionButtons').classList.add('active');
-            // 添加游戏中标记（触发横屏提示）
+            // 添加游戏中标记（用于游戏界面样式）
             document.body.classList.add('in-game');
             
             // 【修复】关闭可能存在的弹窗
