@@ -394,9 +394,7 @@
             min-width: 0;
         }
 
-        /* 隐藏原 grid 位置 */
-        .seat-top, .seat-left, .seat-right { }
-        .seat-bottom { display: none; }
+        /* 竖屏布局不需要 grid 位置类 */
 
         .seat-info {
             display: flex;
@@ -619,14 +617,9 @@
             max-width: 200px;
         }
         
-        .seat-top .seat-discards {
+        .opponents-row .seat-discards {
             margin-top: 5px;
-        }
-        
-        .seat-left .seat-discards,
-        .seat-right .seat-discards {
-            margin-top: 5px;
-            max-width: 120px;
+            max-width: 100px;
         }
         
         .my-discards {
@@ -3403,6 +3396,11 @@
                 const playerVoice = player?.voice || getPlayerVoiceBySeat(data.playerIndex);
                 const isMe = data.playerIndex === mySeatIndex;
                 
+                // 显示动作特效（碰/杠/胡 大字动画）
+                if (data.action === 'peng' || data.action === 'gang' || data.action === 'hu' || data.action === 'hu_zimo') {
+                    showActionEffect(data.action, playerName);
+                }
+                
                 if (data.action === 'peng') {
                     showToast(`${isMe ? '你' : playerName} 碰！`);
                     speakPeng(playerVoice);
@@ -4942,26 +4940,7 @@
         // 增强游戏状态更新，添加动画效果
         const originalUpdateGameUI = scheduleUpdate;
         
-        // 监听动作执行事件，显示特效
-        if (socket) {
-            socket.on('action_executed', (data) => {
-                console.log('动作执行:', data);
-                const player = gameState?.players?.[data.playerIndex];
-                showActionEffect(data.action, player?.username);
-                
-                // 播放对应动作的音频
-                if (data.action === 'peng') {
-                    playActionAudio('peng', getPlayerVoiceBySeat(data.playerIndex));
-                } else if (data.action === 'gang') {
-                    playActionAudio('gang', getPlayerVoiceBySeat(data.playerIndex));
-                }
-            });
-            
-            // 监听表情消息
-            socket.on('emoji_received', (data) => {
-                showEmojiBubble(data.emoji, data.seatIndex);
-            });
-        }
+        // 注：action_executed 和 emoji_received 事件监听已在 connectServer() 中注册
         
         // 页面加载时初始化粒子效果
         document.addEventListener('DOMContentLoaded', () => {
