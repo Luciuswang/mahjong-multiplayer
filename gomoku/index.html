@@ -1284,6 +1284,7 @@
             });
             
             socket.on('action_error', (data) => {
+                console.log('服务器错误:', data.message);
                 showToast(data.message);
             });
             
@@ -1431,6 +1432,8 @@
         
         // 请求悔棋
         function requestUndo() {
+            console.log('悔棋按钮点击，isAIMode:', isAIMode);
+            
             if (isAIMode) {
                 // AI模式：直接悔棋
                 if (undoUsed) {
@@ -1458,7 +1461,13 @@
                 showToast('悔棋成功！');
             } else {
                 // 联机模式：发送悔棋请求
+                if (!socket || !socket.connected) {
+                    showToast('未连接到服务器');
+                    return;
+                }
+                console.log('发送悔棋请求到服务器');
                 socket.emit('request_undo');
+                showToast('已发送悔棋请求，等待对方回应...');
             }
         }
         
