@@ -2018,6 +2018,9 @@ class GomokuRoom {
         this.gameRunning = false;
         this.currentTurn = 'black';
         this.createdAt = Date.now();
+        this.moveHistory = []; // 落子历史记录
+        this.undoUsed = { black: false, white: false }; // 每方只能悔棋一次
+        this.pendingUndo = null; // 待处理的悔棋请求
         console.log(`[五子棋] 房间 ${code} 已创建，房主: ${hostName}`);
     }
 
@@ -2085,6 +2088,9 @@ class GomokuRoom {
         this.gameRunning = true;
         this.board = Array(15).fill(null).map(() => Array(15).fill(null));
         this.currentTurn = 'black';
+        this.moveHistory = []; // 重置落子历史
+        this.undoUsed = { black: false, white: false }; // 重置悔棋次数
+        this.pendingUndo = null;
         
         // 随机分配颜色
         if (Math.random() > 0.5) {
@@ -2114,6 +2120,13 @@ class GomokuRoom {
         if (this.board[row][col]) return { error: '这里已经有棋子了' };
         
         this.board[row][col] = player.color;
+        
+        // 记录落子历史
+        this.moveHistory.push({
+            row, col,
+            color: player.color,
+            playerId: socketId
+        });
         
         this.broadcast('stone_placed', {
             row, col,
@@ -2179,9 +2192,108 @@ class GomokuRoom {
         return true;
     }
 
+    // 请求悔棋
+    requestUndo(socketId) {
+        const player = this.players.find(p => p.id === socketId);
+        if (!player) return { error: '玩家不存在' };
+        
+        if (!this.gameRunning) return { error: '游戏未开始' };
+        
+        // 检查是否已用过悔棋
+        if (this.undoUsed[player.color]) {
+            return { error: '本局已使用过悔棋机会' };
+        }
+        
+        // 检查是否有自己的落子可以悔棋
+        const lastOwnMove = this.findLastOwnMove(socketId);
+        if (!lastOwnMove) {
+            return { error: '没有可以悔的棋' };
+        }
+        
+        // 发送悔棋请求给对手
+        const opponent = this.players.find(p => p.id !== socketId);
+        if (opponent && opponent.socket) {
+            this.pendingUndo = {
+                requesterId: socketId,
+                requesterColor: player.color
+            };
+            
+            opponent.socket.emit('undo_request', {
+                requesterName: player.username
+            });
+            
+            return { success: true, pending: true };
+        }
+        
+        return { error: '对手不在线' };
+    }
+    
+    // 查找最后一次自己的落子
+    findLastOwnMove(socketId) {
+        for (let i = this.moveHistory.length - 1; i >= 0; i--) {
+            if (this.moveHistory[i].playerId === socketId) {
+                return this.moveHistory[i];
+            }
+        }
+        return null;
+    }
+    
+    // 接受悔棋
+    acceptUndo(socketId) {
+        if (!this.pendingUndo) return { error: '没有待处理的悔棋请求' };
+        
+        const requester = this.players.find(p => p.id === this.pendingUndo.requesterId);
+        if (!requester) {
+            this.pendingUndo = null;
+            return { error: '请求者不存在' };
+        }
+        
+        // 执行悔棋：撤销最后一步棋
+        if (this.moveHistory.length > 0) {
+            const lastMove = this.moveHistory.pop();
+            this.board[lastMove.row][lastMove.col] = null;
+            
+            // 标记已使用悔棋
+            this.undoUsed[requester.color] = true;
+            
+            // 切换回合到悔棋的那一方
+            this.currentTurn = lastMove.color;
+            
+            // 广播悔棋成功
+            this.broadcast('undo_success', {
+                row: lastMove.row,
+                col: lastMove.col,
+                undoColor: lastMove.color,
+                currentTurn: this.currentTurn,
+                undoUsed: this.undoUsed
+            });
+            
+            console.log(`[五子棋] 房间 ${this.code}: ${requester.username} 悔棋成功`);
+        }
+        
+        this.pendingUndo = null;
+        return { success: true };
+    }
+    
+    // 拒绝悔棋
+    rejectUndo(socketId) {
+        if (!this.pendingUndo) return { error: '没有待处理的悔棋请求' };
+        
+        const requester = this.players.find(p => p.id === this.pendingUndo.requesterId);
+        if (requester && requester.socket) {
+            requester.socket.emit('undo_rejected', {});
+        }
+        
+        this.pendingUndo = null;
+        return { success: true };
+    }
+
     restartGame() {
         this.board = Array(15).fill(null).map(() => Array(15).fill(null));
         this.gameRunning = true;
+        this.moveHistory = []; // 重置落子历史
+        this.undoUsed = { black: false, white: false }; // 重置悔棋次数
+        this.pendingUndo = null;
         
         this.players.forEach(p => {
             p.color = p.color === 'black' ? 'white' : 'black';
@@ -2314,6 +2426,35 @@ gomokuIO.on('connection', (socket) => {
             if (requester && requester.socket) {
                 requester.socket.emit('play_again_rejected', {});
             }
+        }
+    });
+
+    // 请求悔棋
+    socket.on('request_undo', () => {
+        const room = gomokuPlayerSockets.get(socket.id);
+        if (room && room.gameRunning) {
+            const result = room.requestUndo(socket.id);
+            if (result.error) {
+                socket.emit('action_error', { message: result.error });
+            } else if (result.pending) {
+                socket.emit('undo_pending', { message: '等待对方同意...' });
+            }
+        }
+    });
+
+    // 接受悔棋
+    socket.on('accept_undo', () => {
+        const room = gomokuPlayerSockets.get(socket.id);
+        if (room) {
+            room.acceptUndo(socket.id);
+        }
+    });
+
+    // 拒绝悔棋
+    socket.on('reject_undo', () => {
+        const room = gomokuPlayerSockets.get(socket.id);
+        if (room) {
+            room.rejectUndo(socket.id);
         }
     });
 
