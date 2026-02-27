@@ -2100,6 +2100,9 @@
             color: #fff;
             font-size: 1rem;
             text-transform: uppercase;
+            -webkit-user-select: text;
+            user-select: text;
+            -webkit-touch-callout: default;
         }
         
         .add-friend-input button {
@@ -2284,7 +2287,7 @@
             <div class="friend-code-label">我的好友码</div>
             <div class="friend-code-display">
                 <span class="friend-code" id="myFriendCode">------</span>
-                <button class="copy-btn" onclick="copyFriendCode()">
+                <button class="copy-btn" id="copyFriendCodeBtn" onclick="copyFriendCode()">
                     <i class="fas fa-copy"></i> 复制
                 </button>
             </div>
@@ -2292,7 +2295,7 @@
         
         <div class="add-friend-section">
             <div class="add-friend-input">
-                <input type="text" id="addFriendInput" placeholder="输入好友码" maxlength="6">
+                <input type="text" id="addFriendInput" placeholder="输入好友码" maxlength="6" autocomplete="off" autocapitalize="characters" style="-webkit-user-select: text; user-select: text;">
                 <button onclick="addFriend()">添加</button>
             </div>
         </div>
@@ -2832,17 +2835,34 @@
         // 复制好友码
         function copyFriendCode() {
             if (!myFriendCode) return;
+            
+            const btn = document.getElementById('copyFriendCodeBtn');
+            const originalHtml = btn.innerHTML;
+            
+            const showCopied = () => {
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                btn.style.background = '#2ecc71';
+                showToast('好友码已复制！分享给朋友吧');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.style.background = '';
+                }, 2000);
+            };
+            
             navigator.clipboard.writeText(myFriendCode).then(() => {
-                showToast('好友码已复制！');
+                showCopied();
             }).catch(() => {
                 // 备用方案
                 const input = document.createElement('input');
                 input.value = myFriendCode;
+                input.style.position = 'fixed';
+                input.style.left = '-9999px';
                 document.body.appendChild(input);
                 input.select();
+                input.setSelectionRange(0, 99999);
                 document.execCommand('copy');
                 document.body.removeChild(input);
-                showToast('好友码已复制！');
+                showCopied();
             });
         }
         
