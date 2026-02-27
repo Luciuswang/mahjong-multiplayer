@@ -2002,6 +2002,257 @@
                 padding: 10px 20px;
             }
         }
+        
+        /* ==================== 好友系统样式 ==================== */
+        .friend-panel {
+            position: fixed;
+            top: 0;
+            right: -350px;
+            width: 350px;
+            height: 100vh;
+            background: rgba(0,0,0,0.95);
+            border-left: 2px solid var(--gold);
+            z-index: 9000;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .friend-panel.active {
+            right: 0;
+        }
+        
+        .friend-panel-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            color: #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .friend-panel-header h3 {
+            margin: 0;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.5rem;
+        }
+        
+        .friend-panel-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #1a1a1a;
+        }
+        
+        .friend-code-section {
+            padding: 15px 20px;
+            background: rgba(212,175,55,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .friend-code-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 5px;
+        }
+        
+        .friend-code-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .friend-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            letter-spacing: 3px;
+        }
+        
+        .copy-btn {
+            padding: 5px 10px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .add-friend-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .add-friend-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .add-friend-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--gold);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            text-transform: uppercase;
+        }
+        
+        .add-friend-input button {
+            padding: 10px 15px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .friend-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .friend-tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.5);
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .friend-tab.active {
+            color: var(--gold);
+            border-bottom: 2px solid var(--gold);
+        }
+        
+        .friend-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .friend-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
+        
+        .friend-info {
+            flex: 1;
+        }
+        
+        .friend-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+        
+        .friend-status {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .friend-status.online {
+            color: #2ecc71;
+        }
+        
+        .friend-status.in-game {
+            color: #f39c12;
+        }
+        
+        .friend-action-btn {
+            padding: 6px 12px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .friend-action-btn.join {
+            background: #2ecc71;
+            color: #fff;
+        }
+        
+        .friend-btn-lobby {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .friend-btn-lobby:hover {
+            transform: scale(1.1);
+        }
+        
+        .friend-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .empty-list {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .empty-list i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+        /* ==================== 结束好友系统样式 ==================== */
     </style>
 </head>
 <body>
@@ -2022,6 +2273,54 @@
     <!-- 快捷表情按钮 -->
     <button class="emoji-toggle-btn" id="emojiToggleBtn" onclick="toggleEmojiPanel()">😊</button>
     
+    <!-- 好友面板 -->
+    <div class="friend-panel" id="friendPanel">
+        <div class="friend-panel-header">
+            <h3><i class="fas fa-users"></i> 好友</h3>
+            <button class="friend-panel-close" onclick="toggleFriendPanel()">&times;</button>
+        </div>
+        
+        <div class="friend-code-section">
+            <div class="friend-code-label">我的好友码</div>
+            <div class="friend-code-display">
+                <span class="friend-code" id="myFriendCode">------</span>
+                <button class="copy-btn" onclick="copyFriendCode()">
+                    <i class="fas fa-copy"></i> 复制
+                </button>
+            </div>
+        </div>
+        
+        <div class="add-friend-section">
+            <div class="add-friend-input">
+                <input type="text" id="addFriendInput" placeholder="输入好友码" maxlength="6">
+                <button onclick="addFriend()">添加</button>
+            </div>
+        </div>
+        
+        <div class="friend-tabs">
+            <button class="friend-tab active" onclick="switchFriendTab('friends')" id="tabFriends">
+                好友 (<span id="friendCount">0</span>)
+            </button>
+            <button class="friend-tab" onclick="switchFriendTab('recent')" id="tabRecent">
+                最近一起玩
+            </button>
+        </div>
+        
+        <div class="friend-list" id="friendList">
+            <div class="empty-list">
+                <i class="fas fa-user-friends"></i>
+                <p>还没有好友</p>
+                <p style="font-size: 0.8rem;">分享你的好友码给朋友吧！</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 好友按钮（大厅显示） -->
+    <button class="friend-btn-lobby" id="friendBtnLobby" onclick="toggleFriendPanel()">
+        <i class="fas fa-users"></i>
+        <span class="friend-badge" id="onlineFriendBadge" style="display: none;">0</span>
+    </button>
+
     <!-- 快捷表情面板 -->
     <div class="emoji-panel" id="emojiPanel">
         <div class="emoji-panel-header">
@@ -2490,6 +2789,163 @@
         let isAITakeover = false; // 是否被AI接管
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
+        
+        // ==================== 好友系统变量 ====================
+        let myOderId = null;      // 我的用户ID
+        let myFriendCode = null;  // 我的好友码
+        let friendList = [];      // 好友列表
+        let recentPlayers = [];   // 最近一起玩的人
+        let currentFriendTab = 'friends'; // 当前好友面板标签
+        
+        // 初始化用户ID（从localStorage获取或生成新的）
+        function initUserId() {
+            myOderId = localStorage.getItem('mahjong_user_id');
+            if (!myOderId) {
+                myOderId = 'U' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('mahjong_user_id', myOderId);
+            }
+            return myOderId;
+        }
+        
+        // 用户登录（连接后调用）
+        function userLogin() {
+            if (!socket) return;
+            const savedNickname = localStorage.getItem('mahjong_nickname') || '';
+            socket.emit('user_login', {
+                oderId: myOderId,
+                nickname: savedNickname || username || '玩家'
+            });
+        }
+        
+        // 切换好友面板
+        function toggleFriendPanel() {
+            const panel = document.getElementById('friendPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                // 刷新好友列表
+                if (socket) {
+                    socket.emit('get_friends');
+                }
+            }
+        }
+        
+        // 复制好友码
+        function copyFriendCode() {
+            if (!myFriendCode) return;
+            navigator.clipboard.writeText(myFriendCode).then(() => {
+                showToast('好友码已复制！');
+            }).catch(() => {
+                // 备用方案
+                const input = document.createElement('input');
+                input.value = myFriendCode;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('好友码已复制！');
+            });
+        }
+        
+        // 添加好友
+        function addFriend() {
+            const input = document.getElementById('addFriendInput');
+            const code = input.value.trim().toUpperCase();
+            if (code.length !== 6) {
+                showToast('请输入6位好友码');
+                return;
+            }
+            if (code === myFriendCode) {
+                showToast('不能添加自己');
+                return;
+            }
+            socket.emit('add_friend', { friendCode: code });
+            input.value = '';
+        }
+        
+        // 切换好友面板标签
+        function switchFriendTab(tab) {
+            currentFriendTab = tab;
+            document.getElementById('tabFriends').classList.toggle('active', tab === 'friends');
+            document.getElementById('tabRecent').classList.toggle('active', tab === 'recent');
+            renderFriendList();
+        }
+        
+        // 渲染好友列表
+        function renderFriendList() {
+            const container = document.getElementById('friendList');
+            const list = currentFriendTab === 'friends' ? friendList : recentPlayers;
+            
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-list">
+                        <i class="fas fa-user-friends"></i>
+                        <p>${currentFriendTab === 'friends' ? '还没有好友' : '还没有一起玩过的人'}</p>
+                        <p style="font-size: 0.8rem;">分享你的好友码给朋友吧！</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = list.map(friend => {
+                let statusText = '离线';
+                let statusClass = '';
+                let actionBtn = '';
+                
+                if (friend.isOnline) {
+                    if (friend.currentRoom) {
+                        statusText = `在房间 ${friend.currentRoom.code}`;
+                        statusClass = 'in-game';
+                        if (!friend.currentRoom.gameRunning) {
+                            actionBtn = `<button class="friend-action-btn join" onclick="joinFriendRoom('${friend.currentRoom.code}')">加入</button>`;
+                        }
+                    } else {
+                        statusText = '在线';
+                        statusClass = 'online';
+                    }
+                }
+                
+                // 如果是最近玩家且不是好友，显示添加好友按钮
+                if (currentFriendTab === 'recent' && !friend.isFriend && friend.friendCode) {
+                    actionBtn = `<button class="friend-action-btn" onclick="addFriendByCode('${friend.friendCode}')">加好友</button>`;
+                }
+                
+                return `
+                    <div class="friend-item">
+                        <div class="friend-avatar">👤</div>
+                        <div class="friend-info">
+                            <div class="friend-name">${friend.nickname}</div>
+                            <div class="friend-status ${statusClass}">${statusText}</div>
+                        </div>
+                        ${actionBtn}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 加入好友的房间
+        function joinFriendRoom(roomCode) {
+            document.getElementById('roomCodeInput').value = roomCode;
+            toggleFriendPanel();
+            joinRoom();
+        }
+        
+        // 通过好友码添加好友
+        function addFriendByCode(code) {
+            socket.emit('add_friend', { friendCode: code });
+        }
+        
+        // 更新在线好友数量徽章
+        function updateOnlineFriendBadge() {
+            const onlineCount = friendList.filter(f => f.isOnline).length;
+            const badge = document.getElementById('onlineFriendBadge');
+            if (onlineCount > 0) {
+                badge.textContent = onlineCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        // ==================== 结束好友系统变量 ====================
 
         // 牌面显示
         const TYPE_NAMES = { wan: '万', tiao: '条', tong: '筒' };
@@ -2853,6 +3309,13 @@
         };
         
         document.addEventListener('DOMContentLoaded', () => {
+            // 初始化用户ID（好友系统）
+            initUserId();
+            // 加载保存的昵称
+            const savedNickname = localStorage.getItem('mahjong_nickname');
+            if (savedNickname) {
+                document.getElementById('usernameInput').value = savedNickname;
+            }
             // 初始化语音
             initVoice();
             // 延迟启动音频预加载
@@ -3139,7 +3602,76 @@
                 // 启动网络质量检测
                 startPingMonitor();
                 updateNetworkIndicator('good');
+                
+                // 用户登录（好友系统）
+                userLogin();
             });
+            
+            // ==================== 好友系统事件监听 ====================
+            socket.on('login_success', (data) => {
+                console.log('用户登录成功:', data);
+                myFriendCode = data.friendCode;
+                document.getElementById('myFriendCode').textContent = data.friendCode;
+                document.getElementById('friendCount').textContent = data.friendCount;
+                
+                // 获取好友列表
+                socket.emit('get_friends');
+            });
+            
+            socket.on('friends_list', (data) => {
+                friendList = data.friends || [];
+                recentPlayers = data.recentPlayers || [];
+                document.getElementById('friendCount').textContent = friendList.length;
+                renderFriendList();
+                updateOnlineFriendBadge();
+            });
+            
+            socket.on('add_friend_result', (data) => {
+                if (data.success) {
+                    showToast(`已添加好友: ${data.friend.nickname}`);
+                    friendList.push(data.friend);
+                    document.getElementById('friendCount').textContent = friendList.length;
+                    renderFriendList();
+                    updateOnlineFriendBadge();
+                } else {
+                    showToast(data.error || '添加失败');
+                }
+            });
+            
+            socket.on('friend_added', (data) => {
+                showToast(`${data.nickname} 添加你为好友`);
+                friendList.push({
+                    oderId: data.oderId,
+                    nickname: data.nickname,
+                    friendCode: data.friendCode,
+                    isOnline: true
+                });
+                document.getElementById('friendCount').textContent = friendList.length;
+                renderFriendList();
+                updateOnlineFriendBadge();
+            });
+            
+            socket.on('friend_online', (data) => {
+                const friend = friendList.find(f => f.oderId === data.oderId);
+                if (friend) {
+                    friend.isOnline = true;
+                    friend.currentRoom = null;
+                    renderFriendList();
+                    updateOnlineFriendBadge();
+                    showToast(`${data.nickname} 上线了`);
+                }
+            });
+            
+            socket.on('friend_offline', (data) => {
+                const friend = friendList.find(f => f.oderId === data.oderId);
+                if (friend) {
+                    friend.isOnline = false;
+                    friend.currentRoom = null;
+                    renderFriendList();
+                    updateOnlineFriendBadge();
+                }
+            });
+            // ==================== 结束好友系统事件监听 ====================
 
             socket.on('disconnect', () => {
                 console.log('与服务器断开连接');
@@ -3652,6 +4184,8 @@
                 return;
             }
             username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+            // 保存昵称到本地
+            localStorage.setItem('mahjong_nickname', username);
             socket.emit('create_room', { username, avatar: '👤', voice: myVoice });
         }
 
@@ -3662,6 +4196,8 @@
                 return;
             }
             username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+            // 保存昵称到本地
+            localStorage.setItem('mahjong_nickname', username);
             const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             
             if (roomCode.length !== 6) {

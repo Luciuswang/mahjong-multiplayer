@@ -76,6 +76,153 @@ const FLOWER_NAMES = {
 const gameRooms = new Map();
 const playerSockets = new Map();
 
+// ==================== 用户和好友系统 ====================
+const users = new Map();           // oderId -> userInfo
+const friendCodes = new Map();     // friendCode -> oderId
+const onlineUsers = new Map();     // oderId -> socketId
+
+// 生成6位好友码
+function generateFriendCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code;
+    do {
+        code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+    } while (friendCodes.has(code));
+    return code;
+}
+
+// 获取或创建用户
+function getOrCreateUser(oderId, nickname) {
+    if (users.has(oderId)) {
+        const user = users.get(oderId);
+        if (nickname && nickname !== user.nickname) {
+            user.nickname = nickname;
+        }
+        return user;
+    }
+    
+    // 创建新用户
+    const friendCode = generateFriendCode();
+    const user = {
+        oderId: oderId,
+        nickname: nickname || '玩家',
+        friendCode: friendCode,
+        friends: [],           // 好友列表 [oderId, ...]
+        recentPlayers: [],     // 最近一起玩的人 [{oderId, nickname, lastPlayTime, playCount}, ...]
+        stats: {
+            totalGames: 0,
+            wins: 0,
+            winStreak: 0,
+            maxWinStreak: 0
+        },
+        createdAt: Date.now()
+    };
+    
+    users.set(oderId, user);
+    friendCodes.set(friendCode, oderId);
+    console.log(`新用户注册: ${nickname} (${friendCode})`);
+    
+    return user;
+}
+
+// 获取用户的好友列表（带在线状态）
+function getFriendList(oderId) {
+    const user = users.get(oderId);
+    if (!user) return [];
+    
+    return user.friends.map(friendOderId => {
+        const friend = users.get(friendOderId);
+        if (!friend) return null;
+        
+        const isOnline = onlineUsers.has(friendOderId);
+        let currentRoom = null;
+        
+        // 查找好友所在的房间
+        if (isOnline) {
+            const friendSocketId = onlineUsers.get(friendOderId);
+            const room = playerSockets.get(friendSocketId);
+            if (room) {
+                currentRoom = {
+                    code: room.code,
+                    playerCount: room.players.filter(p => !p.isBot).length,
+                    gameRunning: room.gameRunning
+                };
+            }
+        }
+        
+        return {
+            oderId: friendOderId,
+            nickname: friend.nickname,
+            friendCode: friend.friendCode,
+            isOnline: isOnline,
+            currentRoom: currentRoom
+        };
+    }).filter(f => f !== null);
+}
+
+// 添加好友
+function addFriend(oderId, friendCode) {
+    const user = users.get(oderId);
+    if (!user) return { success: false, error: '用户不存在' };
+    
+    const friendOderId = friendCodes.get(friendCode.toUpperCase());
+    if (!friendOderId) return { success: false, error: '好友码不存在' };
+    
+    if (friendOderId === oderId) return { success: false, error: '不能添加自己' };
+    
+    if (user.friends.includes(friendOderId)) {
+        return { success: false, error: '已经是好友了' };
+    }
+    
+    const friend = users.get(friendOderId);
+    if (!friend) return { success: false, error: '好友不存在' };
+    
+    // 双向添加好友
+    user.friends.push(friendOderId);
+    friend.friends.push(oderId);
+    
+    console.log(`好友添加成功: ${user.nickname} <-> ${friend.nickname}`);
+    
+    return { 
+        success: true, 
+        friend: {
+            oderId: friendOderId,
+            nickname: friend.nickname,
+            friendCode: friend.friendCode,
+            isOnline: onlineUsers.has(friendOderId)
+        }
+    };
+}
+
+// 记录一起玩的人
+function recordRecentPlayer(oderId, otherOderId, otherNickname) {
+    const user = users.get(oderId);
+    if (!user || oderId === otherOderId) return;
+    
+    const existing = user.recentPlayers.find(p => p.oderId === otherOderId);
+    if (existing) {
+        existing.lastPlayTime = Date.now();
+        existing.playCount++;
+        existing.nickname = otherNickname;
+    } else {
+        user.recentPlayers.unshift({
+            oderId: otherOderId,
+            nickname: otherNickname,
+            lastPlayTime: Date.now(),
+            playCount: 1
+        });
+        // 只保留最近20个
+        if (user.recentPlayers.length > 20) {
+            user.recentPlayers.pop();
+        }
+    }
+}
+
+// ==================== 结束用户和好友系统 ====================
+
 // 生成6位房间号
 function generateRoomCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -1811,6 +1958,121 @@ class MahjongRoom {
 // Socket.IO 事件处理
 io.on('connection', (socket) => {
     console.log('新连接:', socket.id);
+    
+    // ==================== 用户和好友事件 ====================
+    
+    // 用户登录/注册（获取或创建用户）
+    socket.on('user_login', (data) => {
+        const { oderId, nickname } = data;
+        if (!oderId) {
+            socket.emit('login_error', { error: '缺少用户ID' });
+            return;
+        }
+        
+        const user = getOrCreateUser(oderId, nickname);
+        onlineUsers.set(oderId, socket.id);
+        socket.oderId = oderId;
+        
+        socket.emit('login_success', {
+            oderId: user.oderId,
+            nickname: user.nickname,
+            friendCode: user.friendCode,
+            stats: user.stats,
+            friendCount: user.friends.length
+        });
+        
+        // 通知好友上线
+        user.friends.forEach(friendOderId => {
+            const friendSocketId = onlineUsers.get(friendOderId);
+            if (friendSocketId) {
+                io.to(friendSocketId).emit('friend_online', {
+                    oderId: user.oderId,
+                    nickname: user.nickname
+                });
+            }
+        });
+        
+        console.log(`用户上线: ${user.nickname} (${user.friendCode})`);
+    });
+    
+    // 获取好友列表
+    socket.on('get_friends', () => {
+        if (!socket.oderId) {
+            socket.emit('friends_list', { friends: [], recentPlayers: [] });
+            return;
+        }
+        
+        const user = users.get(socket.oderId);
+        if (!user) {
+            socket.emit('friends_list', { friends: [], recentPlayers: [] });
+            return;
+        }
+        
+        const friends = getFriendList(socket.oderId);
+        const recentPlayers = user.recentPlayers.map(p => {
+            const isOnline = onlineUsers.has(p.oderId);
+            const isFriend = user.friends.includes(p.oderId);
+            return {
+                ...p,
+                isOnline,
+                isFriend
+            };
+        });
+        
+        socket.emit('friends_list', { friends, recentPlayers });
+    });
+    
+    // 添加好友
+    socket.on('add_friend', (data) => {
+        const { friendCode } = data;
+        if (!socket.oderId) {
+            socket.emit('add_friend_result', { success: false, error: '请先登录' });
+            return;
+        }
+        
+        const result = addFriend(socket.oderId, friendCode);
+        socket.emit('add_friend_result', result);
+        
+        // 如果成功，通知对方
+        if (result.success) {
+            const user = users.get(socket.oderId);
+            const friendSocketId = onlineUsers.get(result.friend.oderId);
+            if (friendSocketId) {
+                io.to(friendSocketId).emit('friend_added', {
+                    oderId: user.oderId,
+                    nickname: user.nickname,
+                    friendCode: user.friendCode
+                });
+            }
+        }
+    });
+    
+    // 获取好友状态（实时查询某个好友的状态）
+    socket.on('get_friend_status', (data) => {
+        const { friendOderId } = data;
+        const isOnline = onlineUsers.has(friendOderId);
+        let currentRoom = null;
+        
+        if (isOnline) {
+            const friendSocketId = onlineUsers.get(friendOderId);
+            const room = playerSockets.get(friendSocketId);
+            if (room) {
+                currentRoom = {
+                    code: room.code,
+                    playerCount: room.players.filter(p => !p.isBot).length,
+                    gameRunning: room.gameRunning
+                };
+            }
+        }
+        
+        socket.emit('friend_status', {
+            oderId: friendOderId,
+            isOnline,
+            currentRoom
+        });
+    });
+    
+    // ==================== 结束用户和好友事件 ====================
 
     // 创建房间
     socket.on('create_room', (data) => {
@@ -1972,6 +2234,25 @@ io.on('connection', (socket) => {
     // 断开连接
     socket.on('disconnect', () => {
         console.log('断开连接:', socket.id);
+        
+        // 处理好友下线通知
+        if (socket.oderId) {
+            const user = users.get(socket.oderId);
+            if (user) {
+                // 通知好友下线
+                user.friends.forEach(friendOderId => {
+                    const friendSocketId = onlineUsers.get(friendOderId);
+                    if (friendSocketId) {
+                        io.to(friendSocketId).emit('friend_offline', {
+                            oderId: user.oderId,
+                            nickname: user.nickname
+                        });
+                    }
+                });
+            }
+            onlineUsers.delete(socket.oderId);
+        }
+        
         const room = playerSockets.get(socket.id);
         if (room) {
             room.removePlayer(socket.id);
