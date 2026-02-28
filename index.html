@@ -4021,15 +4021,22 @@
                 // 关闭结算弹窗
                 document.getElementById('roundResultModal').classList.remove('active');
                 
-                // 检查是否被AI接管
+                // 检查是否被AI接管（从服务器数据或游戏状态）
                 const myPlayer = gameState.players.find(p => p.seatIndex === mySeatIndex);
-                if (myPlayer && myPlayer.aiTakeover) {
+                if (data.aiTakeover || (myPlayer && myPlayer.aiTakeover)) {
                     isAITakeover = true;
                     showTakeoverButton();
-                    showToast('⚠️ AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
+                    if (data.isReconnect) {
+                        showToast('⚠️ 重连成功！AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
+                    } else {
+                        showToast('⚠️ AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
+                    }
                 } else {
                     isAITakeover = false;
                     hideTakeoverButton();
+                    if (data.isReconnect) {
+                        showToast('✅ 重连成功！', 2000);
+                    }
                 }
                 
                 // 更新局数和积分显示
@@ -4331,6 +4338,14 @@
                 showToast('✅ 已恢复控制权！', 2000);
                 isAITakeover = false;
                 hideTakeoverButton();
+            });
+            
+            // 重连后需要接管AI
+            socket.on('need_takeover', (data) => {
+                console.log('需要接管AI:', data);
+                isAITakeover = true;
+                showTakeoverButton();
+                showToast('⚠️ ' + data.message, 5000);
             });
             
             // 其他玩家接管AI

@@ -345,35 +345,46 @@ class MahjongRoom {
                     currentRound: this.currentRound,
                     totalRounds: this.totalRounds,
                     matchScores: this.matchScores,
-                    isReconnect: true
+                    isReconnect: true,
+                    aiTakeover: offlinePlayer.aiTakeover || false  // 告知客户端AI接管状态
                 });
                 
-                // 【重连恢复控制权】检查是否轮到该玩家
-                if (this.gameState.currentPlayerIndex === offlinePlayer.seatIndex) {
-                    console.log(`玩家 ${username} 重连，正好轮到他，恢复控制权`);
-                    
-                    if (this.gameState.turnPhase === 'discard') {
-                        // 出牌阶段：重新设置超时，给玩家时间操作
-                        if (this.gameState.discardTimeout) {
-                            clearTimeout(this.gameState.discardTimeout);
-                        }
-                        this.setDiscardTimeout(offlinePlayer);
-                        
-                        // 通知玩家轮到他出牌（延迟发送确保socket稳定）
-                        setTimeout(() => {
-                            socket.emit('your_turn', {
-                                phase: 'discard',
-                                message: '轮到你出牌了！'
-                            });
-                            // 重新发送倒计时
-                            socket.emit('discard_countdown', { seconds: 15 });
-                        }, 200);
-                    } else if (this.gameState.turnPhase === 'draw') {
-                        // 摸牌阶段：通知玩家可以摸牌
-                        socket.emit('your_turn', {
-                            phase: 'draw',
-                            message: '轮到你摸牌了！'
+                // 如果之前被AI接管，通知玩家可以接管
+                if (offlinePlayer.aiTakeover) {
+                    console.log(`玩家 ${username} 重连，之前被AI接管，可点击接管恢复控制`);
+                    setTimeout(() => {
+                        socket.emit('need_takeover', {
+                            message: 'AI正在代替你进行游戏，点击"接管AI"恢复控制'
                         });
+                    }, 500);
+                } else {
+                    // 【重连恢复控制权】检查是否轮到该玩家
+                    if (this.gameState.currentPlayerIndex === offlinePlayer.seatIndex) {
+                        console.log(`玩家 ${username} 重连，正好轮到他，恢复控制权`);
+                        
+                        if (this.gameState.turnPhase === 'discard') {
+                            // 出牌阶段：重新设置超时，给玩家时间操作
+                            if (this.gameState.discardTimeout) {
+                                clearTimeout(this.gameState.discardTimeout);
+                            }
+                            this.setDiscardTimeout(offlinePlayer);
+                            
+                            // 通知玩家轮到他出牌（延迟发送确保socket稳定）
+                            setTimeout(() => {
+                                socket.emit('your_turn', {
+                                    phase: 'discard',
+                                    message: '轮到你出牌了！'
+                                });
+                                // 重新发送倒计时
+                                socket.emit('discard_countdown', { seconds: 15 });
+                            }, 200);
+                        } else if (this.gameState.turnPhase === 'draw') {
+                            // 摸牌阶段：通知玩家可以摸牌
+                            socket.emit('your_turn', {
+                                phase: 'draw',
+                                message: '轮到你摸牌了！'
+                            });
+                        }
                     }
                 }
                 
