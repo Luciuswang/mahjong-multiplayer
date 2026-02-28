@@ -321,6 +321,7 @@ class MahjongRoom {
         if (offlinePlayer) {
             // 重连：恢复玩家状态
             offlinePlayer.id = socket.id;
+            offlinePlayer.oderId = socket.oderId || offlinePlayer.oderId;  // 更新好友系统ID
             offlinePlayer.socket = socket;
             offlinePlayer.offline = false;
             offlinePlayer.offlineTime = null;
@@ -393,6 +394,7 @@ class MahjongRoom {
         const seatIndex = this.players.length;
         const player = {
             id: socket.id,
+            oderId: socket.oderId || null,  // 用于好友系统记录
             username: username,
             avatar: avatar || '👤',
             voice: voice || 'female01',  // 语音类型
@@ -602,6 +604,16 @@ class MahjongRoom {
             this.matchStarted = true;
             this.matchScores = [0, 0, 0, 0];
             this.roundHistory = [];
+            
+            // 记录一起玩的人（仅在比赛首次开始时）
+            const realPlayers = this.players.filter(p => p.oderId && !p.isBot);
+            realPlayers.forEach(player => {
+                realPlayers.forEach(other => {
+                    if (player.oderId !== other.oderId) {
+                        recordRecentPlayer(player.oderId, other.oderId, other.username || '玩家');
+                    }
+                });
+            });
         }
         
         console.log(`房间 ${this.code} 开始第 ${this.currentRound}/${this.totalRounds} 局`);
