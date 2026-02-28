@@ -2449,6 +2449,217 @@
             background: #27ae60;
         }
         /* ==================== 结束分享弹窗样式 ==================== */
+        
+        /* ==================== 聊天样式 ==================== */
+        .chat-container {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            width: 280px;
+            max-height: 300px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid var(--gold);
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        
+        .chat-container.active {
+            display: flex;
+        }
+        
+        .chat-header {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            color: #1a1a1a;
+            border-radius: 9px 9px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+        
+        .chat-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #1a1a1a;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            max-height: 180px;
+            min-height: 100px;
+        }
+        
+        .chat-message {
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .chat-message .sender {
+            color: var(--gold);
+            font-weight: bold;
+        }
+        
+        .chat-message .text {
+            color: #fff;
+        }
+        
+        .chat-message.system {
+            color: #888;
+            font-style: italic;
+        }
+        
+        .chat-input-container {
+            padding: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .chat-send-btn {
+            padding: 8px 15px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .chat-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 999;
+            display: none;
+        }
+        
+        .chat-toggle-btn.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .chat-toggle-btn .unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .chat-toggle-btn .unread-badge.active {
+            display: block;
+        }
+        
+        /* 快捷消息 */
+        .quick-messages {
+            padding: 5px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .quick-msg-btn {
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        
+        .quick-msg-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* 修改昵称弹窗 */
+        .nickname-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9600;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nickname-modal.active {
+            display: flex;
+        }
+        
+        .nickname-modal-content {
+            background: linear-gradient(135deg, #1a5c3a 0%, #0d3321 100%);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 25px;
+            width: 300px;
+            text-align: center;
+        }
+        
+        .nickname-modal-content h3 {
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-family: 'Ma Shan Zheng', cursive;
+        }
+        
+        .nickname-modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+        
+        .nickname-modal-content .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        /* ==================== 结束聊天样式 ==================== */
     </style>
 </head>
 <body>
@@ -2468,6 +2679,46 @@
     
     <!-- 快捷表情按钮 -->
     <button class="emoji-toggle-btn" id="emojiToggleBtn" onclick="toggleEmojiPanel()">😊</button>
+    
+    <!-- 聊天按钮 -->
+    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()">
+        <i class="fas fa-comments"></i>
+        <span class="unread-badge" id="chatUnreadBadge">0</span>
+    </button>
+    
+    <!-- 聊天面板 -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <span><i class="fas fa-comments"></i> 聊天</span>
+            <button class="chat-close" onclick="toggleChat()">&times;</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message system">欢迎来到房间！</div>
+        </div>
+        <div class="quick-messages">
+            <button class="quick-msg-btn" onclick="sendQuickMessage('大家好！')">大家好</button>
+            <button class="quick-msg-btn" onclick="sendQuickMessage('快点啊')">快点啊</button>
+            <button class="quick-msg-btn" onclick="sendQuickMessage('厉害👍')">厉害</button>
+            <button class="quick-msg-btn" onclick="sendQuickMessage('再来一局')">再来一局</button>
+            <button class="quick-msg-btn" onclick="sendQuickMessage('先走了，下次再玩')">下次再玩</button>
+        </div>
+        <div class="chat-input-container">
+            <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." maxlength="100" onkeypress="handleChatKeypress(event)">
+            <button class="chat-send-btn" onclick="sendChatMessage()">发送</button>
+        </div>
+    </div>
+    
+    <!-- 修改昵称弹窗 -->
+    <div class="nickname-modal" id="nicknameModal">
+        <div class="nickname-modal-content">
+            <h3><i class="fas fa-edit"></i> 修改昵称</h3>
+            <input type="text" id="newNicknameInput" placeholder="输入新昵称" maxlength="12">
+            <div class="btn-group">
+                <button class="btn" onclick="confirmChangeNickname()">确认</button>
+                <button class="btn secondary" onclick="closeNicknameModal()">取消</button>
+            </div>
+        </div>
+    </div>
     
     <!-- 好友面板 -->
     <div class="friend-panel" id="friendPanel">
@@ -3888,6 +4139,9 @@
                         avatar: '👤', 
                         voice: myVoice 
                     });
+                } else {
+                    // 尝试加入扫码待进入的房间
+                    tryJoinPendingRoom();
                 }
             });
             
@@ -4005,6 +4259,29 @@
             // 玩家重连
             socket.on('player_reconnected', (data) => {
                 showToast(`✅ ${data.username} 已重连！`);
+                addSystemMessage(`${data.username} 重新连接了`);
+            });
+            
+            // 聊天消息
+            socket.on('chat_message', (data) => {
+                addChatMessage(data);
+            });
+            
+            // 昵称修改成功
+            socket.on('nickname_changed', (data) => {
+                username = data.nickname;
+                localStorage.setItem('mahjong_nickname', data.nickname);
+                showToast('昵称已修改为: ' + data.nickname);
+            });
+            
+            // 其他玩家改名
+            socket.on('player_renamed', (data) => {
+                addSystemMessage(`${data.oldName} 改名为 ${data.newName}`);
+            });
+            
+            // 玩家离线
+            socket.on('player_offline', (data) => {
+                addSystemMessage(`${data.username} 离线了`);
             });
 
             // 游戏事件
@@ -4520,6 +4797,9 @@
             document.getElementById('lobbyScreen').classList.remove('active');
             document.getElementById('roomScreen').classList.add('active');
             document.getElementById('displayRoomCode').textContent = currentRoom;
+            // 显示聊天按钮
+            showChatButton();
+            clearChatMessages();
         }
 
         // 更新房间UI
@@ -4736,13 +5016,188 @@
             const roomCode = urlParams.get('room');
             
             if (roomCode && roomCode.length === 6) {
-                document.getElementById('roomCodeInput').value = roomCode.toUpperCase();
-                showToast('已填入房间号: ' + roomCode.toUpperCase());
                 // 清除URL参数，避免刷新后重复
                 window.history.replaceState({}, document.title, window.location.pathname);
+                
+                // 生成默认昵称
+                const savedNickname = localStorage.getItem('mahjong_nickname');
+                if (!savedNickname) {
+                    username = '玩家' + Math.floor(Math.random() * 9000 + 1000);
+                } else {
+                    username = savedNickname;
+                }
+                
+                // 等待socket连接后直接加入房间
+                pendingRoomJoin = roomCode.toUpperCase();
+                showToast('正在加入房间 ' + roomCode.toUpperCase() + '...');
+            }
+        }
+        
+        // 待加入的房间（扫码直接进入）
+        let pendingRoomJoin = null;
+        
+        // 尝试加入待加入的房间
+        function tryJoinPendingRoom() {
+            if (pendingRoomJoin && socket && socket.connected) {
+                const roomCode = pendingRoomJoin;
+                pendingRoomJoin = null;
+                
+                // 使用默认昵称或已保存的昵称
+                if (!username) {
+                    const savedNickname = localStorage.getItem('mahjong_nickname');
+                    username = savedNickname || '玩家' + Math.floor(Math.random() * 9000 + 1000);
+                }
+                
+                console.log('扫码直接加入房间:', roomCode, '昵称:', username);
+                socket.emit('join_room', { 
+                    roomCode: roomCode, 
+                    username: username, 
+                    avatar: '👤', 
+                    voice: myVoice 
+                });
             }
         }
         // ==================== 结束分享功能 ====================
+        
+        // ==================== 聊天功能 ====================
+        let chatOpen = false;
+        let unreadCount = 0;
+        
+        // 切换聊天面板
+        function toggleChat() {
+            chatOpen = !chatOpen;
+            const container = document.getElementById('chatContainer');
+            container.classList.toggle('active', chatOpen);
+            
+            if (chatOpen) {
+                // 清除未读计数
+                unreadCount = 0;
+                updateUnreadBadge();
+                // 滚动到底部
+                scrollChatToBottom();
+                // 聚焦输入框
+                document.getElementById('chatInput').focus();
+            }
+        }
+        
+        // 发送聊天消息
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (text && socket) {
+                socket.emit('chat_message', { text: text });
+                input.value = '';
+            }
+        }
+        
+        // 发送快捷消息
+        function sendQuickMessage(text) {
+            if (socket) {
+                socket.emit('chat_message', { text: text });
+            }
+        }
+        
+        // 处理回车发送
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+        
+        // 添加聊天消息到面板
+        function addChatMessage(data) {
+            const container = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message';
+            msgDiv.innerHTML = `<span class="sender">${escapeHtml(data.username)}:</span> <span class="text">${escapeHtml(data.text)}</span>`;
+            container.appendChild(msgDiv);
+            
+            // 保持最多50条消息
+            while (container.children.length > 50) {
+                container.removeChild(container.firstChild);
+            }
+            
+            scrollChatToBottom();
+            
+            // 如果聊天面板关闭，增加未读计数
+            if (!chatOpen) {
+                unreadCount++;
+                updateUnreadBadge();
+            }
+        }
+        
+        // 添加系统消息
+        function addSystemMessage(text) {
+            const container = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'chat-message system';
+            msgDiv.textContent = text;
+            container.appendChild(msgDiv);
+            scrollChatToBottom();
+        }
+        
+        // 滚动到底部
+        function scrollChatToBottom() {
+            const container = document.getElementById('chatMessages');
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // 更新未读徽章
+        function updateUnreadBadge() {
+            const badge = document.getElementById('chatUnreadBadge');
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.add('active');
+            } else {
+                badge.classList.remove('active');
+            }
+        }
+        
+        // HTML转义
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 显示/隐藏聊天按钮（在房间内显示）
+        function showChatButton() {
+            document.getElementById('chatToggleBtn').classList.add('active');
+        }
+        
+        function hideChatButton() {
+            document.getElementById('chatToggleBtn').classList.remove('active');
+            document.getElementById('chatContainer').classList.remove('active');
+            chatOpen = false;
+        }
+        
+        // 清空聊天记录
+        function clearChatMessages() {
+            const container = document.getElementById('chatMessages');
+            container.innerHTML = '<div class="chat-message system">欢迎来到房间！</div>';
+            unreadCount = 0;
+            updateUnreadBadge();
+        }
+        
+        // ==================== 修改昵称功能 ====================
+        function openNicknameModal() {
+            document.getElementById('newNicknameInput').value = username || '';
+            document.getElementById('nicknameModal').classList.add('active');
+        }
+        
+        function closeNicknameModal() {
+            document.getElementById('nicknameModal').classList.remove('active');
+        }
+        
+        function confirmChangeNickname() {
+            const newNickname = document.getElementById('newNicknameInput').value.trim();
+            if (newNickname && newNickname !== username) {
+                socket.emit('change_nickname', { nickname: newNickname });
+            }
+            closeNicknameModal();
+        }
+        // ==================== 结束聊天和昵称功能 ====================
 
         // 准备/取消准备
         function toggleReady() {
@@ -4761,6 +5216,8 @@
             isReady = false;
             document.getElementById('roomScreen').classList.remove('active');
             document.getElementById('lobbyScreen').classList.add('active');
+            // 隐藏聊天按钮
+            hideChatButton();
         }
 
         // 显示游戏界面
@@ -5565,6 +6022,8 @@
                 document.getElementById('chatArea').style.display = 'none';
                 document.body.classList.remove('in-game');
                 currentRoom = null;
+                // 隐藏聊天按钮
+                hideChatButton();
             }
         }
 

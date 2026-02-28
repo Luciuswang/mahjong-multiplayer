@@ -2263,6 +2263,45 @@ io.on('connection', (socket) => {
             room.takeoverAI(socket.id);
         }
     });
+    
+    // 房间聊天
+    socket.on('chat_message', (data) => {
+        const room = playerSockets.get(socket.id);
+        if (room) {
+            const player = room.players.find(p => p.id === socket.id);
+            if (player) {
+                const message = {
+                    username: player.username,
+                    seatIndex: player.seatIndex,
+                    text: data.text.substring(0, 100), // 限制长度
+                    timestamp: Date.now()
+                };
+                // 广播给房间内所有人
+                room.broadcast('chat_message', message);
+            }
+        }
+    });
+    
+    // 修改昵称
+    socket.on('change_nickname', (data) => {
+        const room = playerSockets.get(socket.id);
+        if (room) {
+            const player = room.players.find(p => p.id === socket.id);
+            if (player && data.nickname) {
+                const oldName = player.username;
+                player.username = data.nickname.substring(0, 12); // 限制长度
+                // 保存到localStorage提示
+                socket.emit('nickname_changed', { nickname: player.username });
+                // 通知其他玩家
+                room.broadcast('player_renamed', { 
+                    oldName: oldName, 
+                    newName: player.username,
+                    seatIndex: player.seatIndex
+                });
+                room.broadcastRoomUpdate();
+            }
+        }
+    });
 
     // 离开房间
     socket.on('leave_room', () => {
