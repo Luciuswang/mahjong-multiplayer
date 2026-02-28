@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --table-green: #1a5c3a;
@@ -2256,6 +2257,162 @@
             opacity: 0.3;
         }
         /* ==================== 结束好友系统样式 ==================== */
+        
+        /* ==================== 分享弹窗样式 ==================== */
+        .share-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .share-modal.active {
+            display: flex;
+        }
+        
+        .share-modal-content {
+            background: linear-gradient(135deg, #1a5c3a 0%, #0d3321 100%);
+            border: 2px solid var(--gold);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .share-modal-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        
+        .share-qrcode {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .share-qrcode canvas {
+            display: block;
+        }
+        
+        .share-link-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .share-link-label {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 8px;
+        }
+        
+        .share-link-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .share-link-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--gold);
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+            text-overflow: ellipsis;
+        }
+        
+        .share-link-input:read-only {
+            cursor: default;
+        }
+        
+        .share-copy-btn {
+            padding: 10px 15px;
+            background: var(--gold);
+            color: #1a1a1a;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .share-copy-btn.copied {
+            background: #2ecc71;
+            color: #fff;
+        }
+        
+        .share-text-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .share-text {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+        
+        .share-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .share-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .share-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .share-btn.primary {
+            background: var(--gold);
+            color: #1a1a1a;
+        }
+        
+        .share-btn.secondary {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        
+        .room-share-btn {
+            padding: 8px 15px;
+            background: #2ecc71;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        .room-share-btn:hover {
+            background: #27ae60;
+        }
+        /* ==================== 结束分享弹窗样式 ==================== */
     </style>
 </head>
 <body>
@@ -2409,13 +2566,53 @@
         </div>
     </div>
 
+    <!-- 分享弹窗 -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-modal-content">
+            <div class="share-modal-title">
+                <i class="fas fa-share-alt"></i> 邀请好友
+            </div>
+            
+            <div class="share-qrcode" id="shareQrcode">
+                <!-- 二维码将在这里生成 -->
+            </div>
+            
+            <div class="share-link-section">
+                <div class="share-link-label">分享链接</div>
+                <div class="share-link-box">
+                    <input type="text" class="share-link-input" id="shareLinkInput" readonly>
+                    <button class="share-copy-btn" id="shareLinkBtn" onclick="copyShareLink()">复制</button>
+                </div>
+            </div>
+            
+            <div class="share-text-section">
+                <div class="share-link-label">分享文案（点击复制）</div>
+                <div class="share-text" id="shareText" onclick="copyShareText()" style="cursor: pointer;">
+                    来玩上海敲麻！房间号：------
+                </div>
+            </div>
+            
+            <div class="share-actions">
+                <button class="share-btn primary" onclick="copyShareText()">
+                    <i class="fas fa-copy"></i> 复制文案
+                </button>
+                <button class="share-btn secondary" onclick="closeShareModal()">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- 房间等待界面 -->
     <div id="roomScreen" class="screen">
         <div class="room-header">
             <div class="room-code-label">房间号</div>
             <div class="room-code" id="displayRoomCode">------</div>
             <button class="copy-btn" onclick="copyRoomCode()">
-                <i class="fas fa-copy"></i> 复制房间号
+                <i class="fas fa-copy"></i> 复制
+            </button>
+            <button class="room-share-btn" onclick="openShareModal()">
+                <i class="fas fa-share-alt"></i> 邀请
             </button>
         </div>
         
@@ -3338,6 +3535,8 @@
             }
             // 初始化语音
             initVoice();
+            // 检查URL参数自动填入房间号
+            checkUrlRoomCode();
             // 延迟启动音频预加载
             setTimeout(preloadMultiplayerAudio, 2000);
         });
@@ -4301,6 +4500,161 @@
             
             document.body.removeChild(textArea);
         }
+
+        // ==================== 分享功能 ====================
+        let shareQrcode = null;
+        
+        // 生成分享链接
+        function getShareLink() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const baseUrl = window.location.origin + window.location.pathname;
+            return `${baseUrl}?room=${roomCode}`;
+        }
+        
+        // 生成分享文案
+        function getShareText() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const link = getShareLink();
+            return `来玩上海敲麻！🀄\n房间号：${roomCode}\n点击链接直接加入：${link}`;
+        }
+        
+        // 打开分享弹窗
+        function openShareModal() {
+            const modal = document.getElementById('shareModal');
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const link = getShareLink();
+            
+            // 设置链接
+            document.getElementById('shareLinkInput').value = link;
+            
+            // 设置文案
+            document.getElementById('shareText').innerHTML = `来玩上海敲麻！🀄<br>房间号：<strong>${roomCode}</strong><br><small style="color: rgba(255,255,255,0.6);">点击链接直接加入</small>`;
+            
+            // 生成二维码
+            const qrcodeContainer = document.getElementById('shareQrcode');
+            qrcodeContainer.innerHTML = '';
+            
+            if (typeof QRCode !== 'undefined') {
+                shareQrcode = new QRCode(qrcodeContainer, {
+                    text: link,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#1a5c3a',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } else {
+                qrcodeContainer.innerHTML = '<div style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; color: #999;">二维码加载中...</div>';
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        // 关闭分享弹窗
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+        
+        // 复制分享链接
+        function copyShareLink() {
+            const link = getShareLink();
+            const btn = document.getElementById('shareLinkBtn');
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link).then(() => {
+                    btn.textContent = '已复制 ✓';
+                    btn.classList.add('copied');
+                    showToast('链接已复制');
+                    setTimeout(() => {
+                        btn.textContent = '复制';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }).catch(() => {
+                    fallbackCopyWithCallback(link, btn);
+                });
+            } else {
+                fallbackCopyWithCallback(link, btn);
+            }
+        }
+        
+        // 复制分享文案
+        function copyShareText() {
+            const text = getShareText();
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('分享文案已复制，快去发给好友吧！');
+                }).catch(() => {
+                    fallbackCopyForShare(text);
+                });
+            } else {
+                fallbackCopyForShare(text);
+            }
+        }
+        
+        // 备用复制（带回调）
+        function fallbackCopyWithCallback(text, btn) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            textArea.style.top = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                if (btn) {
+                    btn.textContent = '已复制 ✓';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.textContent = '复制';
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }
+                showToast('链接已复制');
+            } catch (err) {
+                showToast('复制失败，请长按链接手动复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 备用复制（分享文案）
+        function fallbackCopyForShare(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            textArea.style.top = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('分享文案已复制，快去发给好友吧！');
+            } catch (err) {
+                showToast('复制失败，请手动复制');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 检查URL参数自动加入房间
+        function checkUrlRoomCode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomCode = urlParams.get('room');
+            
+            if (roomCode && roomCode.length === 6) {
+                document.getElementById('roomCodeInput').value = roomCode.toUpperCase();
+                showToast('已填入房间号: ' + roomCode.toUpperCase());
+                // 清除URL参数，避免刷新后重复
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        // ==================== 结束分享功能 ====================
 
         // 准备/取消准备
         function toggleReady() {
