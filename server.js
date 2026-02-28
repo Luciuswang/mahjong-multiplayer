@@ -1869,8 +1869,33 @@ class MahjongRoom {
             username: p.username,
             seatIndex: idx,
             totalScore: this.matchScores[idx],
-            isBot: p.isBot
+            isBot: p.isBot,
+            oderId: p.oderId
         })).sort((a, b) => b.totalScore - a.totalScore);
+        
+        // 更新玩家统计数据
+        const winnerOderId = ranking[0].oderId;  // 第一名是赢家
+        this.players.forEach(player => {
+            if (player.oderId && !player.isBot) {
+                const user = users.get(player.oderId);
+                if (user) {
+                    user.stats.totalGames++;
+                    
+                    // 判断是否是赢家（第一名）
+                    if (player.oderId === winnerOderId) {
+                        user.stats.wins++;
+                        user.stats.winStreak++;
+                        if (user.stats.winStreak > user.stats.maxWinStreak) {
+                            user.stats.maxWinStreak = user.stats.winStreak;
+                        }
+                    } else {
+                        user.stats.winStreak = 0;  // 重置连胜
+                    }
+                    
+                    console.log(`更新玩家 ${player.username} 统计: 总局数=${user.stats.totalGames}, 胜场=${user.stats.wins}`);
+                }
+            }
+        });
         
         // 广播比赛结束
         this.broadcast('match_ended', {
@@ -2081,6 +2106,34 @@ io.on('connection', (socket) => {
             oderId: friendOderId,
             isOnline,
             currentRoom
+        });
+    });
+    
+    // 获取用户统计数据
+    socket.on('get_stats', () => {
+        if (!socket.oderId) {
+            socket.emit('user_stats', { stats: null });
+            return;
+        }
+        
+        const user = users.get(socket.oderId);
+        if (!user) {
+            socket.emit('user_stats', { stats: null });
+            return;
+        }
+        
+        const winRate = user.stats.totalGames > 0 
+            ? Math.round((user.stats.wins / user.stats.totalGames) * 100) 
+            : 0;
+        
+        socket.emit('user_stats', {
+            stats: {
+                totalGames: user.stats.totalGames,
+                wins: user.stats.wins,
+                winRate: winRate,
+                winStreak: user.stats.winStreak,
+                maxWinStreak: user.stats.maxWinStreak
+            }
         });
     });
     

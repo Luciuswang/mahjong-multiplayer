@@ -2058,6 +2058,42 @@
             margin-bottom: 5px;
         }
         
+        /* 统计数据样式 */
+        .stats-section {
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 10px 5px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+        }
+        
+        .stat-value.win-rate {
+            color: #2ecc71;
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 3px;
+        }
+        
         .friend-code-display {
             display: flex;
             align-items: center;
@@ -2447,6 +2483,23 @@
                 <button class="copy-btn" id="copyFriendCodeBtn" onclick="copyFriendCode()">
                     <i class="fas fa-copy"></i> 复制
                 </button>
+            </div>
+        </div>
+        
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="statTotalGames">0</div>
+                    <div class="stat-label">总场次</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value win-rate" id="statWinRate">0%</div>
+                    <div class="stat-label">胜率</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="statMaxStreak">0</div>
+                    <div class="stat-label">最高连胜</div>
+                </div>
             </div>
         </div>
         
@@ -3022,9 +3075,10 @@
             const panel = document.getElementById('friendPanel');
             panel.classList.toggle('active');
             if (panel.classList.contains('active')) {
-                // 刷新好友列表
+                // 刷新好友列表和统计数据
                 if (socket) {
                     socket.emit('get_friends');
+                    socket.emit('get_stats');
                 }
             }
         }
@@ -3843,6 +3897,14 @@
                 document.getElementById('friendCount').textContent = friendList.length;
                 renderFriendList();
                 updateOnlineFriendBadge();
+            });
+            
+            socket.on('user_stats', (data) => {
+                if (data.stats) {
+                    document.getElementById('statTotalGames').textContent = data.stats.totalGames;
+                    document.getElementById('statWinRate').textContent = data.stats.winRate + '%';
+                    document.getElementById('statMaxStreak').textContent = data.stats.maxWinStreak;
+                }
             });
             
             socket.on('add_friend_result', (data) => {
