@@ -473,12 +473,12 @@ class MahjongRoom {
             const player = this.players[playerIndex];
             playerSockets.delete(socketId);
             
-            // 如果游戏正在进行，只标记离线，不真正移除
-            if (this.gameRunning && !player.isBot) {
+            // 非AI玩家断线处理（游戏中或等待中都保留位置）
+            if (!player.isBot) {
                 player.offline = true;
                 player.offlineTime = Date.now();
                 player.socket = null;
-                console.log(`玩家 ${player.username} 断线，等待重连 (房间 ${this.code})`);
+                console.log(`玩家 ${player.username} 断线，等待重连 (房间 ${this.code}, 游戏中: ${this.gameRunning})`);
                 
                 // 广播玩家离线状态
                 this.broadcast('player_offline', { 
@@ -487,17 +487,15 @@ class MahjongRoom {
                 });
                 this.broadcastRoomUpdate();
                 
-                // 【新增】如果正好轮到断线玩家，AI立即接管
-                if (this.gameState.currentPlayerIndex === player.seatIndex) {
+                // 如果游戏正在进行且轮到断线玩家，AI立即接管
+                if (this.gameRunning && this.gameState.currentPlayerIndex === player.seatIndex) {
                     console.log(`玩家 ${player.username} 断线时正好轮到他，AI接管`);
                     
-                    // 清除可能存在的超时计时器
                     if (this.gameState.discardTimeout) {
                         clearTimeout(this.gameState.discardTimeout);
                         this.gameState.discardTimeout = null;
                     }
                     
-                    // 延迟一点执行AI动作，给广播时间
                     setTimeout(() => {
                         if (this.gameRunning && player.offline) {
                             this.aiAction(player);
@@ -505,12 +503,22 @@ class MahjongRoom {
                     }, 500);
                 }
                 
+                // 等待房间阶段：60秒后如果还没重连，再移除
+                if (!this.gameRunning) {
+                    setTimeout(() => {
+                        if (player.offline && !this.gameRunning) {
+                            console.log(`玩家 ${player.username} 60秒未重连，移除`);
+                            this.forceRemovePlayer(player);
+                        }
+                    }, 60000);
+                }
+                
                 return;
             }
             
-            // 游戏未开始时，真正移除玩家
+            // AI玩家直接移除
             this.players.splice(playerIndex, 1);
-            console.log(`玩家 ${player.username} 离开房间 ${this.code}`);
+            console.log(`AI ${player.username} 离开房间 ${this.code}`);
             
             // 重新分配座位
             this.players.forEach((p, idx) => {
@@ -534,6 +542,38 @@ class MahjongRoom {
             } else {
                 this.broadcastRoomUpdate();
             }
+        }
+    }
+    
+    // 强制移除玩家（用于超时未重连）
+    forceRemovePlayer(player) {
+        const playerIndex = this.players.findIndex(p => p.username === player.username);
+        if (playerIndex === -1) return;
+        
+        this.players.splice(playerIndex, 1);
+        console.log(`玩家 ${player.username} 被强制移除 (房间 ${this.code})`);
+        
+        // 重新分配座位
+        this.players.forEach((p, idx) => {
+            p.seatIndex = idx;
+            p.wind = WINDS[idx];
+        });
+        
+        // 如果房主离开，转移房主
+        if (player.isHost && this.players.length > 0) {
+            const newHost = this.players.find(p => !p.isBot);
+            if (newHost) {
+                newHost.isHost = true;
+                this.hostId = newHost.id;
+            }
+        }
+        
+        if (this.players.filter(p => !p.isBot).length === 0) {
+            this.cleanup();
+            gameRooms.delete(this.code);
+            console.log(`房间 ${this.code} 已解散（无真人玩家）`);
+        } else {
+            this.broadcastRoomUpdate();
         }
     }
 

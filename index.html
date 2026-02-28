@@ -3878,6 +3878,17 @@
                 
                 // 用户登录（好友系统）
                 userLogin();
+                
+                // 自动重连房间（如果之前在房间中）
+                if (currentRoom && username) {
+                    console.log('检测到断线重连，尝试重新加入房间:', currentRoom);
+                    socket.emit('join_room', { 
+                        roomCode: currentRoom, 
+                        username: username, 
+                        avatar: '👤', 
+                        voice: myVoice 
+                    });
+                }
             });
             
             // ==================== 好友系统事件监听 ====================
