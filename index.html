@@ -3174,10 +3174,10 @@
             <span>💬 房间聊天</span>
             <button onclick="toggleChatPanel()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">×</button>
         </div>
-        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-messages" id="gameChatMessages"></div>
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="发送消息..." onkeypress="if(event.key==='Enter')sendChatMessage()">
-            <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" class="chat-input" id="gameChatInput" placeholder="发送消息..." onkeypress="if(event.key==='Enter')sendGameChatMessage()">
+            <button class="chat-send" onclick="sendGameChatMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
     
@@ -5102,9 +5102,20 @@
             }
         }
         
-        // 发送聊天消息
+        // 发送聊天消息（房间等待界面）
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (text && socket) {
+                socket.emit('chat_message', { text: text });
+                input.value = '';
+            }
+        }
+        
+        // 发送聊天消息（游戏界面）
+        function sendGameChatMessage() {
+            const input = document.getElementById('gameChatInput');
             const text = input.value.trim();
             
             if (text && socket) {
@@ -5127,17 +5138,33 @@
             }
         }
         
-        // 添加聊天消息到面板
+        // 添加聊天消息到面板（同时更新两个聊天容器）
         function addChatMessage(data) {
-            const container = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'chat-message';
-            msgDiv.innerHTML = `<span class="sender">${escapeHtml(data.username)}:</span> <span class="text">${escapeHtml(data.text)}</span>`;
-            container.appendChild(msgDiv);
+            const msgContent = `<span class="sender">${escapeHtml(data.username)}:</span> <span class="text">${escapeHtml(data.text || '')}</span>`;
             
-            // 保持最多50条消息
-            while (container.children.length > 50) {
-                container.removeChild(container.firstChild);
+            // 更新房间等待界面的聊天
+            const container1 = document.getElementById('chatMessages');
+            if (container1) {
+                const msgDiv1 = document.createElement('div');
+                msgDiv1.className = 'chat-message';
+                msgDiv1.innerHTML = msgContent;
+                container1.appendChild(msgDiv1);
+                while (container1.children.length > 50) {
+                    container1.removeChild(container1.firstChild);
+                }
+            }
+            
+            // 更新游戏界面的聊天
+            const container2 = document.getElementById('gameChatMessages');
+            if (container2) {
+                const msgDiv2 = document.createElement('div');
+                msgDiv2.className = 'chat-message';
+                msgDiv2.innerHTML = msgContent;
+                container2.appendChild(msgDiv2);
+                while (container2.children.length > 50) {
+                    container2.removeChild(container2.firstChild);
+                }
+                container2.scrollTop = container2.scrollHeight;
             }
             
             scrollChatToBottom();
