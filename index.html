@@ -3176,8 +3176,8 @@
         </div>
         <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="发送消息..." onkeypress="if(event.key==='Enter')sendChat()">
-            <button class="chat-send" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+            <input type="text" class="chat-input" id="chatInput" placeholder="发送消息..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
     
@@ -6079,16 +6079,6 @@
             }
         }
         
-        // 发送聊天
-        function sendChat() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            if (message) {
-                socket.emit('chat_message', { message });
-                input.value = '';
-            }
-        }
-
         // Toast提示
         function showToast(message, duration = 2000) {
             const toast = document.createElement('div');
@@ -6098,10 +6088,6 @@
             setTimeout(() => toast.remove(), duration);
         }
 
-        // 回车发送聊天
-        document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChat();
-        });
 
         // ==================== 精灵图预加载 ====================
         
@@ -6336,7 +6322,7 @@
         
         // 发送表情
         function sendEmoji(emoji) {
-            socket.emit('chat_message', { message: emoji, isEmoji: true });
+            socket.emit('chat_message', { text: emoji, isEmoji: true });
             toggleEmojiPanel();
             
             // 在自己头像位置显示表情气泡
@@ -6345,7 +6331,7 @@
         
         // 发送快捷语句
         function sendPhrase(phrase) {
-            socket.emit('chat_message', { message: phrase });
+            socket.emit('chat_message', { text: phrase });
             toggleEmojiPanel();
         }
         
