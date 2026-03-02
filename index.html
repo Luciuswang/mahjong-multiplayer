@@ -4663,11 +4663,6 @@
                 console.log('比赛结束:', data);
                 showMatchResult(data);
             });
-
-            // 聊天
-            socket.on('chat_message', (data) => {
-                addChatMessage(data.username, data.message);
-            });
             
             // 监听表情气泡事件
             socket.on('emoji_received', (data) => {
@@ -6092,26 +6087,6 @@
                 socket.emit('chat_message', { message });
                 input.value = '';
             }
-        }
-
-        // 添加聊天消息
-        function addChatMessage(name, message) {
-            const container = document.getElementById('chatMessages');
-            const msg = document.createElement('div');
-            msg.className = 'chat-message';
-            msg.innerHTML = `<span class="name">${name}:</span> ${message}`;
-            container.appendChild(msg);
-            container.scrollTop = container.scrollHeight;
-            
-            // 如果聊天面板未打开，增加未读消息数
-            if (!chatPanelOpen) {
-                unreadMessages++;
-                updateChatBadge();
-            }
-            
-            // 同时显示消息 Toast
-            showToast(`💬 ${name}: ${message}`, 3000);
-            container.scrollTop = container.scrollHeight;
         }
 
         // Toast提示
