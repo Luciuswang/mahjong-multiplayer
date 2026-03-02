@@ -6089,7 +6089,11 @@
                 panel.classList.add('active');
                 unreadMessages = 0;
                 updateChatBadge();
-                document.getElementById('chatInput').focus();
+                // 聚焦游戏界面的聊天输入框
+                const input = document.getElementById('gameChatInput');
+                if (input) {
+                    setTimeout(() => input.focus(), 100);
+                }
             } else {
                 panel.classList.remove('active');
             }
