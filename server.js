@@ -2350,12 +2350,15 @@ io.on('connection', (socket) => {
     
     // 修改昵称
     socket.on('change_nickname', (data) => {
+        if (!data || !data.nickname) return;
+        
         const room = playerSockets.get(socket.id);
         if (room) {
             const player = room.players.find(p => p.id === socket.id);
-            if (player && data.nickname) {
+            if (player) {
                 const oldName = player.username;
-                player.username = data.nickname.substring(0, 12); // 限制长度
+                const newNickname = String(data.nickname).substring(0, 12); // 限制长度
+                player.username = newNickname;
                 // 保存到localStorage提示
                 socket.emit('nickname_changed', { nickname: player.username });
                 // 通知其他玩家
