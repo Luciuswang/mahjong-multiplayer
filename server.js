@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const compression = require('compression');
+const fs = require('fs');
 
 const app = express();
 
@@ -81,6 +82,63 @@ const users = new Map();           // oderId -> userInfo
 const friendCodes = new Map();     // friendCode -> oderId
 const onlineUsers = new Map();     // oderId -> socketId
 
+// 数据持久化文件路径
+const DATA_FILE = path.join(__dirname, 'user_data.json');
+
+// 加载用户数据
+function loadUserData() {
+    try {
+        if (fs.existsSync(DATA_FILE)) {
+            const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+            
+            // 恢复users Map
+            if (data.users) {
+                data.users.forEach(user => {
+                    users.set(user.oderId, user);
+                    friendCodes.set(user.friendCode, user.oderId);
+                });
+            }
+            
+            console.log(`已加载 ${users.size} 个用户数据`);
+        }
+    } catch (err) {
+        console.error('加载用户数据失败:', err);
+    }
+}
+
+// 保存用户数据
+function saveUserData() {
+    try {
+        const data = {
+            users: Array.from(users.values()),
+            savedAt: Date.now()
+        };
+        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+        console.log(`已保存 ${users.size} 个用户数据`);
+    } catch (err) {
+        console.error('保存用户数据失败:', err);
+    }
+}
+
+// 启动时加载数据
+loadUserData();
+
+// 定期保存数据（每5分钟）
+setInterval(saveUserData, 5 * 60 * 1000);
+
+// 进程退出时保存数据
+process.on('SIGINT', () => {
+    console.log('正在保存数据...');
+    saveUserData();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    console.log('正在保存数据...');
+    saveUserData();
+    process.exit(0);
+});
+
 // 生成6位好友码
 function generateFriendCode() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -124,6 +182,9 @@ function getOrCreateUser(oderId, nickname) {
     users.set(oderId, user);
     friendCodes.set(friendCode, oderId);
     console.log(`新用户注册: ${nickname} (${friendCode})`);
+    
+    // 新用户注册后保存数据
+    saveUserData();
     
     return user;
 }
@@ -185,6 +246,9 @@ function addFriend(oderId, friendCode) {
     friend.friends.push(oderId);
     
     console.log(`好友添加成功: ${user.nickname} <-> ${friend.nickname}`);
+    
+    // 保存数据
+    saveUserData();
     
     return { 
         success: true, 
@@ -1947,6 +2011,9 @@ class MahjongRoom {
                 }
             }
         });
+        
+        // 保存统计数据
+        saveUserData();
         
         // 广播比赛结束
         this.broadcast('match_ended', {
