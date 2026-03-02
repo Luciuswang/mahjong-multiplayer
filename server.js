@@ -53,7 +53,6 @@ app.use(express.static(path.join(__dirname)));
 // 优先从本地 img 目录加载，如果不存在则从单人版目录加载
 const localImgPath = path.join(__dirname, 'img');
 const fallbackImgPath = path.join(__dirname, '../mahjong/img');
-const fs = require('fs');
 
 if (fs.existsSync(localImgPath)) {
     app.use('/img', express.static(localImgPath));
