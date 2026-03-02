@@ -5221,12 +5221,22 @@
             chatOpen = false;
         }
         
-        // 清空聊天记录
+        // 清空聊天记录（两个聊天面板都清空）
         function clearChatMessages() {
-            const container = document.getElementById('chatMessages');
-            container.innerHTML = '<div class="chat-message system">欢迎来到房间！</div>';
+            // 清空等待界面聊天
+            const container1 = document.getElementById('chatMessages');
+            if (container1) {
+                container1.innerHTML = '<div class="chat-message system">欢迎来到房间！</div>';
+            }
+            // 清空游戏界面聊天
+            const container2 = document.getElementById('gameChatMessages');
+            if (container2) {
+                container2.innerHTML = '';
+            }
             unreadCount = 0;
+            unreadMessages = 0;
             updateUnreadBadge();
+            updateChatBadge();
         }
         
         // ==================== 修改昵称功能 ====================
@@ -5265,8 +5275,9 @@
             isReady = false;
             document.getElementById('roomScreen').classList.remove('active');
             document.getElementById('lobbyScreen').classList.add('active');
-            // 隐藏聊天按钮
+            // 隐藏聊天按钮并清空聊天记录
             hideChatButton();
+            clearChatMessages();
         }
 
         // 显示游戏界面
@@ -6071,8 +6082,9 @@
                 document.getElementById('chatArea').style.display = 'none';
                 document.body.classList.remove('in-game');
                 currentRoom = null;
-                // 隐藏聊天按钮
+                // 隐藏聊天按钮并清空聊天记录
                 hideChatButton();
+                clearChatMessages();
             }
         }
 
