@@ -3303,11 +3303,38 @@
         
         // 初始化用户ID（从localStorage获取或生成新的）
         function initUserId() {
-            myOderId = localStorage.getItem('mahjong_user_id');
+            // 优先从localStorage读取
+            try {
+                myOderId = localStorage.getItem('mahjong_user_id');
+            } catch (e) {
+                console.warn('localStorage读取失败:', e);
+            }
+            
+            // 如果localStorage失败，尝试从cookie读取
+            if (!myOderId) {
+                const match = document.cookie.match(/mahjong_user_id=([^;]+)/);
+                if (match) {
+                    myOderId = match[1];
+                    console.log('从cookie恢复用户ID:', myOderId);
+                }
+            }
+            
+            // 如果都没有，生成新的
             if (!myOderId) {
                 myOderId = 'U' + Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('mahjong_user_id', myOderId);
+                console.log('生成新用户ID:', myOderId);
             }
+            
+            // 同时保存到localStorage和cookie（双保险）
+            try {
+                localStorage.setItem('mahjong_user_id', myOderId);
+            } catch (e) {
+                console.warn('localStorage保存失败:', e);
+            }
+            // 设置cookie，有效期1年
+            document.cookie = `mahjong_user_id=${myOderId}; max-age=31536000; path=/`;
+            
+            console.log('当前用户ID:', myOderId);
             return myOderId;
         }
         

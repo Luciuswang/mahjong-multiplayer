@@ -2332,18 +2332,24 @@ io.on('connection', (socket) => {
     
     // 房间聊天
     socket.on('chat_message', (data) => {
+        if (!data) return;
+        
         const room = playerSockets.get(socket.id);
         if (room) {
             const player = room.players.find(p => p.id === socket.id);
             if (player) {
+                const text = data.text || data.message || '';
+                if (!text) return;
+                
                 const message = {
                     username: player.username,
                     seatIndex: player.seatIndex,
-                    text: data.text.substring(0, 100), // 限制长度
+                    text: String(text).substring(0, 100), // 限制长度
                     timestamp: Date.now()
                 };
                 // 广播给房间内所有人
                 room.broadcast('chat_message', message);
+                console.log(`[聊天] ${player.username}: ${message.text}`);
             }
         }
     });
@@ -2409,30 +2415,6 @@ io.on('connection', (socket) => {
             const result = room.playerAction(socket.id, data.action);
             if (result && result.error) {
                 socket.emit('action_error', { message: result.error });
-            }
-        }
-    });
-
-    // 发送聊天消息
-    socket.on('chat_message', (data) => {
-        const room = playerSockets.get(socket.id);
-        if (room) {
-            const player = room.players.find(p => p.id === socket.id);
-            if (player) {
-                // 广播聊天消息
-                room.broadcast('chat_message', {
-                    username: player.username,
-                    message: data.message
-                });
-                
-                // 如果是表情消息，额外广播表情气泡事件
-                if (data.isEmoji) {
-                    room.broadcast('emoji_received', {
-                        emoji: data.message,
-                        seatIndex: player.seatIndex,
-                        username: player.username
-                    });
-                }
             }
         }
     });
