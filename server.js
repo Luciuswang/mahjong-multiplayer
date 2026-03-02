@@ -1427,6 +1427,17 @@ class MahjongRoom {
             return;
         }
         
+        // 检查是否所有真人玩家都离线了
+        const onlineRealPlayers = this.players.filter(p => !p.isBot && !p.offline);
+        if (onlineRealPlayers.length === 0) {
+            console.log(`房间 ${this.code}: 所有真人玩家都离线，结束游戏`);
+            this.gameRunning = false;
+            this.cleanup();
+            gameRooms.delete(this.code);
+            console.log(`房间 ${this.code} 已解散（所有玩家离线）`);
+            return;
+        }
+        
         console.log(`aiAction: 玩家 ${aiPlayer.username} 开始AI行动, 阶段: ${this.gameState.turnPhase}`);
         
         if (this.gameState.turnPhase === 'draw') {
