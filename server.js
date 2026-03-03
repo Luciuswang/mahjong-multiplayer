@@ -1031,6 +1031,46 @@ class MahjongRoom {
         return tile;
     }
 
+    // 查找暗杠（手中4张相同的牌）
+    findAnGang(player) {
+        const counts = {};
+        const tiles = {};
+        player.hand.forEach(t => {
+            const key = `${t.type}_${t.value}`;
+            counts[key] = (counts[key] || 0) + 1;
+            if (!tiles[key]) tiles[key] = t;
+        });
+        
+        const result = [];
+        for (const key in counts) {
+            if (counts[key] >= 4) {
+                result.push({ key, tile: tiles[key], type: 'an_gang' });
+            }
+        }
+        return result;
+    }
+
+    // 查找加杠（已碰的牌，手里摸到第4张）
+    findJiaGang(player) {
+        const result = [];
+        for (const meld of player.melds) {
+            if (meld.type === 'peng') {
+                const pengTile = meld.tiles[0];
+                const matchInHand = player.hand.find(t => 
+                    t.type === pengTile.type && t.value === pengTile.value
+                );
+                if (matchInHand) {
+                    result.push({ 
+                        tile: matchInHand, 
+                        meldIndex: player.melds.indexOf(meld),
+                        type: 'jia_gang' 
+                    });
+                }
+            }
+        }
+        return result;
+    }
+
     // 玩家摸牌
     playerDraw(socketId) {
         const player = this.players.find(p => p.id === socketId);
@@ -1061,20 +1101,42 @@ class MahjongRoom {
         
         this.gameState.turnPhase = 'discard';
         
-        // 检查是否自摸胡牌
+        // 检查摸牌后可执行的自身动作（自摸、暗杠、加杠）
+        const selfActions = [];
+        
+        // 检查自摸胡牌
         if (this.canHu(player.hand, player.melds)) {
-            // 创建自摸胡牌的待处理动作
+            selfActions.push('hu_zimo');
+        }
+        
+        // 检查暗杠（未听牌时才能杠）
+        const anGangList = (!player.isTing) ? this.findAnGang(player) : [];
+        if (anGangList.length > 0) {
+            selfActions.push('an_gang');
+        }
+        
+        // 检查加杠（未听牌时才能杠）
+        const jiaGangList = (!player.isTing) ? this.findJiaGang(player) : [];
+        if (jiaGangList.length > 0) {
+            selfActions.push('jia_gang');
+        }
+        
+        if (selfActions.length > 0) {
             this.gameState.pendingZimo = {
                 playerId: player.id,
                 playerIndex: player.seatIndex,
-                tile: tile
+                tile: tile,
+                anGangList: anGangList,
+                jiaGangList: jiaGangList
             };
             
             if (player.socket) {
                 player.socket.emit('action_available', {
                     playerId: player.id,
-                    actions: ['hu_zimo'],
-                    tile: tile
+                    actions: selfActions,
+                    tile: tile,
+                    anGangList: anGangList,
+                    jiaGangList: jiaGangList
                 });
             }
         }
@@ -1269,6 +1331,51 @@ class MahjongRoom {
             }
         }
         
+        // 处理暗杠
+        if (actionType === 'an_gang') {
+            if (this.gameState.pendingZimo && this.gameState.pendingZimo.playerId === socketId) {
+                const anGangList = this.gameState.pendingZimo.anGangList;
+                if (anGangList && anGangList.length > 0) {
+                    console.log(`玩家 ${player.username} 暗杠！`);
+                    // 清除超时计时器
+                    if (this.gameState.discardTimeout) {
+                        clearTimeout(this.gameState.discardTimeout);
+                        this.gameState.discardTimeout = null;
+                    }
+                    this.gameState.pendingZimo = null;
+                    this.executeAnGang(player, anGangList[0]);
+                    return { success: true };
+                }
+            }
+            return { error: '不能暗杠' };
+        }
+        
+        // 处理加杠
+        if (actionType === 'jia_gang') {
+            if (this.gameState.pendingZimo && this.gameState.pendingZimo.playerId === socketId) {
+                const jiaGangList = this.gameState.pendingZimo.jiaGangList;
+                if (jiaGangList && jiaGangList.length > 0) {
+                    console.log(`玩家 ${player.username} 加杠！`);
+                    // 清除超时计时器
+                    if (this.gameState.discardTimeout) {
+                        clearTimeout(this.gameState.discardTimeout);
+                        this.gameState.discardTimeout = null;
+                    }
+                    this.gameState.pendingZimo = null;
+                    this.executeJiaGang(player, jiaGangList[0]);
+                    return { success: true };
+                }
+            }
+            return { error: '不能加杠' };
+        }
+        
+        // 处理自摸后选择 pass（不胡不杠，继续出牌）
+        if (actionType === 'pass' && this.gameState.pendingZimo && this.gameState.pendingZimo.playerId === socketId) {
+            console.log(`玩家 ${player.username} 跳过自摸/杠，继续出牌`);
+            this.gameState.pendingZimo = null;
+            return { success: true };
+        }
+        
         const pendingAction = this.gameState.pendingActions.find(a => a.playerId === socketId);
         if (!pendingAction) {
             return { error: '没有可执行的动作' };
@@ -1328,15 +1435,92 @@ class MahjongRoom {
         this.gameState.pendingActions = [];
     }
 
+    // 执行暗杠
+    executeAnGang(player, gangInfo) {
+        const gangKey = gangInfo.key;
+        const gangTiles = [];
+        player.hand = player.hand.filter(t => {
+            if (`${t.type}_${t.value}` === gangKey && gangTiles.length < 4) {
+                gangTiles.push(t);
+                return false;
+            }
+            return true;
+        });
+        
+        player.melds.push({
+            type: 'gang',
+            tiles: gangTiles,
+            from: player.seatIndex,
+            isAnGang: true
+        });
+        
+        player.hand = sortTiles(player.hand);
+        
+        this.broadcast('action_executed', {
+            playerIndex: player.seatIndex,
+            action: 'gang',
+            tile: gangInfo.tile,
+            tileName: getTileName(gangInfo.tile),
+            isAnGang: true
+        });
+        
+        // 杠后摸一张牌
+        this.gameState.currentPlayerIndex = player.seatIndex;
+        this.gameState.turnPhase = 'draw';
+        this.gameState.lastDrawnTile = null;
+        
+        this.broadcastGameState();
+        this.notifyCurrentPlayer();
+    }
+    
+    // 执行加杠
+    executeJiaGang(player, gangInfo) {
+        // 从手牌移除这张牌
+        const tileIdx = player.hand.findIndex(t => t.id === gangInfo.tile.id);
+        if (tileIdx !== -1) {
+            player.hand.splice(tileIdx, 1);
+        }
+        
+        // 将碰变成杠
+        const meld = player.melds[gangInfo.meldIndex];
+        meld.type = 'gang';
+        meld.tiles.push(gangInfo.tile);
+        meld.isJiaGang = true;
+        
+        player.hand = sortTiles(player.hand);
+        
+        this.broadcast('action_executed', {
+            playerIndex: player.seatIndex,
+            action: 'gang',
+            tile: gangInfo.tile,
+            tileName: getTileName(gangInfo.tile),
+            isJiaGang: true
+        });
+        
+        // 杠后摸一张牌
+        this.gameState.currentPlayerIndex = player.seatIndex;
+        this.gameState.turnPhase = 'draw';
+        this.gameState.lastDrawnTile = null;
+        
+        this.broadcastGameState();
+        this.notifyCurrentPlayer();
+    }
+
     // 执行动作
     executeAction(action) {
         const player = this.players[action.playerIndex];
         const tile = action.tile;
         
         if (action.action === 'hu') {
-            // 胡牌
+            // 点炮胡牌 - 直接用 player 对象，不依赖名字解析
             player.hand.push(tile);
-            this.endGame(`${player.username} 胡牌！`);
+            const loserIndex = this.gameState.lastDiscardPlayer;
+            // 从弃牌堆移除
+            const discardPlayer = this.players[loserIndex];
+            if (discardPlayer && discardPlayer.discards.length > 0) {
+                discardPlayer.discards.pop();
+            }
+            this.endRound('hu', player.seatIndex, loserIndex, false, false);
             
         } else if (action.action === 'peng') {
             // 碰
@@ -1466,6 +1650,22 @@ class MahjongRoom {
             if (this.canHu(aiPlayer.hand, aiPlayer.melds)) {
                 const winnerIndex = aiPlayer.seatIndex;
                 this.endRound('hu', winnerIndex, -1, true, false);
+                return;
+            }
+            
+            // AI 检查暗杠
+            const anGangList = this.findAnGang(aiPlayer);
+            if (anGangList.length > 0) {
+                console.log(`AI ${aiPlayer.username} 暗杠！`);
+                this.executeAnGang(aiPlayer, anGangList[0]);
+                return;
+            }
+            
+            // AI 检查加杠
+            const jiaGangList = this.findJiaGang(aiPlayer);
+            if (jiaGangList.length > 0) {
+                console.log(`AI ${aiPlayer.username} 加杠！`);
+                this.executeJiaGang(aiPlayer, jiaGangList[0]);
                 return;
             }
             
