@@ -762,6 +762,7 @@ class MahjongRoom {
             player.discards = [];
             player.flowers = [];
             player.isTing = false;
+            player.ready = false;  // 重置准备状态，以便下一局结束后能重新准备
             
             const cardCount = index === dealerIndex ? 14 : 13;
             for (let i = 0; i < cardCount; i++) {

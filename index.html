@@ -1215,6 +1215,63 @@
         
         .ranking-score.positive { color: #2ecc71; }
         .ranking-score.negative { color: #e74c3c; }
+        
+        /* 听牌选择对话框 */
+        .ting-choice-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 4500;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .ting-choice-modal.active { display: flex; }
+        
+        .ting-choice-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 3px solid var(--gold);
+            border-radius: 15px;
+            padding: 25px 35px;
+            text-align: center;
+            max-width: 400px;
+            animation: modalPop 0.3s ease;
+        }
+        
+        .ting-choice-title {
+            color: var(--gold);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .ting-tiles-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        
+        .ting-choice-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .ting-btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+        }
+        
+        .ting-hint {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+        }
 
         /* 响应式 - 平板 */
         @media (max-width: 768px) {
@@ -3138,6 +3195,25 @@
             </button>
         </div>
     </div>
+    
+    <!-- 听牌选择对话框 -->
+    <div class="ting-choice-modal" id="tingChoiceModal">
+        <div class="ting-choice-content">
+            <h3 class="ting-choice-title">🎯 可以听牌</h3>
+            <div class="ting-tiles-info" id="tingTilesInfo">
+                <!-- 听牌信息动态生成 -->
+            </div>
+            <div class="ting-choice-buttons">
+                <button class="btn ting-btn" onclick="confirmTing()">
+                    <i class="fas fa-check"></i> 听牌
+                </button>
+                <button class="btn secondary" onclick="cancelTing()">
+                    <i class="fas fa-times"></i> 继续打
+                </button>
+            </div>
+            <div class="ting-hint">听牌后只能打刚摸的牌，但可以胡任意一张听的牌</div>
+        </div>
+    </div>
 
     <!-- 服务器要求提示 -->
     <div class="modal" id="serverRequiredModal">
@@ -3621,9 +3697,15 @@
             return tingTiles;
         }
         
+        // 已显示过听牌选择的标记（避免重复弹出）
+        let tingChoiceShown = false;
+        let pendingTingList = [];
+        
         // 检查并显示听牌状态
         function checkAndShowTing() {
             if (!gameState) return;
+            if (isTing) return; // 已经听牌了
+            if (tingChoiceShown) return; // 已经显示过选择了
             
             const myPlayer = gameState.players.find(p => p.seatIndex === mySeatIndex);
             if (!myPlayer || !myPlayer.hand) return;
@@ -3634,17 +3716,48 @@
             
             const newTingList = checkTingPai(myPlayer.hand);
             
-            if (newTingList.length > 0 && !isTing) {
-                isTing = true;
-                tingList = newTingList;
+            if (newTingList.length > 0) {
+                // 保存待选听牌列表
+                pendingTingList = newTingList;
+                tingChoiceShown = true;
                 
-                // 语音播报
-                speakTing();
-                
-                // 显示听牌信息
-                const tingNames = newTingList.map(t => `${NUM_NAMES[t.value]}${TYPE_NAMES[t.type]}`).join('、');
-                showToast(`🎯 听牌！听：${tingNames}`, 3000);
+                // 显示听牌选择对话框
+                showTingChoiceModal(newTingList);
             }
+        }
+        
+        // 显示听牌选择对话框
+        function showTingChoiceModal(tingTiles) {
+            const tingNames = tingTiles.map(t => `${NUM_NAMES[t.value]}${TYPE_NAMES[t.type]}`).join('、');
+            document.getElementById('tingTilesInfo').innerHTML = `
+                <div style="margin-bottom:10px;">听：<strong style="color:var(--gold)">${tingNames}</strong></div>
+                <div style="font-size:0.9rem;color:rgba(255,255,255,0.7);">共 ${tingTiles.length} 张</div>
+            `;
+            document.getElementById('tingChoiceModal').classList.add('active');
+        }
+        
+        // 确认听牌
+        function confirmTing() {
+            isTing = true;
+            tingList = pendingTingList;
+            
+            // 语音播报
+            speakTing();
+            
+            // 关闭对话框
+            document.getElementById('tingChoiceModal').classList.remove('active');
+            
+            const tingNames = tingList.map(t => `${NUM_NAMES[t.value]}${TYPE_NAMES[t.type]}`).join('、');
+            showToast(`🎯 已听牌！听：${tingNames}`, 3000);
+        }
+        
+        // 取消听牌（继续打）
+        function cancelTing() {
+            // 关闭对话框，不进入听牌状态
+            document.getElementById('tingChoiceModal').classList.remove('active');
+            pendingTingList = [];
+            // tingChoiceShown 保持 true，本局不再提示
+            showToast('继续打牌', 1500);
         }
         
         // ==================== 音频播放系统 ====================
@@ -4316,14 +4429,28 @@
                 mySeatIndex = data.yourSeat;
                 gameState = data.gameState;
                 
+                // 【重要】重置prevGameState以强制完整重绘UI
+                prevGameState = null;
+                
                 // 重置听牌状态
                 isTing = false;
                 tingList = [];
+                tingChoiceShown = false;
+                pendingTingList = [];
                 lastDrawnTileId = null;
                 selectedTileId = null;
                 
-                // 关闭结算弹窗
+                // 重置AI接管相关状态
+                isAITakeover = false;
+                pendingAutoDiscard = false;
+                pendingAutoDiscardTileId = null;
+                
+                // 重置准备状态
+                isReady = false;
+                
+                // 关闭所有弹窗
                 document.getElementById('roundResultModal').classList.remove('active');
+                document.getElementById('tingChoiceModal')?.classList.remove('active');
                 
                 // 检查是否被AI接管（从服务器数据或游戏状态）
                 const myPlayer = gameState.players.find(p => p.seatIndex === mySeatIndex);
