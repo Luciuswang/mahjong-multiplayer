@@ -4246,11 +4246,15 @@
             }
             
             // 自动检测服务器地址
-            const serverUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? `http://${window.location.hostname}:3000`
-                : window.location.origin;
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            const serverUrl = isLocal ? `http://${window.location.hostname}:3000` : window.location.origin;
+            
+            // 检测是否通过子路径访问（如 /mahjong/）
+            const basePath = window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+            const socketPath = (basePath && !isLocal) ? `${basePath}/socket.io` : '/socket.io';
             
             socket = io(serverUrl, {
+                path: socketPath,
                 timeout: 10000,            // 增加超时时间
                 reconnectionAttempts: 5,   // 增加重连次数
                 reconnectionDelay: 1000,
