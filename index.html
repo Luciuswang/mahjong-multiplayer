@@ -3105,8 +3105,10 @@
             </div>
             
             <div class="action-buttons" id="responseButtons">
-                <button class="action-btn hu" onclick="doAction('hu')">胡</button>
-                <button class="action-btn gang" onclick="doAction('gang')">杠</button>
+                <button class="action-btn hu" onclick="doAction('hu_zimo')">胡</button>
+                <button class="action-btn gang an-gang" onclick="doAction('an_gang')">暗杠</button>
+                <button class="action-btn gang jia-gang" onclick="doAction('jia_gang')">加杠</button>
+                <button class="action-btn gang ming-gang" onclick="doAction('gang')">杠</button>
                 <button class="action-btn peng" onclick="doAction('peng')">碰</button>
                 <button class="action-btn pass" onclick="doAction('pass')">过</button>
             </div>
@@ -4618,11 +4620,15 @@
                 // 检查是否可以胡牌（包括点炮胡和自摸胡）
                 const canHu = data.actions.includes('hu') || data.actions.includes('hu_zimo');
                 
-                // 自动胡牌：如果可以胡，自动执行
-                if (canHu) {
+                // 只有胡且没有其他选项（暗杠/加杠）时才自动胡
+                const hasGangOption = data.actions.includes('an_gang') || data.actions.includes('jia_gang');
+                
+                if (canHu && !hasGangOption) {
+                    // 只能胡，自动胡牌
                     const huAction = data.actions.includes('hu_zimo') ? 'hu_zimo' : 'hu';
-                    console.log('可以胡牌，自动胡牌！动作:', huAction);
-                    showToast('🎉 自摸胡牌！');
+                    const huType = data.actions.includes('hu_zimo') ? '自摸' : '点炮';
+                    console.log(`可以${huType}胡牌，自动胡牌！`);
+                    showToast(`🎉 ${huType}胡牌！`);
                     setTimeout(() => {
                         doAction(huAction);
                     }, 500);
@@ -4631,14 +4637,19 @@
                 
                 // 如果听牌状态，自动过（不碰不杠）
                 if (isTing) {
-                    console.log('已听牌，自动过');
-                    setTimeout(() => {
-                        doAction('pass');
-                    }, 300);
+                    // 但如果能胡还是要胡
+                    if (canHu) {
+                        const huAction = data.actions.includes('hu_zimo') ? 'hu_zimo' : 'hu';
+                        setTimeout(() => { doAction(huAction); }, 300);
+                    } else {
+                        console.log('已听牌，自动过');
+                        setTimeout(() => { doAction('pass'); }, 300);
+                    }
                     return;
                 }
                 
-                showResponseButtons(data.actions);
+                // 显示操作按钮（包含暗杠/加杠/胡/碰/过）
+                showResponseButtons(data.actions, data);
             });
             
             socket.on('action_timeout', () => {
@@ -5729,15 +5740,33 @@
         }
 
         // 显示响应按钮
-        function showResponseButtons(actions) {
+        function showResponseButtons(actions, data) {
             const container = document.getElementById('responseButtons');
             container.classList.add('active');
             
             container.querySelectorAll('.action-btn').forEach(btn => {
-                const action = btn.classList.contains('hu') ? 'hu' :
-                              btn.classList.contains('gang') ? 'gang' :
-                              btn.classList.contains('peng') ? 'peng' : 'pass';
-                btn.style.display = actions.includes(action) || action === 'pass' ? 'block' : 'none';
+                let show = false;
+                
+                if (btn.classList.contains('hu')) {
+                    // 胡牌按钮：支持 hu 和 hu_zimo
+                    show = actions.includes('hu') || actions.includes('hu_zimo');
+                    if (show) {
+                        btn.onclick = () => doAction(actions.includes('hu_zimo') ? 'hu_zimo' : 'hu');
+                        btn.textContent = actions.includes('hu_zimo') ? '自摸' : '胡';
+                    }
+                } else if (btn.classList.contains('an-gang')) {
+                    show = actions.includes('an_gang');
+                } else if (btn.classList.contains('jia-gang')) {
+                    show = actions.includes('jia_gang');
+                } else if (btn.classList.contains('ming-gang')) {
+                    show = actions.includes('gang');
+                } else if (btn.classList.contains('peng')) {
+                    show = actions.includes('peng');
+                } else if (btn.classList.contains('pass')) {
+                    show = true; // 过 always visible
+                }
+                
+                btn.style.display = show ? 'block' : 'none';
             });
 
             document.getElementById('actionButtons').classList.remove('active');
@@ -5799,19 +5828,18 @@
             socket.emit('player_action', { action });
             hideResponseButtons();
             
-            // 显示动作特效
-            if (action === 'peng' || action === 'gang' || action === 'hu' || action === 'hu_zimo') {
+            // 显示动作特效和播放音频
+            const myVoice = getPlayerVoiceBySeat(mySeatIndex);
+            
+            if (action === 'peng') {
+                showActionEffect('peng');
+                playActionAudio('peng', myVoice);
+            } else if (action === 'gang' || action === 'an_gang' || action === 'jia_gang') {
+                showActionEffect('gang');
+                playActionAudio('gang', myVoice);
+            } else if (action === 'hu' || action === 'hu_zimo') {
                 showActionEffect(action);
-                
-                // 播放对应音频
-                const myVoice = getPlayerVoiceBySeat(mySeatIndex);
-                if (action === 'peng') {
-                    playActionAudio('peng', myVoice);
-                } else if (action === 'gang') {
-                    playActionAudio('gang', myVoice);
-                } else if (action === 'hu' || action === 'hu_zimo') {
-                    playActionAudio('hu', myVoice);
-                }
+                playActionAudio('hu', myVoice);
             }
         }
         
