@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>上海敲麻 - 多人联机版 | AI小游戏平台</title>
     <!-- 预加载关键资源 -->
-    <link rel="preload" href="/img/majiang.png" as="image" fetchpriority="high">
+    <link rel="preload" href="img/majiang.png" as="image" fetchpriority="high">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
@@ -536,7 +536,7 @@
             width: 45px;
             height: 63px;
             background-color: #f5f0e1;
-            background-image: url('/img/majiang.png');
+            background-image: url('img/majiang.png');
             background-repeat: no-repeat;
             border: 2px solid var(--tile-border);
             border-radius: 5px;
@@ -6328,13 +6328,13 @@
                     tile.classList.add('text-mode');
                 });
             };
-            img.src = '/img/majiang.png';
+            img.src = 'img/majiang.png';
             
             // 同时预加载到 CSS 缓存（高优先级）
             const preloadLink = document.createElement('link');
             preloadLink.rel = 'preload';
             preloadLink.as = 'image';
-            preloadLink.href = '/img/majiang.png';
+            preloadLink.href = 'img/majiang.png';
             preloadLink.fetchPriority = 'high';
             document.head.appendChild(preloadLink);
         }
