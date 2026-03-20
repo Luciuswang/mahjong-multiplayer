@@ -913,7 +913,7 @@
             bottom: 80px;
             left: 20px;
             width: 300px;
-            max-height: 350px;
+            max-height: 420px;
             background: rgba(0,0,0,0.9);
             border: 2px solid var(--gold);
             border-radius: 15px;
@@ -939,7 +939,8 @@
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            max-height: 200px;
+            max-height: 140px;
+            min-height: 72px;
         }
         
         .chat-panel .chat-input-area {
@@ -993,7 +994,12 @@
                 left: 10px;
                 right: 10px;
                 width: auto;
-                max-height: 250px;
+                max-height: 55vh;
+            }
+            .chat-container {
+                max-height: 55vh;
+                width: calc(100% - 20px);
+                right: 10px;
             }
         }
 
@@ -1818,140 +1824,60 @@
             }
         }
         
-        /* 快捷表情面板 */
-        .emoji-panel {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--gold);
-            border-radius: 15px;
-            padding: 15px;
-            z-index: 800;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            max-width: 280px;
+        /* 聊天内快捷区（表情 + 短语，替代原独立表情面板） */
+        .chat-shortcuts {
+            border-top: 1px solid rgba(255,255,255,0.12);
+            padding: 8px 10px 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            background: rgba(0,0,0,0.25);
         }
-        
-        .emoji-panel.active {
-            display: flex;
-            animation: panelSlideUp 0.3s ease-out;
+        .chat-shortcuts-label {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
         }
-        
-        @keyframes panelSlideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        
-        .emoji-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        
-        .emoji-panel-header h4 {
-            color: var(--gold);
-            margin: 0;
-            font-family: 'Ma Shan Zheng', cursive;
-        }
-        
-        .emoji-panel-close {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.6);
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-        
-        .emoji-grid {
+        .chat-emoji-strip {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
         }
-        
-        .emoji-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 1.8rem;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .emoji-btn:hover {
-            background: rgba(212, 175, 55, 0.3);
-            border-color: var(--gold);
-            transform: scale(1.1);
-        }
-        
-        .emoji-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .quick-phrases {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        
-        .phrase-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+        .chat-emoji-inline {
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 6px 2px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
             border-radius: 8px;
-            color: #fff;
-            padding: 8px 12px;
-            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-        }
-        
-        .phrase-btn:hover {
-            background: rgba(212, 175, 55, 0.3);
-            border-color: var(--gold);
-        }
-        
-        /* 表情按钮（悬浮） */
-        .emoji-toggle-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 700;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: none;
+            transition: background 0.15s, border-color 0.15s;
+            display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s;
         }
-        
-        body.in-game .emoji-toggle-btn {
+        .chat-emoji-inline:hover {
+            background: rgba(212, 175, 55, 0.25);
+            border-color: var(--gold);
+        }
+        .chat-phrase-wrap {
             display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
         }
         
-        .emoji-toggle-btn:hover {
-            transform: scale(1.1);
+        /* 游戏中显示右侧聊天钮；大厅显示左侧（原逻辑） */
+        .game-chat-toggle {
+            display: none !important;
+        }
+        body.in-game .game-chat-toggle.chat-toggle-btn.active {
+            display: flex !important;
+        }
+        body.in-game .lobby-chat-toggle {
+            display: none !important;
         }
         
         /* 表情气泡显示 */
@@ -2039,20 +1965,6 @@
         
         /* 手机端调整 */
         @media (max-width: 768px) {
-            .emoji-toggle-btn {
-                bottom: 15px;
-                right: 70px;
-                width: 45px;
-                height: 45px;
-            }
-            
-            .emoji-panel {
-                bottom: 70px;
-                right: 10px;
-                left: 10px;
-                max-width: none;
-            }
-            
             .action-effect-text {
                 font-size: 80px;
             }
@@ -2514,8 +2426,8 @@
             position: fixed;
             bottom: 80px;
             right: 10px;
-            width: 280px;
-            max-height: 300px;
+            width: 300px;
+            max-height: 420px;
             background: rgba(0,0,0,0.85);
             border: 1px solid var(--gold);
             border-radius: 10px;
@@ -2551,8 +2463,8 @@
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            max-height: 180px;
-            min-height: 100px;
+            max-height: 140px;
+            min-height: 72px;
         }
         
         .chat-message {
@@ -2645,13 +2557,11 @@
             display: block;
         }
         
-        /* 快捷消息 */
+        /* 快捷短语按钮（聊天内） */
         .quick-messages {
-            padding: 5px 10px;
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
         
         .quick-msg-btn {
@@ -2736,34 +2646,53 @@
     <!-- 轮到自己的提示 -->
     <div class="turn-indicator" id="turnIndicator">🎯 轮到你出牌了！</div>
     
-    <!-- 快捷表情按钮 -->
-    <button class="emoji-toggle-btn" id="emojiToggleBtn" onclick="toggleEmojiPanel()">😊</button>
-    
-    <!-- 聊天按钮 -->
-    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChat()">
+    <!-- 大厅/等待房间：聊天按钮 -->
+    <button type="button" class="chat-toggle-btn lobby-chat-toggle" id="lobbyChatToggleBtn" onclick="toggleLobbyChat()">
         <i class="fas fa-comments"></i>
         <span class="unread-badge" id="chatUnreadBadge">0</span>
     </button>
     
-    <!-- 聊天面板 -->
-    <div class="chat-container" id="chatContainer">
+    <!-- 大厅聊天面板 -->
+    <div class="chat-container" id="lobbyChatContainer">
         <div class="chat-header">
             <span><i class="fas fa-comments"></i> 聊天</span>
-            <button class="chat-close" onclick="toggleChat()">&times;</button>
+            <button type="button" class="chat-close" onclick="toggleLobbyChat()">&times;</button>
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="chat-message system">欢迎来到房间！</div>
         </div>
-        <div class="quick-messages">
-            <button class="quick-msg-btn" onclick="sendQuickMessage('大家好！')">大家好</button>
-            <button class="quick-msg-btn" onclick="sendQuickMessage('快点啊')">快点啊</button>
-            <button class="quick-msg-btn" onclick="sendQuickMessage('厉害👍')">厉害</button>
-            <button class="quick-msg-btn" onclick="sendQuickMessage('再来一局')">再来一局</button>
-            <button class="quick-msg-btn" onclick="sendQuickMessage('先走了，下次再玩')">下次再玩</button>
+        <div class="chat-shortcuts">
+            <div class="chat-shortcuts-label">快捷表情</div>
+            <div class="chat-emoji-strip">
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😄')" title="😄">😄</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😭')" title="😭">😭</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😡')" title="😡">😡</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🤔')" title="🤔">🤔</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('👍')" title="👍">👍</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('👎')" title="👎">👎</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🎉')" title="🎉">🎉</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('💪')" title="💪">💪</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🙏')" title="🙏">🙏</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😎')" title="😎">😎</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🤣')" title="🤣">🤣</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😱')" title="😱">😱</button>
+            </div>
+            <div class="chat-shortcuts-label">快捷语句</div>
+            <div class="chat-phrase-wrap quick-messages">
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('大家好！')">大家好</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('快点啊')">快点啊</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('厉害👍')">厉害</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('再来一局')">再来一局</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('先走了，下次再玩')">下次再玩</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('稳住，别浪！')">稳住别浪</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('快点出牌啦～')">快点出牌</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('打得不错！')">打得不错</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('这把我要胡！')">我要胡</button>
+            </div>
         </div>
         <div class="chat-input-container">
             <input type="text" class="chat-input" id="chatInput" placeholder="输入消息..." maxlength="100" onkeypress="handleChatKeypress(event)">
-            <button class="chat-send-btn" onclick="sendChatMessage()">发送</button>
+            <button type="button" class="chat-send-btn" onclick="sendChatMessage()">发送</button>
         </div>
     </div>
     
@@ -2843,34 +2772,6 @@
         <i class="fas fa-users"></i>
         <span class="friend-badge" id="onlineFriendBadge" style="display: none;">0</span>
     </button>
-
-    <!-- 快捷表情面板 -->
-    <div class="emoji-panel" id="emojiPanel">
-        <div class="emoji-panel-header">
-            <h4>快捷表情</h4>
-            <button class="emoji-panel-close" onclick="toggleEmojiPanel()">✕</button>
-        </div>
-        <div class="emoji-grid">
-            <button class="emoji-btn" onclick="sendEmoji('😄')">😄</button>
-            <button class="emoji-btn" onclick="sendEmoji('😭')">😭</button>
-            <button class="emoji-btn" onclick="sendEmoji('😡')">😡</button>
-            <button class="emoji-btn" onclick="sendEmoji('🤔')">🤔</button>
-            <button class="emoji-btn" onclick="sendEmoji('👍')">👍</button>
-            <button class="emoji-btn" onclick="sendEmoji('👎')">👎</button>
-            <button class="emoji-btn" onclick="sendEmoji('🎉')">🎉</button>
-            <button class="emoji-btn" onclick="sendEmoji('💪')">💪</button>
-            <button class="emoji-btn" onclick="sendEmoji('🙏')">🙏</button>
-            <button class="emoji-btn" onclick="sendEmoji('😎')">😎</button>
-            <button class="emoji-btn" onclick="sendEmoji('🤣')">🤣</button>
-            <button class="emoji-btn" onclick="sendEmoji('😱')">😱</button>
-        </div>
-        <div class="quick-phrases">
-            <button class="phrase-btn" onclick="sendPhrase('稳住，别浪！')">🎯 稳住，别浪！</button>
-            <button class="phrase-btn" onclick="sendPhrase('快点出牌啦～')">⏰ 快点出牌啦～</button>
-            <button class="phrase-btn" onclick="sendPhrase('打得不错！')">👏 打得不错！</button>
-            <button class="phrase-btn" onclick="sendPhrase('这把我要胡！')">🔥 这把我要胡！</button>
-        </div>
-    </div>
 
     <!-- 大厅界面 -->
     <div id="lobbyScreen" class="screen active">
@@ -3242,22 +3143,51 @@
         </div>
     </div>
 
-    <!-- 聊天按钮（悬浮） -->
-    <button class="chat-toggle-btn" id="chatToggleBtn" onclick="toggleChatPanel()">
+    <!-- 对局中：聊天按钮（与大厅分离，避免重复 id） -->
+    <button type="button" class="chat-toggle-btn game-chat-toggle" id="gameChatToggleBtn" onclick="toggleGameChat()">
         <i class="fas fa-comment"></i>
         <span class="chat-badge" id="chatBadge" style="display: none;">0</span>
     </button>
     
-    <!-- 聊天面板（弹出式） -->
+    <!-- 对局中聊天面板 -->
     <div class="chat-panel" id="chatPanel">
         <div class="chat-panel-header">
             <span>💬 房间聊天</span>
-            <button onclick="toggleChatPanel()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">×</button>
+            <button type="button" onclick="toggleGameChat()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">×</button>
         </div>
         <div class="chat-messages" id="gameChatMessages"></div>
+        <div class="chat-shortcuts">
+            <div class="chat-shortcuts-label">快捷表情</div>
+            <div class="chat-emoji-strip">
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😄')" title="😄">😄</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😭')" title="😭">😭</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😡')" title="😡">😡</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🤔')" title="🤔">🤔</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('👍')" title="👍">👍</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('👎')" title="👎">👎</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🎉')" title="🎉">🎉</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('💪')" title="💪">💪</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🙏')" title="🙏">🙏</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😎')" title="😎">😎</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('🤣')" title="🤣">🤣</button>
+                <button type="button" class="chat-emoji-inline" onclick="sendEmoji('😱')" title="😱">😱</button>
+            </div>
+            <div class="chat-shortcuts-label">快捷语句</div>
+            <div class="chat-phrase-wrap quick-messages">
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('大家好！')">大家好</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('快点啊')">快点啊</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('厉害👍')">厉害</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('再来一局')">再来一局</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('先走了，下次再玩')">下次再玩</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('稳住，别浪！')">稳住别浪</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('快点出牌啦～')">快点出牌</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('打得不错！')">打得不错</button>
+                <button type="button" class="quick-msg-btn" onclick="sendQuickMessage('这把我要胡！')">我要胡</button>
+            </div>
+        </div>
         <div class="chat-input-area">
             <input type="text" class="chat-input" id="gameChatInput" placeholder="发送消息..." onkeypress="if(event.key==='Enter')sendGameChatMessage()">
-            <button class="chat-send" onclick="sendGameChatMessage()"><i class="fas fa-paper-plane"></i></button>
+            <button type="button" class="chat-send" onclick="sendGameChatMessage()"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
     
@@ -5303,20 +5233,17 @@
         let chatOpen = false;
         let unreadCount = 0;
         
-        // 切换聊天面板
-        function toggleChat() {
+        // 大厅 / 等待房间聊天
+        function toggleLobbyChat() {
             chatOpen = !chatOpen;
-            const container = document.getElementById('chatContainer');
-            container.classList.toggle('active', chatOpen);
+            const container = document.getElementById('lobbyChatContainer');
+            if (container) container.classList.toggle('active', chatOpen);
             
             if (chatOpen) {
-                // 清除未读计数
                 unreadCount = 0;
                 updateUnreadBadge();
-                // 滚动到底部
                 scrollChatToBottom();
-                // 聚焦输入框
-                document.getElementById('chatInput').focus();
+                document.getElementById('chatInput')?.focus();
             }
         }
         
@@ -5387,8 +5314,13 @@
             
             scrollChatToBottom();
             
-            // 如果聊天面板关闭，增加未读计数
-            if (!chatOpen) {
+            const inGame = document.body.classList.contains('in-game');
+            if (inGame) {
+                if (!chatPanelOpen) {
+                    unreadMessages++;
+                    updateChatBadge();
+                }
+            } else if (!chatOpen) {
                 unreadCount++;
                 updateUnreadBadge();
             }
@@ -5406,8 +5338,10 @@
         
         // 滚动到底部
         function scrollChatToBottom() {
-            const container = document.getElementById('chatMessages');
-            container.scrollTop = container.scrollHeight;
+            const c1 = document.getElementById('chatMessages');
+            if (c1) c1.scrollTop = c1.scrollHeight;
+            const c2 = document.getElementById('gameChatMessages');
+            if (c2) c2.scrollTop = c2.scrollHeight;
         }
         
         // 更新未读徽章
@@ -5430,13 +5364,21 @@
         
         // 显示/隐藏聊天按钮（在房间内显示）
         function showChatButton() {
-            document.getElementById('chatToggleBtn').classList.add('active');
+            const lobbyBtn = document.getElementById('lobbyChatToggleBtn');
+            const gameBtn = document.getElementById('gameChatToggleBtn');
+            if (lobbyBtn) lobbyBtn.classList.add('active');
+            if (gameBtn) gameBtn.classList.remove('active');
         }
         
         function hideChatButton() {
-            document.getElementById('chatToggleBtn').classList.remove('active');
-            document.getElementById('chatContainer').classList.remove('active');
+            const lobbyBtn = document.getElementById('lobbyChatToggleBtn');
+            const gameBtn = document.getElementById('gameChatToggleBtn');
+            if (lobbyBtn) lobbyBtn.classList.remove('active');
+            if (gameBtn) gameBtn.classList.remove('active');
+            document.getElementById('lobbyChatContainer')?.classList.remove('active');
+            document.getElementById('chatPanel')?.classList.remove('active');
             chatOpen = false;
+            chatPanelOpen = false;
         }
         
         // 清空聊天记录（两个聊天面板都清空）
@@ -5511,6 +5453,12 @@
             document.getElementById('actionButtons').classList.add('active');
             // 添加游戏中标记（用于游戏界面样式）
             document.body.classList.add('in-game');
+            
+            // 切换为「对局中」聊天按钮
+            document.getElementById('lobbyChatToggleBtn')?.classList.remove('active');
+            document.getElementById('gameChatToggleBtn')?.classList.add('active');
+            document.getElementById('lobbyChatContainer')?.classList.remove('active');
+            chatOpen = false;
             
             // 【修复】关闭可能存在的弹窗
             document.getElementById('roundResultModal')?.classList.remove('active');
@@ -6303,6 +6251,12 @@
             isReady = false;
             document.getElementById('readyBtn').innerHTML = '<i class="fas fa-check"></i> 准备';
             
+            // 回到房间：恢复大厅聊天钮
+            document.getElementById('lobbyChatToggleBtn')?.classList.add('active');
+            document.getElementById('gameChatToggleBtn')?.classList.remove('active');
+            document.getElementById('chatPanel')?.classList.remove('active');
+            chatPanelOpen = false;
+            
             // 重置积分
             matchScores = [0, 0, 0, 0];
             updateScorePanel(matchScores);
@@ -6327,8 +6281,8 @@
         let chatPanelOpen = false;
         let unreadMessages = 0;
         
-        // 切换聊天面板
-        function toggleChatPanel() {
+        // 对局中聊天面板
+        function toggleGameChat() {
             chatPanelOpen = !chatPanelOpen;
             const panel = document.getElementById('chatPanel');
             
@@ -6336,11 +6290,9 @@
                 panel.classList.add('active');
                 unreadMessages = 0;
                 updateChatBadge();
-                // 聚焦游戏界面的聊天输入框
+                scrollChatToBottom();
                 const input = document.getElementById('gameChatInput');
-                if (input) {
-                    setTimeout(() => input.focus(), 100);
-                }
+                if (input) setTimeout(() => input.focus(), 100);
             } else {
                 panel.classList.remove('active');
             }
@@ -6584,33 +6536,11 @@
             setTimeout(() => ripple.remove(), 600);
         }
         
-        // 快捷表情面板
-        let emojiPanelOpen = false;
-        
-        function toggleEmojiPanel() {
-            emojiPanelOpen = !emojiPanelOpen;
-            const panel = document.getElementById('emojiPanel');
-            
-            if (emojiPanelOpen) {
-                panel.classList.add('active');
-            } else {
-                panel.classList.remove('active');
-            }
-        }
-        
-        // 发送表情
+        // 发送表情（已并入聊天面板）
         function sendEmoji(emoji) {
+            if (!socket) return;
             socket.emit('chat_message', { text: emoji, isEmoji: true });
-            toggleEmojiPanel();
-            
-            // 在自己头像位置显示表情气泡
             showEmojiBubble(emoji, mySeatIndex);
-        }
-        
-        // 发送快捷语句
-        function sendPhrase(phrase) {
-            socket.emit('chat_message', { text: phrase });
-            toggleEmojiPanel();
         }
         
         // 显示表情气泡
