@@ -888,11 +888,7 @@
             display: none;
         }
         
-        body.in-game .chat-toggle-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* 不在此强制 display:flex，否则易与 .active / 双聊天钮逻辑冲突；由 .chat-toggle-btn.active 与下方 game/lobby 规则控制 */
         
         .chat-badge {
             position: absolute;
@@ -1878,6 +1874,20 @@
         }
         body.in-game .lobby-chat-toggle {
             display: none !important;
+        }
+        
+        /* 已移除独立表情入口：若浏览器/代理仍缓存旧 HTML，强制隐藏旧按钮 */
+        .emoji-toggle-btn,
+        #emojiToggleBtn {
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            opacity: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            position: fixed !important;
+            bottom: -9999px !important;
         }
         
         /* 表情气泡显示 */
