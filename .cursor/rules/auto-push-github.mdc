@@ -11,3 +11,18 @@ alwaysApply: true
 2. 直接执行：`git add`（相关文件）→ `git commit -m "简明英文或中文说明"` → `git push origin main`。
 3. 若当前无变更或仅为用户只读问答，则不必提交。
 4. 若 `git push` 失败（网络、权限），把错误信息告诉用户并说明如何本地处理。
+
+# 推送后的服务器更新说明（腾讯云轻量 / PM2）
+
+**Agent 无法代你 SSH 执行**（无服务器账号与网络直连）。每次 `git push` 成功后，在回复用户时用**简短中文**附上下面固定命令（可按实际路径微调）：
+
+```bash
+cd /opt/mahjong-multiplayer
+git pull origin main
+npm install --omit=dev
+pm2 restart mahjong
+```
+
+- 若项目不在 `/opt/mahjong-multiplayer`，提醒用 `pm2 show mahjong` 看 `exec cwd`。
+- 若本次未改 `package.json` 依赖，可写「`npm install` 可省略」但仍执行也无妨。
+- 若用户改用 CI/CD（GitHub Actions + SSH）、或服务器上 `webhook` 自动 pull，可说明「配置好后可不再手敲」。
