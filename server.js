@@ -1284,10 +1284,13 @@ class MahjongRoom {
                     }
                 }, 500 + Math.random() * 1000);
             } else if (player.offline || !player.socket || player.aiTakeover) {
-                // 离线玩家或被AI接管的玩家自动过
-                console.log(`玩家 ${player.username} 离线/AI接管，自动过`);
-                action.resolved = true;
-                action.action = 'pass';
+                // 离线玩家或被AI接管的玩家：让AI决策（能胡就胡）
+                console.log(`玩家 ${player.username} 离线/AI接管，AI代为决策`);
+                setTimeout(() => {
+                    if (this.gameRunning && !action.resolved) {
+                        this.aiDecideAction(player, action);
+                    }
+                }, 300);
             } else {
                 // 真人玩家
                 hasHumanPending = true;
@@ -2616,6 +2619,19 @@ io.on('connection', (socket) => {
             const result = room.playerDiscard(socket.id, data.tileId);
             if (result && result.error) {
                 socket.emit('action_error', { message: result.error });
+            }
+        }
+    });
+    
+    // 确认听牌
+    socket.on('confirm_ting', (data) => {
+        const room = playerSockets.get(socket.id);
+        if (room && room.gameRunning) {
+            const player = room.players.find(p => p.id === socket.id);
+            if (player) {
+                player.isTing = true;
+                player.tingList = data.tingList || [];
+                console.log(`玩家 ${player.username} 确认听牌，听牌列表:`, player.tingList.length, '张');
             }
         }
     });

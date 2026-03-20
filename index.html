@@ -3743,6 +3743,12 @@
             isTing = true;
             tingList = pendingTingList;
             
+            // 通知服务器确认听牌
+            if (socket) {
+                socket.emit('confirm_ting', { tingList: tingList });
+                console.log('通知服务器确认听牌');
+            }
+            
             // 语音播报
             speakTing();
             
