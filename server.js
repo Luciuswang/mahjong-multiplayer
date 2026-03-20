@@ -60,13 +60,21 @@ if (fs.existsSync(localImgPath)) {
     app.use('/img', express.static(fallbackImgPath));
 }
 
-// 游戏常量
+// 游戏常量（哈灵/上海敲麻：144 张）
 const TILE_TYPES = ['wan', 'tiao', 'tong']; // 万、条、筒
 const TILE_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-const WINDS = ['east', 'south', 'west', 'north']; // 东南西北
+const WINDS = ['east', 'south', 'west', 'north']; // 东南西北（座位风）
 const WIND_NAMES = { east: '东', south: '南', west: '西', north: '北' };
-// 花牌
-const FLOWERS = ['chun', 'xia', 'qiu', 'dong_hua', 'mei', 'lan', 'zhu', 'ju']; // 春夏秋冬梅兰竹菊
+// 字牌（东南西北中发白）各 4 张
+const HONOR_VALUES = ['dong', 'nan', 'xi', 'bei', 'zhong', 'fa', 'bai'];
+const HONOR_NAMES = {
+    dong: '东', nan: '南', xi: '西', bei: '北',
+    zhong: '红中', fa: '发财', bai: '白板'
+};
+// 箭牌摸到视为花牌，亮出补牌（上海敲麻）
+const JIAN_AS_FLOWER = new Set(['zhong', 'fa', 'bai']);
+// 花牌（春夏秋冬梅兰竹菊各 1）
+const FLOWERS = ['chun', 'xia', 'qiu', 'dong_hua', 'mei', 'lan', 'zhu', 'ju'];
 const FLOWER_NAMES = {
     chun: '春', xia: '夏', qiu: '秋', dong_hua: '冬',
     mei: '梅', lan: '兰', zhu: '竹', ju: '菊'
@@ -296,10 +304,9 @@ function generateRoomCode() {
     return code;
 }
 
-// 创建一副麻将牌（含花牌）
+// 创建一副麻将牌（144 张：万条筒 + 字牌 + 8 花）
 function createDeck() {
     const deck = [];
-    // 万、条、筒各4张
     for (const type of TILE_TYPES) {
         for (const value of TILE_VALUES) {
             for (let i = 0; i < 4; i++) {
@@ -307,21 +314,42 @@ function createDeck() {
             }
         }
     }
-    // 花牌各1张
+    for (const h of HONOR_VALUES) {
+        for (let i = 0; i < 4; i++) {
+            deck.push({ type: 'honor', value: h, id: `honor_${h}_${i}` });
+        }
+    }
     for (const flower of FLOWERS) {
         deck.push({ type: 'flower', value: flower, id: `flower_${flower}` });
     }
     return deck;
 }
 
-// 检查是否是花牌
-function isFlowerTile(tile) {
-    return tile && tile.type === 'flower';
+function isNumberTile(tile) {
+    return tile && TILE_TYPES.includes(tile.type);
 }
 
-// 获取花牌名称
+function tileKey(tile) {
+    if (!tile) return '';
+    if (isNumberTile(tile)) return `${tile.type}_${tile.value}`;
+    if (tile.type === 'honor') return tile.value;
+    return `${tile.type}_${tile.value}`;
+}
+
+// 检查是否需补花：季节花 + 中发白（上海规则）
+function isFlowerTile(tile) {
+    if (!tile) return false;
+    if (tile.type === 'flower') return true;
+    if (tile.type === 'honor' && JIAN_AS_FLOWER.has(tile.value)) return true;
+    return false;
+}
+
+// 获取花牌/补花展示名称
 function getFlowerName(tile) {
-    return FLOWER_NAMES[tile.value] || tile.value;
+    if (!tile) return '';
+    if (tile.type === 'flower') return FLOWER_NAMES[tile.value] || tile.value;
+    if (tile.type === 'honor') return HONOR_NAMES[tile.value] || tile.value;
+    return String(tile.value);
 }
 
 // 洗牌
@@ -334,22 +362,39 @@ function shuffleDeck(deck) {
     return shuffled;
 }
 
-// 麻将牌排序
+// 麻将牌排序（万→条→筒→字）
 function sortTiles(tiles) {
-    const typeOrder = { wan: 0, tiao: 1, tong: 2 };
+    const typeOrder = { wan: 0, tiao: 1, tong: 2, honor: 3, flower: 4 };
+    const honorOrder = { dong: 0, nan: 1, xi: 2, bei: 3, zhong: 4, fa: 5, bai: 6 };
     return [...tiles].sort((a, b) => {
-        if (typeOrder[a.type] !== typeOrder[b.type]) {
-            return typeOrder[a.type] - typeOrder[b.type];
+        const oa = typeOrder[a.type] !== undefined ? typeOrder[a.type] : 99;
+        const ob = typeOrder[b.type] !== undefined ? typeOrder[b.type] : 99;
+        if (oa !== ob) return oa - ob;
+        if (a.type === 'honor' && b.type === 'honor') {
+            return (honorOrder[a.value] ?? 99) - (honorOrder[b.value] ?? 99);
         }
-        return a.value - b.value;
+        if (a.type === 'flower' && b.type === 'flower') {
+            return String(a.value).localeCompare(String(b.value));
+        }
+        return (a.value || 0) - (b.value || 0);
     });
 }
 
 // 获取牌的显示名称
 function getTileName(tile) {
+    if (!tile) return '';
     const typeNames = { wan: '万', tiao: '条', tong: '筒' };
     const numNames = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-    return numNames[tile.value] + typeNames[tile.type];
+    if (isNumberTile(tile)) {
+        return numNames[tile.value] + typeNames[tile.type];
+    }
+    if (tile.type === 'honor') {
+        return HONOR_NAMES[tile.value] || tile.value;
+    }
+    if (tile.type === 'flower') {
+        return FLOWER_NAMES[tile.value] || tile.value;
+    }
+    return String(tile.value);
 }
 
 // 麻将房间类
@@ -751,6 +796,7 @@ class MahjongRoom {
             actionTimeout: null,
             discardTimeout: null,    // 【新增】出牌超时计时器
             lastDrawnTile: null,     // 【新增】记录最后摸的牌（用于超时自动出牌）
+            pendingDrawAfterGang: false, // 杠后摸牌（用于杠开判定）
             roundNumber: 1,
             gameOver: false
         };
@@ -940,6 +986,7 @@ class MahjongRoom {
         this.gameState.lastDiscard = tile;
         this.gameState.lastDiscardPlayer = player.seatIndex;
         this.gameState.lastDrawnTile = null;
+        this.gameState.lastDrawWasAfterGang = false;
         
         // 广播超时自动出牌
         this.broadcast('tile_discarded', {
@@ -1089,6 +1136,9 @@ class MahjongRoom {
             return;
         }
         
+        const drawAfterGang = !!this.gameState.pendingDrawAfterGang;
+        this.gameState.pendingDrawAfterGang = false;
+        
         const tile = this.drawTileForPlayer(player, false);
         
         if (!tile) {
@@ -1098,6 +1148,7 @@ class MahjongRoom {
         
         // 【新增】记录刚摸的牌（用于超时自动出牌）
         this.gameState.lastDrawnTile = tile;
+        this.gameState.lastDrawWasAfterGang = drawAfterGang;
         
         this.gameState.turnPhase = 'discard';
         
@@ -1192,6 +1243,7 @@ class MahjongRoom {
         this.gameState.lastDiscard = tile;
         this.gameState.lastDiscardPlayer = player.seatIndex;
         this.gameState.lastDrawnTile = null; // 【新增】清除记录
+        this.gameState.lastDrawWasAfterGang = false;
         
         // 广播出牌
         this.broadcast('tile_discarded', {
@@ -1325,8 +1377,9 @@ class MahjongRoom {
                     clearTimeout(this.gameState.discardTimeout);
                     this.gameState.discardTimeout = null;
                 }
+                const gangKai = !!this.gameState.lastDrawWasAfterGang;
                 // 执行自摸胡牌
-                this.endRound('hu', player.seatIndex, -1, true, false);
+                this.endRound('hu', player.seatIndex, -1, true, gangKai);
                 this.gameState.pendingZimo = null;
                 return { success: true };
             } else {
@@ -1376,6 +1429,7 @@ class MahjongRoom {
         if (actionType === 'pass' && this.gameState.pendingZimo && this.gameState.pendingZimo.playerId === socketId) {
             console.log(`玩家 ${player.username} 跳过自摸/杠，继续出牌`);
             this.gameState.pendingZimo = null;
+            this.gameState.lastDrawWasAfterGang = false;
             return { success: true };
         }
         
@@ -1471,6 +1525,7 @@ class MahjongRoom {
         this.gameState.currentPlayerIndex = player.seatIndex;
         this.gameState.turnPhase = 'draw';
         this.gameState.lastDrawnTile = null;
+        this.gameState.pendingDrawAfterGang = true;
         
         this.broadcastGameState();
         this.notifyCurrentPlayer();
@@ -1504,6 +1559,7 @@ class MahjongRoom {
         this.gameState.currentPlayerIndex = player.seatIndex;
         this.gameState.turnPhase = 'draw';
         this.gameState.lastDrawnTile = null;
+        this.gameState.pendingDrawAfterGang = true;
         
         this.broadcastGameState();
         this.notifyCurrentPlayer();
@@ -1592,6 +1648,7 @@ class MahjongRoom {
             // 杠后摸一张牌
             this.gameState.currentPlayerIndex = action.playerIndex;
             this.gameState.turnPhase = 'draw';
+            this.gameState.pendingDrawAfterGang = true;
             
             this.broadcastGameState();
             this.notifyCurrentPlayer();
@@ -1635,12 +1692,18 @@ class MahjongRoom {
                 return;
             }
             
+            const drawAfterGang = !!this.gameState.pendingDrawAfterGang;
+            this.gameState.pendingDrawAfterGang = false;
+            
             const tile = this.drawTileForPlayer(aiPlayer, false);
             
             if (!tile) {
                 this.endRound('draw', -1, -1, false, false);
                 return;
             }
+            
+            this.gameState.lastDrawnTile = tile;
+            this.gameState.lastDrawWasAfterGang = drawAfterGang;
             
             // 广播 AI 摸牌（如果有补花也会在 drawTileForPlayer 中处理）
             this.broadcast('ai_draw', {
@@ -1652,7 +1715,7 @@ class MahjongRoom {
             // 检查自摸
             if (this.canHu(aiPlayer.hand, aiPlayer.melds)) {
                 const winnerIndex = aiPlayer.seatIndex;
-                this.endRound('hu', winnerIndex, -1, true, false);
+                this.endRound('hu', winnerIndex, -1, true, drawAfterGang);
                 return;
             }
             
@@ -1692,21 +1755,24 @@ class MahjongRoom {
         const hand = [...aiPlayer.hand];
         let discardTile = null;
         
-        // 统计每种牌的数量
         const counts = {};
         hand.forEach(t => {
-            const key = `${t.type}_${t.value}`;
+            const key = tileKey(t);
             counts[key] = (counts[key] || 0) + 1;
         });
         
-        // 优先出孤张
+        // 优先出孤张（字牌不参与顺子邻张判断）
         for (const tile of hand) {
-            const key = `${tile.type}_${tile.value}`;
+            const key = tileKey(tile);
             if (counts[key] === 1) {
-                // 检查是否是边张
-                const leftKey = `${tile.type}_${tile.value - 1}`;
-                const rightKey = `${tile.type}_${tile.value + 1}`;
-                if (!counts[leftKey] && !counts[rightKey]) {
+                if (isNumberTile(tile)) {
+                    const leftKey = `${tile.type}_${tile.value - 1}`;
+                    const rightKey = `${tile.type}_${tile.value + 1}`;
+                    if (!counts[leftKey] && !counts[rightKey]) {
+                        discardTile = tile;
+                        break;
+                    }
+                } else {
                     discardTile = tile;
                     break;
                 }
@@ -1726,6 +1792,7 @@ class MahjongRoom {
         
         this.gameState.lastDiscard = discardTile;
         this.gameState.lastDiscardPlayer = aiPlayer.seatIndex;
+        this.gameState.lastDrawWasAfterGang = false;
         
         this.broadcast('tile_discarded', {
             playerIndex: aiPlayer.seatIndex,
@@ -1760,13 +1827,47 @@ class MahjongRoom {
         }
     }
 
-    // 简单的胡牌检测
+    // 七对子（仅门清）
+    isQiDui(tiles) {
+        if (!tiles || tiles.length !== 14) return false;
+        const counts = {};
+        tiles.forEach(t => {
+            const k = tileKey(t);
+            counts[k] = (counts[k] || 0) + 1;
+        });
+        return Object.keys(counts).length === 7 && Object.values(counts).every(v => v === 2);
+    }
+
+    // 十三幺（仅门清）
+    isShiSanYao(tiles) {
+        if (!tiles || tiles.length !== 14) return false;
+        const ORPHAN_KEYS = new Set([
+            'wan_1', 'wan_9', 'tiao_1', 'tiao_9', 'tong_1', 'tong_9',
+            'dong', 'nan', 'xi', 'bei', 'zhong', 'fa', 'bai'
+        ]);
+        const counts = {};
+        for (const t of tiles) {
+            const k = tileKey(t);
+            if (!ORPHAN_KEYS.has(k)) return false;
+            counts[k] = (counts[k] || 0) + 1;
+        }
+        if (Object.keys(counts).length !== 13) return false;
+        let pairCount = 0;
+        for (const k of Object.keys(counts)) {
+            const c = counts[k];
+            if (c !== 1 && c !== 2) return false;
+            if (c === 2) pairCount++;
+        }
+        return pairCount === 1;
+    }
+
     canHu(hand, melds) {
-        // 检查是否有14张牌（或11/8/5张+副露）
         const totalTiles = hand.length + melds.length * 3;
         if (totalTiles !== 14) return false;
-        
-        // 简化版胡牌检测：3N+2结构
+        if (melds.length === 0) {
+            if (this.isQiDui(hand)) return true;
+            if (this.isShiSanYao(hand)) return true;
+        }
         return this.checkWinningHand([...hand]);
     }
 
@@ -1776,13 +1877,12 @@ class MahjongRoom {
             return tiles[0].type === tiles[1].type && tiles[0].value === tiles[1].value;
         }
         if (tiles.length < 3) return false;
-        
+
         const sorted = sortTiles(tiles);
-        
-        // 尝试作为将（对子）
+
         for (let i = 0; i < sorted.length - 1; i++) {
-            if (sorted[i].type === sorted[i+1].type && 
-                sorted[i].value === sorted[i+1].value) {
+            if (sorted[i].type === sorted[i + 1].type &&
+                sorted[i].value === sorted[i + 1].value) {
                 const remaining = [...sorted];
                 remaining.splice(i, 2);
                 if (this.canFormMelds(remaining)) {
@@ -1790,96 +1890,123 @@ class MahjongRoom {
                 }
             }
         }
-        
+
         return false;
     }
 
     canFormMelds(tiles) {
         if (tiles.length === 0) return true;
         if (tiles.length % 3 !== 0) return false;
-        
+
         const sorted = sortTiles(tiles);
-        
-        // 尝试刻子
+
         if (sorted.length >= 3 &&
             sorted[0].type === sorted[1].type && sorted[1].type === sorted[2].type &&
             sorted[0].value === sorted[1].value && sorted[1].value === sorted[2].value) {
             const remaining = sorted.slice(3);
             if (this.canFormMelds(remaining)) return true;
         }
-        
-        // 尝试顺子
+
         if (sorted.length >= 3) {
             const first = sorted[0];
-            const secondIdx = sorted.findIndex(t => 
-                t.type === first.type && t.value === first.value + 1
-            );
-            const thirdIdx = sorted.findIndex(t => 
-                t.type === first.type && t.value === first.value + 2
-            );
-            
-            if (secondIdx !== -1 && thirdIdx !== -1) {
-                const remaining = [...sorted];
-                // 按顺序移除，从大索引开始
-                const indices = [0, secondIdx, thirdIdx].sort((a, b) => b - a);
-                indices.forEach(idx => remaining.splice(idx, 1));
-                if (this.canFormMelds(remaining)) return true;
+            if (isNumberTile(first)) {
+                const secondIdx = sorted.findIndex(t =>
+                    t.type === first.type && t.value === first.value + 1
+                );
+                const thirdIdx = sorted.findIndex(t =>
+                    t.type === first.type && t.value === first.value + 2
+                );
+
+                if (secondIdx !== -1 && thirdIdx !== -1) {
+                    const remaining = [...sorted];
+                    const indices = [0, secondIdx, thirdIdx].sort((a, b) => b - a);
+                    indices.forEach(idx => remaining.splice(idx, 1));
+                    if (this.canFormMelds(remaining)) return true;
+                }
             }
         }
-        
+
         return false;
     }
 
-    // ==================== 计分系统 ====================
+    isQingYiSeAll(allTiles) {
+        const suits = new Set();
+        for (const t of allTiles) {
+            if (isNumberTile(t)) suits.add(t.type);
+            else if (t.type === 'honor' || t.type === 'flower') return false;
+        }
+        return suits.size === 1;
+    }
 
-    // 计算番数
-    calculateFan(player, isZimo = false, isGangKai = false) {
+    isHunYiSeAll(allTiles) {
+        const suits = new Set();
+        let hasHonor = false;
+        for (const t of allTiles) {
+            if (isNumberTile(t)) suits.add(t.type);
+            else if (t.type === 'honor') hasHonor = true;
+            else if (t.type === 'flower') return false;
+        }
+        return suits.size === 1 && hasHonor;
+    }
+
+    // ==================== 计分系统（与哈灵单机说明一致）====================
+
+    calculateFan(player, isZimo = false, isGangKai = false, isHaiDiLao = false) {
         const hand = player.hand;
         const melds = player.melds;
         const allTiles = [...hand];
-        
-        // 将副露的牌也加入统计
         melds.forEach(meld => {
             allTiles.push(...meld.tiles);
         });
-        
+
         let fanList = [];
         let totalFan = 0;
-        
-        // 1. 检测清一色（2番）- 全部同一花色
-        const types = new Set(allTiles.map(t => t.type));
-        if (types.size === 1) {
-            fanList.push({ name: '清一色', fan: 2 });
-            totalFan += 2;
-        }
-        
-        // 2. 检测混一色（1番）- 目前没有字牌，暂不实现
-        
-        // 3. 检测碰碰胡（1番）- 全部刻子无顺子
-        const isPengPengHu = this.checkPengPengHu(hand, melds);
-        if (isPengPengHu) {
-            fanList.push({ name: '碰碰胡', fan: 1 });
-            totalFan += 1;
-        }
-        
-        // 4. 检测门清（1番）- 无吃碰杠
+
         if (melds.length === 0) {
             fanList.push({ name: '门清', fan: 1 });
             totalFan += 1;
         }
-        
-        // 5. 自摸（1番）
         if (isZimo) {
             fanList.push({ name: '自摸', fan: 1 });
             totalFan += 1;
         }
-        
-        // 6. 杠开（1番）- 杠后摸牌胡
+        if (melds.length === 0 && this.isQiDui(hand)) {
+            fanList.push({ name: '七对子', fan: 2 });
+            totalFan += 2;
+        }
+        if (this.checkPengPengHu(hand, melds)) {
+            fanList.push({ name: '碰碰胡', fan: 2 });
+            totalFan += 2;
+        }
+        if (this.isQingYiSeAll(allTiles)) {
+            fanList.push({ name: '清一色', fan: 3 });
+            totalFan += 3;
+            if (this.checkPengPengHu(hand, melds)) {
+                fanList.push({ name: '清碰', fan: 1 });
+                totalFan += 1;
+            }
+        } else if (this.isHunYiSeAll(allTiles)) {
+            fanList.push({ name: '混一色', fan: 2 });
+            totalFan += 2;
+        }
+        if (isHaiDiLao) {
+            fanList.push({ name: '海底捞', fan: 1 });
+            totalFan += 1;
+        }
         if (isGangKai) {
             fanList.push({ name: '杠开', fan: 1 });
             totalFan += 1;
         }
-        
+        const seasonFlowerCount = (player.flowers || []).filter(f => f && f.type === 'flower').length;
+        if (seasonFlowerCount >= 8) {
+            fanList.push({ name: '八花报道', fan: 8 });
+            totalFan += 8;
+        }
+        if (totalFan === 0) {
+            fanList.push({ name: '平胡', fan: 1 });
+            totalFan = 1;
+        }
+
         return { fanList, totalFan };
     }
     
@@ -2017,7 +2144,8 @@ class MahjongRoom {
         // 如果有人胡牌，计算积分
         if (winnerIndex >= 0) {
             const winner = this.players[winnerIndex];
-            const fanResult = this.calculateFan(winner, isZimo, isGangKai);
+            const haiDiLao = this.gameState.deck.length === 0;
+            const fanResult = this.calculateFan(winner, isZimo, isGangKai, haiDiLao);
             const huaResult = this.calculateHua(winner);
             const scoreResult = this.calculateScore(winner, loserIndex, fanResult, huaResult, isZimo);
             

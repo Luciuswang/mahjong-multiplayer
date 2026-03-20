@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上海敲麻 - 多人联机版 | AI小游戏平台</title>
+    <title>上海敲麻·哈灵规则 - 多人联机版 | AI小游戏平台</title>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="img/majiang.png" as="image" fetchpriority="high">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -697,6 +697,8 @@
         .tile.wan .tile-value { color: #c0392b; }
         .tile.tiao .tile-value { color: #27ae60; }
         .tile.tong .tile-value { color: #2980b9; }
+        .tile.honor .tile-value { color: #8e44ad; }
+        .tile.flower .tile-value { color: #f39c12; }
 
         /* 动作按钮 */
         .action-buttons {
@@ -2873,7 +2875,7 @@
     <!-- 大厅界面 -->
     <div id="lobbyScreen" class="screen active">
         <h1 class="lobby-title">🀄 上海敲麻</h1>
-        <p class="lobby-subtitle">多人联机版 - 邀请好友一起玩</p>
+        <p class="lobby-subtitle">哈灵规则 · 144张（含字牌）· 中发白补花 · 不能吃牌 · 多人联机</p>
         
         <div class="lobby-container">
             <div class="input-group">
@@ -2949,7 +2951,7 @@
             <div class="share-text-section">
                 <div class="share-link-label">分享文案（点击复制）</div>
                 <div class="share-text" id="shareText" onclick="copyShareText()" style="cursor: pointer;">
-                    来玩上海敲麻！房间号：------
+                    来玩上海敲麻（哈灵规则）！房间号：------
                 </div>
             </div>
             
@@ -3575,8 +3577,16 @@
         // ==================== 结束好友系统变量 ====================
 
         // 牌面显示
-        const TYPE_NAMES = { wan: '万', tiao: '条', tong: '筒' };
+        const TYPE_NAMES = { wan: '万', tiao: '条', tong: '筒', honor: '', flower: '花' };
         const NUM_NAMES = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+        const HONOR_NAMES_MP = {
+            dong: '东', nan: '南', xi: '西', bei: '北',
+            zhong: '红中', fa: '发财', bai: '白板'
+        };
+        const FLOWER_NAMES_MP = {
+            chun: '春', xia: '夏', qiu: '秋', dong_hua: '冬',
+            mei: '梅', lan: '兰', zhu: '竹', ju: '菊'
+        };
         const WIND_NAMES = { east: '东', south: '南', west: '西', north: '北' };
         
         // 精灵图位置映射 (8列×6行网格)
@@ -3605,9 +3615,12 @@
             'wan9': [5, 0], 'tong9': [5, 1], 'tiao9': [5, 2]
         };
         
-        // 获取精灵图背景位置
+        // 获取精灵图背景位置（万条筒：type+数字；字牌/花牌：与雪碧图键一致）
         function getSpritePosition(tile) {
-            const key = `${tile.type}${tile.value}`;
+            let key;
+            if (tile.type === 'flower') key = tile.value;
+            else if (tile.type === 'honor') key = tile.value;
+            else key = `${tile.type}${tile.value}`;
             const pos = TILE_SPRITE_MAP[key];
             
             if (!pos) return '';
@@ -3622,27 +3635,79 @@
             return `background-size: ${cols * 100}% ${rows * 100}%; background-position: ${posX}% ${posY}%;`;
         }
         
-        // ==================== 听牌检测 ====================
+        // ==================== 听牌检测（与 server.js 哈灵规则一致）====================
         let isTing = false;
         let tingList = [];
         
-        // 检测是否能胡牌（3N+2结构）
-        function canHuHand(tiles) {
+        function isNumberTileMp(tile) {
+            return tile && ['wan', 'tiao', 'tong'].includes(tile.type);
+        }
+        function tileKeyMp(tile) {
+            if (!tile) return '';
+            if (isNumberTileMp(tile)) return `${tile.type}_${tile.value}`;
+            if (tile.type === 'honor') return tile.value;
+            return `${tile.type}_${tile.value}`;
+        }
+        function sortTilesMp(tiles) {
+            const typeOrder = { wan: 0, tiao: 1, tong: 2, honor: 3, flower: 4 };
+            const honorOrder = { dong: 0, nan: 1, xi: 2, bei: 3, zhong: 4, fa: 5, bai: 6 };
+            return [...tiles].sort((a, b) => {
+                const oa = typeOrder[a.type] ?? 99;
+                const ob = typeOrder[b.type] ?? 99;
+                if (oa !== ob) return oa - ob;
+                if (a.type === 'honor' && b.type === 'honor')
+                    return (honorOrder[a.value] ?? 99) - (honorOrder[b.value] ?? 99);
+                return (a.value || 0) - (b.value || 0);
+            });
+        }
+        function isQiDuiMp(tiles) {
+            if (!tiles || tiles.length !== 14) return false;
+            const counts = {};
+            tiles.forEach(t => {
+                const k = tileKeyMp(t);
+                counts[k] = (counts[k] || 0) + 1;
+            });
+            return Object.keys(counts).length === 7 && Object.values(counts).every(v => v === 2);
+        }
+        function isShiSanYaoMp(tiles) {
+            if (!tiles || tiles.length !== 14) return false;
+            const ORPHAN_KEYS = new Set([
+                'wan_1', 'wan_9', 'tiao_1', 'tiao_9', 'tong_1', 'tong_9',
+                'dong', 'nan', 'xi', 'bei', 'zhong', 'fa', 'bai'
+            ]);
+            const counts = {};
+            for (const t of tiles) {
+                const k = tileKeyMp(t);
+                if (!ORPHAN_KEYS.has(k)) return false;
+                counts[k] = (counts[k] || 0) + 1;
+            }
+            if (Object.keys(counts).length !== 13) return false;
+            let pairCount = 0;
+            for (const k of Object.keys(counts)) {
+                const c = counts[k];
+                if (c !== 1 && c !== 2) return false;
+                if (c === 2) pairCount++;
+            }
+            return pairCount === 1;
+        }
+        
+        function canHuHand(tiles, meldCount = 0) {
+            const total = tiles.length + meldCount * 3;
+            if (total !== 14) return false;
+            if (meldCount === 0) {
+                if (isQiDuiMp(tiles)) return true;
+                if (isShiSanYaoMp(tiles)) return true;
+            }
             if (tiles.length === 0) return true;
             if (tiles.length === 2) {
                 return tiles[0].type === tiles[1].type && tiles[0].value === tiles[1].value;
             }
             if (tiles.length < 3) return false;
             
-            // 排序
-            const sorted = [...tiles].sort((a, b) => {
-                if (a.type !== b.type) return a.type.localeCompare(b.type);
-                return a.value - b.value;
-            });
+            const sorted = sortTilesMp(tiles);
             
-            // 尝试作为将（对子）
             for (let i = 0; i < sorted.length - 1; i++) {
-                if (sorted[i].type === sorted[i+1].type && sorted[i].value === sorted[i+1].value) {
+                if (sorted[i].type === sorted[i + 1].type && sorted[i].value === sorted[i + 1].value) {
                     const remaining = [...sorted];
                     remaining.splice(i, 2);
                     if (canFormMelds(remaining)) return true;
@@ -3655,46 +3720,53 @@
             if (tiles.length === 0) return true;
             if (tiles.length % 3 !== 0) return false;
             
-            const sorted = [...tiles].sort((a, b) => {
-                if (a.type !== b.type) return a.type.localeCompare(b.type);
-                return a.value - b.value;
-            });
+            const sorted = sortTilesMp(tiles);
             
-            // 尝试刻子
             if (sorted.length >= 3 &&
                 sorted[0].type === sorted[1].type && sorted[1].type === sorted[2].type &&
                 sorted[0].value === sorted[1].value && sorted[1].value === sorted[2].value) {
                 return canFormMelds(sorted.slice(3));
             }
             
-            // 尝试顺子
             if (sorted.length >= 3) {
                 const first = sorted[0];
-                const secondIdx = sorted.findIndex(t => t.type === first.type && t.value === first.value + 1);
-                const thirdIdx = sorted.findIndex(t => t.type === first.type && t.value === first.value + 2);
-                
-                if (secondIdx !== -1 && thirdIdx !== -1) {
-                    const remaining = [...sorted];
-                    [thirdIdx, secondIdx, 0].sort((a,b) => b-a).forEach(idx => remaining.splice(idx, 1));
-                    if (canFormMelds(remaining)) return true;
+                if (isNumberTileMp(first)) {
+                    const secondIdx = sorted.findIndex(t => t.type === first.type && t.value === first.value + 1);
+                    const thirdIdx = sorted.findIndex(t => t.type === first.type && t.value === first.value + 2);
+                    if (secondIdx !== -1 && thirdIdx !== -1) {
+                        const remaining = [...sorted];
+                        [thirdIdx, secondIdx, 0].sort((a, b) => b - a).forEach(idx => remaining.splice(idx, 1));
+                        if (canFormMelds(remaining)) return true;
+                    }
                 }
             }
             return false;
         }
         
-        // 检测听哪些牌
-        function checkTingPai(hand) {
+        function allTilesForTing() {
+            const list = [];
+            for (const type of ['wan', 'tiao', 'tong']) {
+                for (let value = 1; value <= 9; value++) list.push({ type, value });
+            }
+            for (const h of ['dong', 'nan', 'xi', 'bei', 'zhong', 'fa', 'bai']) {
+                list.push({ type: 'honor', value: h });
+            }
+            return list;
+        }
+        
+        function formatTileNameMp(tile) {
+            if (!tile) return '';
+            if (isNumberTileMp(tile)) return NUM_NAMES[tile.value] + TYPE_NAMES[tile.type];
+            if (tile.type === 'honor') return HONOR_NAMES_MP[tile.value] || tile.value;
+            if (tile.type === 'flower') return FLOWER_NAMES_MP[tile.value] || tile.value;
+            return String(tile.value);
+        }
+        
+        function checkTingPai(hand, meldCount = 0) {
             const tingTiles = [];
-            const allTileTypes = ['wan', 'tiao', 'tong'];
-            
-            for (const type of allTileTypes) {
-                for (let value = 1; value <= 9; value++) {
-                    const testTile = { type, value };
-                    const testHand = [...hand, testTile];
-                    if (canHuHand(testHand)) {
-                        tingTiles.push(testTile);
-                    }
-                }
+            for (const testTile of allTilesForTing()) {
+                const testHand = [...hand, testTile];
+                if (canHuHand(testHand, meldCount)) tingTiles.push(testTile);
             }
             return tingTiles;
         }
@@ -3716,7 +3788,8 @@
             const expectedSize = 13 - (myPlayer.melds?.length || 0) * 3;
             if (myPlayer.hand.length !== expectedSize) return;
             
-            const newTingList = checkTingPai(myPlayer.hand);
+            const meldN = myPlayer.melds?.length || 0;
+            const newTingList = checkTingPai(myPlayer.hand, meldN);
             
             if (newTingList.length > 0) {
                 // 保存待选听牌列表
@@ -3730,7 +3803,7 @@
         
         // 显示听牌选择对话框
         function showTingChoiceModal(tingTiles) {
-            const tingNames = tingTiles.map(t => `${NUM_NAMES[t.value]}${TYPE_NAMES[t.type]}`).join('、');
+            const tingNames = tingTiles.map(t => formatTileNameMp(t)).join('、');
             document.getElementById('tingTilesInfo').innerHTML = `
                 <div style="margin-bottom:10px;">听：<strong style="color:var(--gold)">${tingNames}</strong></div>
                 <div style="font-size:0.9rem;color:rgba(255,255,255,0.7);">共 ${tingTiles.length} 张</div>
@@ -3755,7 +3828,7 @@
             // 关闭对话框
             document.getElementById('tingChoiceModal').classList.remove('active');
             
-            const tingNames = tingList.map(t => `${NUM_NAMES[t.value]}${TYPE_NAMES[t.type]}`).join('、');
+            const tingNames = tingList.map(t => formatTileNameMp(t)).join('、');
             showToast(`🎯 已听牌！听：${tingNames}`, 3000);
         }
         
@@ -3782,13 +3855,9 @@
         
         // 获取牌的音频文件名
         function getTileAudioName(tile) {
-            // 多人模式牌结构: 
-            // 数字牌: { type: 'wan'|'tiao'|'tong', value: 1-9 }
-            // 花牌: { type: 'flower', value: 'chun'|'xia'|... }
-            if (tile.type === 'flower') {
-                return tile.value; // 花牌直接返回 value (chun, xia, etc.)
-            }
-            return `${tile.type}${tile.value}`; // 数字牌: wan1, tong2, etc.
+            if (tile.type === 'flower') return tile.value;
+            if (tile.type === 'honor') return tile.value;
+            return `${tile.type}${tile.value}`;
         }
         
         // 根据玩家ID获取语音
@@ -4054,8 +4123,7 @@
         
         // 获取牌的语音名称
         function getTileSpeechName(tile) {
-            const numNames = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
-            return numNames[tile.value] + TYPE_NAMES[tile.type];
+            return formatTileNameMp(tile);
         }
         
         // 检测是否是华为设备
@@ -5055,7 +5123,7 @@
         function getShareText() {
             const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
             const link = getShareLink();
-            return `来玩上海敲麻！🀄\n房间号：${roomCode}\n点击链接直接加入：${link}`;
+            return `来玩上海敲麻（哈灵规则）！🀄\n房间号：${roomCode}\n点击链接直接加入：${link}`;
         }
         
         // 打开分享弹窗
@@ -5068,7 +5136,7 @@
             document.getElementById('shareLinkInput').value = link;
             
             // 设置文案
-            document.getElementById('shareText').innerHTML = `来玩上海敲麻！🀄<br>房间号：<strong>${roomCode}</strong><br><small style="color: rgba(255,255,255,0.6);">点击链接直接加入</small>`;
+            document.getElementById('shareText').innerHTML = `来玩上海敲麻（哈灵规则）！🀄<br>房间号：<strong>${roomCode}</strong><br><small style="color: rgba(255,255,255,0.6);">点击链接直接加入</small>`;
             
             // 生成二维码
             const qrcodeContainer = document.getElementById('shareQrcode');
@@ -5647,15 +5715,15 @@
             } else {
                 // 备用文字显示
                 el.classList.add('text-mode');
+                const disp = formatTileNameMp(tile);
                 el.innerHTML = `
                     <div class="tile-text">
-                        <span class="tile-value">${NUM_NAMES[tile.value]}</span>
-                        <span class="tile-type">${TYPE_NAMES[tile.type]}</span>
+                        <span class="tile-value" style="font-size:0.78rem;line-height:1.15;">${disp}</span>
                     </div>
                 `;
             }
             
-            el.title = `${NUM_NAMES[tile.value]}${TYPE_NAMES[tile.type]}`;
+            el.title = formatTileNameMp(tile);
             return el;
         }
 
@@ -5926,7 +5994,7 @@
 
         // 获取牌名
         function getTileName(tile) {
-            return NUM_NAMES[tile.value] + TYPE_NAMES[tile.type];
+            return formatTileNameMp(tile);
         }
 
         // 语音播报
