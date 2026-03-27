@@ -435,28 +435,30 @@
             box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
 
-        .stone.last {
-            animation: lastStoneFlash 1.5s ease-in-out infinite;
+        .stone.last-flash {
+            animation: lastStoneFlash 0.6s ease-out 3;
         }
 
-        .stone.last::after {
+        .stone.last-flash::after {
             content: '';
             position: absolute;
             top: 50%; left: 50%;
-            width: 6px; height: 6px;
+            width: 7px; height: 7px;
             transform: translate(-50%, -50%);
             background: #ff4444;
             border-radius: 50%;
-            box-shadow: 0 0 4px 1px rgba(255, 68, 68, 0.6);
-        }
-
-        .stone.last.white::after {
-            background: #ff4444;
+            box-shadow: 0 0 6px 2px rgba(255, 68, 68, 0.7);
+            animation: redDotFade 1.8s ease-out forwards;
         }
 
         @keyframes lastStoneFlash {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 200, 0, 0.6), 0 0 8px rgba(255, 200, 0, 0.3); }
-            50% { box-shadow: 0 0 0 6px rgba(255, 200, 0, 0), 0 0 15px rgba(255, 200, 0, 0.5); }
+            0% { box-shadow: 0 0 0 0 rgba(255, 200, 0, 0.8), 0 0 10px rgba(255, 200, 0, 0.5); }
+            100% { box-shadow: 0 0 0 10px rgba(255, 200, 0, 0), 0 0 0 rgba(255, 200, 0, 0); }
+        }
+
+        @keyframes redDotFade {
+            0%, 70% { opacity: 1; }
+            100% { opacity: 0; }
         }
 
         .stone.winning {
@@ -1176,15 +1178,28 @@
             const boardEl = document.getElementById('board');
             const cellIndex = row * 15 + col;
             const cell = boardEl.children[cellIndex];
+            if (!cell) return;
             
-            // 移除之前的最后落子标记
-            boardEl.querySelectorAll('.stone.last').forEach(s => s.classList.remove('last'));
+            // 如果格子里已经有同色棋子（自己先落的本地棋子），跳过重复渲染，但仍要触发闪烁
+            const existing = cell.querySelector('.stone');
+            if (existing && existing.classList.contains(color)) {
+                existing.classList.remove('last-flash');
+                void existing.offsetWidth;
+                existing.classList.add('last-flash');
+                return;
+            }
+
+            // 移除之前的闪烁标记
+            boardEl.querySelectorAll('.stone.last-flash').forEach(s => s.classList.remove('last-flash'));
             
             const stone = document.createElement('div');
-            stone.className = `stone ${color} last`;
+            stone.className = `stone ${color} last-flash`;
             cell.innerHTML = '';
             cell.appendChild(stone);
             cell.classList.add('disabled');
+            
+            // 动画结束后移除闪烁类
+            setTimeout(() => stone.classList.remove('last-flash'), 2000);
             
             // 播放音效
             playSound();
