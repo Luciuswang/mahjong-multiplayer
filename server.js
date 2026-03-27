@@ -3301,6 +3301,20 @@ gomokuIO.on('connection', (socket) => {
         }
     });
 
+    socket.on('chat_message', (data) => {
+        if (!data || !data.text) return;
+        const room = gomokuPlayerSockets.get(socket.id);
+        if (!room) return;
+        const player = room.players.find(p => p.id === socket.id);
+        if (!player) return;
+        room.broadcast('chat_message', {
+            username: player.username,
+            color: player.color,
+            text: String(data.text).substring(0, 100),
+            timestamp: Date.now()
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('[五子棋] 断开连接:', socket.id);
         const room = gomokuPlayerSockets.get(socket.id);
