@@ -1167,21 +1167,31 @@
 
         // 连接服务器
         function connectServer() {
-            // 连接到主服务器的 /gomoku 命名空间
-            const serverUrl = window.location.origin;
+            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const serverUrl = isLocal ? `http://${window.location.hostname}:3000` : window.location.origin;
+            
+            const rawPath = window.location.pathname.replace(/\/gomoku\/?.*$/i, '').replace(/\/$/, '');
+            const socketPath = (rawPath && !isLocal) ? `${rawPath}/socket.io` : '/socket.io';
+            
+            console.log('[五子棋] 连接:', serverUrl, 'namespace=/gomoku, path=' + socketPath);
             
             socket = io(serverUrl + '/gomoku', {
-                transports: ['websocket', 'polling']
+                path: socketPath,
+                timeout: 10000,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                transports: ['websocket', 'polling'],
+                upgrade: true
             });
             
             socket.on('connect', () => {
                 console.log('已连接到服务器');
-                showToast('已连接到服务器');
             });
             
             socket.on('connect_error', (err) => {
                 console.error('连接失败:', err.message);
-                showToast('连接服务器失败，请刷新重试');
+                showToast('连接服务器失败: ' + err.message);
             });
             
             socket.on('room_created', (data) => {
