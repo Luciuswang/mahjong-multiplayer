@@ -12,15 +12,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --table-green: #1a5c3a;
-            --table-dark: #0d3321;
-            --gold: #d4af37;
-            --gold-light: #f4d03f;
-            --tile-bg: #f5f0e1;
-            --tile-border: #c9b896;
-            --red: #c0392b;
-            --blue: #2980b9;
-            --green: #27ae60;
+            --table-green: #1e293b;
+            --table-dark: #0f172a;
+            --gold: #818cf8;
+            --gold-light: #a5b4fc;
+            --tile-bg: #f8fafc;
+            --tile-border: #cbd5e1;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --green: #10b981;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +29,7 @@
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: radial-gradient(ellipse at center, var(--table-green) 0%, var(--table-dark) 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
@@ -51,7 +51,7 @@
             font-family: 'Ma Shan Zheng', cursive;
             font-size: 3.5rem;
             color: var(--gold);
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            text-shadow: 0 0 30px rgba(129,140,248,0.4), 0 2px 4px rgba(0,0,0,0.3);
             margin-bottom: 10px;
         }
 
@@ -62,8 +62,10 @@
         }
 
         .lobby-container {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid var(--gold);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
             padding: 40px;
             max-width: 450px;
@@ -85,9 +87,9 @@
             width: 100%;
             padding: 15px;
             font-size: 1.1rem;
-            border: 2px solid var(--gold);
+            border: 1px solid rgba(129,140,248,0.3);
             border-radius: 10px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
             color: #fff;
             outline: none;
             text-transform: uppercase;
@@ -129,7 +131,7 @@
         
         .voice-btn.active {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(212,175,55,0.3) 0%, rgba(184,134,11,0.3) 100%);
+            background: linear-gradient(135deg, rgba(129,140,248,0.3) 0%, rgba(99,102,241,0.3) 100%);
             color: var(--gold);
             font-weight: bold;
         }
@@ -144,9 +146,9 @@
             padding: 16px 30px;
             margin: 12px 0;
             font-size: 1.2rem;
-            font-family: 'Ma Shan Zheng', cursive;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            color: #1a1a1a;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -156,13 +158,13 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(212,175,55,0.4);
+            box-shadow: 0 6px 20px rgba(129,140,248,0.4);
         }
 
         .btn.secondary {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
             color: #fff;
-            border: 2px solid var(--gold);
+            border: 1px solid rgba(129,140,248,0.3);
         }
 
         .btn:disabled {
@@ -201,11 +203,11 @@
             font-weight: bold;
             color: var(--gold);
             letter-spacing: 6px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            background: rgba(0,0,0,0.3);
+            text-shadow: 0 0 20px rgba(129,140,248,0.5);
+            background: rgba(255,255,255,0.05);
             padding: 10px 20px;
             border-radius: 10px;
-            border: 2px solid var(--gold);
+            border: 1px solid rgba(129,140,248,0.2);
         }
 
         .room-code-label {
@@ -226,8 +228,10 @@
         }
 
         .room-container {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid var(--gold);
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 20px;
             padding: 30px;
             max-width: 600px;
@@ -242,8 +246,8 @@
         }
 
         .player-slot {
-            background: rgba(255,255,255,0.1);
-            border: 2px dashed rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.04);
+            border: 1px dashed rgba(255,255,255,0.15);
             border-radius: 15px;
             padding: 20px;
             text-align: center;
@@ -256,8 +260,8 @@
 
         .player-slot.filled {
             border-style: solid;
-            border-color: var(--gold);
-            background: rgba(212,175,55,0.1);
+            border-color: rgba(129,140,248,0.3);
+            background: rgba(129,140,248,0.06);
         }
 
         .player-slot.ready {
@@ -300,7 +304,7 @@
 
         .player-status.host {
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
         }
 
         .empty-slot {
@@ -332,7 +336,8 @@
             width: 100%;
             max-width: 600px;
             padding: 8px 15px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 10px;
             margin-bottom: 8px;
         }
@@ -353,20 +358,20 @@
         .game-info-icon {
             width: 26px;
             height: 26px;
-            background: var(--gold);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #1a1a1a;
+            color: #fff;
             font-weight: bold;
             font-size: 0.75rem;
         }
 
         /* 麻将桌 - 竖屏友好布局 */
         .mahjong-table {
-            background: radial-gradient(ellipse at center, #2d8b57 0%, #1a5c3a 50%, #0d3321 100%);
-            border: 6px solid #5d4037;
+            background: radial-gradient(ellipse at center, #1e293b 0%, #151d2e 50%, #0f172a 100%);
+            border: 2px solid rgba(129,140,248,0.15);
             border-radius: 15px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.3), 0 5px 20px rgba(0,0,0,0.5);
             width: 100%;
@@ -407,13 +412,13 @@
         .seat-avatar {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
-            border: 2px solid white;
+            border: 2px solid rgba(255,255,255,0.3);
         }
 
         .seat-avatar.current-turn {
@@ -493,7 +498,8 @@
         .my-hand-area {
             width: 100%;
             max-width: 600px;
-            background: rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 12px;
             padding: 12px;
             margin-top: 8px;
@@ -535,7 +541,7 @@
         .tile {
             width: 45px;
             height: 63px;
-            background-color: #f5f0e1;
+            background-color: #f8fafc;
             background-image: url('img/majiang.png');
             background-repeat: no-repeat;
             border: 2px solid var(--tile-border);
@@ -550,7 +556,7 @@
         /* 牌面加载中状态 */
         .tile.loading {
             background-image: none;
-            background: linear-gradient(135deg, #e0d8c8 25%, #f5f0e1 50%, #e0d8c8 75%);
+            background: linear-gradient(135deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
             background-size: 200% 100%;
             animation: tileLoading 1s ease-in-out infinite;
         }
@@ -563,7 +569,7 @@
         /* 精灵图加载完成后移除加载状态 */
         body.sprites-loaded .tile.loading {
             animation: none;
-            background: #f5f0e1;
+            background: #f8fafc;
         }
 
         .tile:hover {
@@ -574,14 +580,14 @@
         .tile.selected {
             transform: translateY(-12px);
             border-color: var(--gold);
-            box-shadow: 0 0 20px rgba(212,175,55,0.6);
+            box-shadow: 0 0 20px rgba(129,140,248,0.6);
         }
         
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
             margin-left: 25px;
-            border: 3px solid #3498db;
-            box-shadow: 0 0 20px rgba(52,152,219,0.9), 0 0 40px rgba(52,152,219,0.5);
+            border: 3px solid #818cf8;
+            box-shadow: 0 0 20px rgba(129,140,248,0.9), 0 0 40px rgba(129,140,248,0.5);
             animation: newTilePulse 1s ease-in-out infinite;
             position: relative;
         }
@@ -591,7 +597,7 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background: #e74c3c;
+            background: #ef4444;
             color: white;
             font-size: 10px;
             padding: 2px 5px;
@@ -600,8 +606,8 @@
         }
         
         @keyframes newTilePulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(52,152,219,0.9), 0 0 40px rgba(52,152,219,0.5); }
-            50% { box-shadow: 0 0 30px rgba(52,152,219,1), 0 0 60px rgba(52,152,219,0.7); }
+            0%, 100% { box-shadow: 0 0 20px rgba(129,140,248,0.9), 0 0 40px rgba(129,140,248,0.5); }
+            50% { box-shadow: 0 0 30px rgba(129,140,248,1), 0 0 60px rgba(129,140,248,0.7); }
         }
         
         /* 每个座位的弃牌区 */
@@ -638,8 +644,8 @@
 
         .tile.back {
             background-image: none;
-            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-            border-color: #1b5e20;
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+            border-color: #3730a3;
         }
 
         .tile.back::after {
@@ -694,11 +700,11 @@
             font-size: 0.8rem;
         }
 
-        .tile.wan .tile-value { color: #c0392b; }
-        .tile.tiao .tile-value { color: #27ae60; }
-        .tile.tong .tile-value { color: #2980b9; }
-        .tile.honor .tile-value { color: #8e44ad; }
-        .tile.flower .tile-value { color: #f39c12; }
+        .tile.wan .tile-value { color: #ef4444; }
+        .tile.tiao .tile-value { color: #10b981; }
+        .tile.tong .tile-value { color: #3b82f6; }
+        .tile.honor .tile-value { color: #a855f7; }
+        .tile.flower .tile-value { color: #f59e0b; }
 
         /* 动作按钮 */
         .action-buttons {
@@ -715,7 +721,7 @@
         .action-btn {
             padding: 12px 25px;
             font-size: 1.1rem;
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -723,17 +729,17 @@
         }
 
         .action-btn.hu {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, #f87171, #ef4444);
             color: white;
         }
 
         .action-btn.gang {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
             color: white;
         }
 
         .action-btn.peng {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
             color: white;
         }
 
@@ -744,12 +750,12 @@
         }
 
         .action-btn.draw {
-            background: linear-gradient(135deg, var(--gold), #b8860b);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, var(--gold), #6366f1);
+            color: #fff;
         }
 
         .action-btn.discard {
-            background: linear-gradient(135deg, #27ae60, #1e8449);
+            background: linear-gradient(135deg, #34d399, #10b981);
             color: white;
         }
 
@@ -794,8 +800,10 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, var(--table-green), var(--table-dark));
-            border: 3px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
@@ -804,7 +812,7 @@
         }
 
         .modal-title {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 2.5rem;
             color: var(--gold);
             margin-bottom: 20px;
@@ -864,7 +872,7 @@
             padding: 8px 15px;
             margin-left: 8px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -879,8 +887,8 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: linear-gradient(145deg, #f0d060, var(--gold), #a67c00);
-            color: #1a1a1a;
+            background: linear-gradient(145deg, #a5b4fc, var(--gold), #4f46e5);
+            color: #fff;
             border: none;
             font-size: 1.35rem;
             line-height: 1;
@@ -905,7 +913,7 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: #ef4444;
             color: #fff;
             font-size: 0.7rem;
             padding: 2px 6px;
@@ -921,7 +929,7 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: #ef4444;
             color: #fff;
             font-size: 0.7rem;
             padding: 2px 6px;
@@ -937,8 +945,10 @@
             left: 20px;
             width: 300px;
             max-height: 420px;
-            background: rgba(0,0,0,0.9);
-            border: 2px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(129,140,248,0.15);
             border-radius: 15px;
             overflow: hidden;
             z-index: 1300;
@@ -954,8 +964,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 15px;
-            background: rgba(212,175,55,0.2);
-            border-bottom: 1px solid var(--gold);
+            background: rgba(129,140,248,0.1);
+            border-bottom: 1px solid rgba(129,140,248,0.15);
         }
         
         .chat-panel .chat-messages {
@@ -986,7 +996,7 @@
             margin-left: 8px;
             padding: 8px 12px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 20px;
             cursor: pointer;
@@ -1036,8 +1046,8 @@
         }
         
         .score-item {
-            background: rgba(0,0,0,0.5);
-            border: 1px solid var(--gold);
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(129,140,248,0.15);
             border-radius: 8px;
             padding: 5px 15px;
             display: flex;
@@ -1062,8 +1072,8 @@
             color: var(--gold);
         }
         
-        .score-value.positive { color: #2ecc71; }
-        .score-value.negative { color: #e74c3c; }
+        .score-value.positive { color: #10b981; }
+        .score-value.negative { color: #ef4444; }
         
         /* 玩家准备状态 */
         .player-ready-item {
@@ -1077,15 +1087,15 @@
         }
         .player-ready-item.ready {
             background: rgba(46, 204, 113, 0.3);
-            color: #2ecc71;
+            color: #10b981;
         }
         .player-ready-item.waiting {
             background: rgba(241, 196, 15, 0.2);
-            color: #f1c40f;
+            color: #fbbf24;
         }
         .player-ready-item.ai-takeover {
             background: rgba(231, 76, 60, 0.3);
-            color: #e74c3c;
+            color: #ef4444;
         }
         
         /* 单局结算弹窗 */
@@ -1105,8 +1115,10 @@
         .round-result-modal.active { display: flex; }
         
         .round-result-content {
-            background: linear-gradient(135deg, var(--table-green), var(--table-dark));
-            border: 3px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 20px;
             padding: 30px;
             text-align: center;
@@ -1117,7 +1129,7 @@
         }
         
         .round-result-title {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 2rem;
             color: var(--gold);
             margin-bottom: 15px;
@@ -1147,15 +1159,15 @@
         
         .score-change-name { color: #fff; }
         .score-change-value { font-weight: bold; }
-        .score-change-value.positive { color: #2ecc71; }
-        .score-change-value.negative { color: #e74c3c; }
+        .score-change-value.positive { color: #10b981; }
+        .score-change-value.negative { color: #ef4444; }
         
         .total-score-row {
             display: flex;
             justify-content: space-between;
             padding: 10px;
             margin-top: 10px;
-            background: rgba(212,175,55,0.2);
+            background: rgba(129,140,248,0.2);
             border-radius: 8px;
             font-size: 1.1rem;
         }
@@ -1177,8 +1189,10 @@
         .match-result-modal.active { display: flex; }
         
         .match-result-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 3px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
@@ -1187,7 +1201,7 @@
         }
         
         .match-result-title {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 2.5rem;
             color: var(--gold);
             margin-bottom: 20px;
@@ -1208,8 +1222,8 @@
         }
         
         .ranking-item.first { 
-            background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1));
-            border: 2px solid gold;
+            background: linear-gradient(135deg, rgba(129,140,248,0.3), rgba(129,140,248,0.1));
+            border: 2px solid var(--gold);
         }
         
         .ranking-item.second { 
@@ -1228,7 +1242,7 @@
             width: 40px;
         }
         
-        .ranking-position.first { color: gold; }
+        .ranking-position.first { color: var(--gold); }
         .ranking-position.second { color: silver; }
         .ranking-position.third { color: #cd7f32; }
         
@@ -1244,8 +1258,8 @@
             font-weight: bold;
         }
         
-        .ranking-score.positive { color: #2ecc71; }
-        .ranking-score.negative { color: #e74c3c; }
+        .ranking-score.positive { color: #10b981; }
+        .ranking-score.negative { color: #ef4444; }
         
         /* 听牌选择对话框 */
         .ting-choice-modal {
@@ -1264,8 +1278,10 @@
         .ting-choice-modal.active { display: flex; }
         
         .ting-choice-content {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 3px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 15px;
             padding: 25px 35px;
             text-align: center;
@@ -1296,7 +1312,7 @@
         }
         
         .ting-btn {
-            background: linear-gradient(135deg, #f39c12, #e67e22) !important;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
         }
         
         .ting-hint {
@@ -1582,7 +1598,7 @@
         
         body.reduce-motion .tile.new-tile {
             animation: none;
-            box-shadow: 0 0 10px rgba(52,152,219,0.9);
+            box-shadow: 0 0 10px rgba(129,140,248,0.9);
         }
         
         body.reduce-motion .seat-avatar.current-turn {
@@ -1688,11 +1704,11 @@
         }
         
         .action-effect-text.peng {
-            color: #3498db;
+            color: #60a5fa;
         }
         
         .action-effect-text.gang {
-            color: #9b59b6;
+            color: #a78bfa;
         }
         
         .action-effect-text.hu, .action-effect-text.zimo {
@@ -1784,20 +1800,20 @@
         
         /* 轮到自己时的边框发光 */
         .my-hand-area.my-turn {
-            box-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 
-                        inset 0 0 20px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 
+                        inset 0 0 20px rgba(129, 140, 248, 0.3);
             border: 2px solid var(--gold);
             animation: myTurnPulse 1.5s ease-in-out infinite;
         }
         
         @keyframes myTurnPulse {
             0%, 100% {
-                box-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 
-                            inset 0 0 20px rgba(212, 175, 55, 0.3);
+                box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 
+                            inset 0 0 20px rgba(129, 140, 248, 0.3);
             }
             50% {
-                box-shadow: 0 0 50px rgba(212, 175, 55, 1), 
-                            inset 0 0 30px rgba(212, 175, 55, 0.5);
+                box-shadow: 0 0 50px rgba(129, 140, 248, 1), 
+                            inset 0 0 30px rgba(129, 140, 248, 0.5);
             }
         }
         
@@ -1807,11 +1823,11 @@
             top: 15%;
             left: 50%;
             transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(212, 175, 55, 0.9), rgba(184, 134, 11, 0.9));
-            color: #1a1a1a;
+            background: linear-gradient(135deg, rgba(102,126,234,0.9), rgba(118,75,162,0.9));
+            color: #fff;
             padding: 12px 30px;
             border-radius: 30px;
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 1.5rem;
             font-weight: bold;
             z-index: 1500;
@@ -1883,7 +1899,7 @@
             justify-content: center;
         }
         .chat-emoji-inline:hover {
-            background: rgba(212, 175, 55, 0.25);
+            background: rgba(129, 140, 248, 0.25);
             border-color: var(--gold);
         }
         .chat-phrase-wrap {
@@ -2019,7 +2035,7 @@
             position: absolute;
             width: 4px;
             height: 4px;
-            background: rgba(212, 175, 55, 0.3);
+            background: rgba(129, 140, 248, 0.3);
             border-radius: 50%;
             animation: floatParticle linear infinite;
         }
@@ -2045,7 +2061,7 @@
         .tile-ripple {
             position: absolute;
             border-radius: 50%;
-            background: rgba(212, 175, 55, 0.4);
+            background: rgba(129, 140, 248, 0.4);
             transform: scale(0);
             animation: ripple 0.6s ease-out;
             pointer-events: none;
@@ -2077,8 +2093,10 @@
             right: -350px;
             width: 350px;
             height: 100vh;
-            background: rgba(0,0,0,0.95);
-            border-left: 2px solid var(--gold);
+            background: rgba(15,23,42,0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(129,140,248,0.15);
             z-index: 9000;
             transition: right 0.3s ease;
             display: flex;
@@ -2091,8 +2109,8 @@
         
         .friend-panel-header {
             padding: 20px;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -2100,7 +2118,7 @@
         
         .friend-panel-header h3 {
             margin: 0;
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 1.5rem;
         }
         
@@ -2109,12 +2127,12 @@
             border: none;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #1a1a1a;
+            color: #fff;
         }
         
         .friend-code-section {
             padding: 15px 20px;
-            background: rgba(212,175,55,0.1);
+            background: rgba(129,140,248,0.1);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
@@ -2151,7 +2169,7 @@
         }
         
         .stat-value.win-rate {
-            color: #2ecc71;
+            color: #10b981;
         }
         
         .stat-label {
@@ -2177,7 +2195,7 @@
         .copy-btn {
             padding: 5px 10px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -2211,7 +2229,7 @@
         .add-friend-input button {
             padding: 10px 15px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -2288,17 +2306,17 @@
         }
         
         .friend-status.online {
-            color: #2ecc71;
+            color: #10b981;
         }
         
         .friend-status.in-game {
-            color: #f39c12;
+            color: #f59e0b;
         }
         
         .friend-action-btn {
             padding: 6px 12px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -2306,7 +2324,7 @@
         }
         
         .friend-action-btn.join {
-            background: #2ecc71;
+            background: #10b981;
             color: #fff;
         }
         
@@ -2316,7 +2334,7 @@
             right: 20px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -2336,7 +2354,7 @@
             position: absolute;
             top: -5px;
             right: -5px;
-            background: #e74c3c;
+            background: #ef4444;
             color: #fff;
             border-radius: 50%;
             width: 20px;
@@ -2379,8 +2397,10 @@
         }
         
         .share-modal-content {
-            background: linear-gradient(135deg, #1a5c3a 0%, #0d3321 100%);
-            border: 2px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 20px;
             padding: 30px;
             max-width: 400px;
@@ -2389,7 +2409,7 @@
         }
         
         .share-modal-title {
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             font-size: 1.8rem;
             color: var(--gold);
             margin-bottom: 20px;
@@ -2443,7 +2463,7 @@
         .share-copy-btn {
             padding: 10px 15px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -2452,7 +2472,7 @@
         }
         
         .share-copy-btn.copied {
-            background: #2ecc71;
+            background: #10b981;
             color: #fff;
         }
         
@@ -2492,7 +2512,7 @@
         
         .share-btn.primary {
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
         }
         
         .share-btn.secondary {
@@ -2502,7 +2522,7 @@
         
         .room-share-btn {
             padding: 8px 15px;
-            background: #2ecc71;
+            background: #10b981;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -2512,7 +2532,7 @@
         }
         
         .room-share-btn:hover {
-            background: #27ae60;
+            background: #059669;
         }
         /* ==================== 结束分享弹窗样式 ==================== */
         
@@ -2523,8 +2543,10 @@
             right: 10px;
             width: 300px;
             max-height: 420px;
-            background: rgba(0,0,0,0.85);
-            border: 1px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(129,140,248,0.15);
             border-radius: 10px;
             display: none;
             flex-direction: column;
@@ -2537,8 +2559,8 @@
         
         .chat-header {
             padding: 10px 15px;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
             border-radius: 9px 9px 0 0;
             display: flex;
             justify-content: space-between;
@@ -2551,7 +2573,7 @@
             border: none;
             font-size: 1.2rem;
             cursor: pointer;
-            color: #1a1a1a;
+            color: #fff;
         }
         
         .chat-messages {
@@ -2606,7 +2628,7 @@
         .chat-send-btn {
             padding: 8px 15px;
             background: var(--gold);
-            color: #1a1a1a;
+            color: #fff;
             border: none;
             border-radius: 5px;
             cursor: pointer;
@@ -2653,8 +2675,10 @@
         }
         
         .nickname-modal-content {
-            background: linear-gradient(135deg, #1a5c3a 0%, #0d3321 100%);
-            border: 2px solid var(--gold);
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(129,140,248,0.2);
             border-radius: 15px;
             padding: 25px;
             width: 300px;
@@ -2664,7 +2688,7 @@
         .nickname-modal-content h3 {
             color: var(--gold);
             margin-bottom: 20px;
-            font-family: 'Ma Shan Zheng', cursive;
+            font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
         }
         
         .nickname-modal-content input {
@@ -2883,7 +2907,7 @@
             
             <div class="divider"><span>其他游戏</span></div>
             
-            <button class="btn secondary" onclick="window.location.href='./gomoku/'" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-color: #e94560;">
+            <button class="btn secondary" onclick="window.location.href='./gomoku/'" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-color: #818cf8;">
                 <i class="fas fa-circle"></i> 五子棋
             </button>
         </div>
@@ -2961,7 +2985,7 @@
             <div class="game-info">
                 <!-- 局数显示 -->
                 <div class="game-info-item round-display">
-                    <div class="game-info-icon" style="background: #e74c3c;">
+                    <div class="game-info-icon" style="background: #ef4444;">
                         <span id="currentRoundNum">1</span>
                     </div>
                     <span>第 <span id="currentRoundText">1</span>/<span id="totalRoundsText">10</span> 局</span>
@@ -3061,7 +3085,7 @@
             
             <!-- 接管AI按钮 -->
             <div id="takeoverContainer" style="display: none; margin: 10px 0;">
-                <button class="btn" id="takeoverBtn" onclick="takeoverAI()" style="background: #e74c3c; animation: pulse 1s infinite;">
+                <button class="btn" id="takeoverBtn" onclick="takeoverAI()" style="background: #ef4444; animation: pulse 1s infinite;">
                     <i class="fas fa-hand-paper"></i> 接管AI，恢复控制
                 </button>
             </div>
@@ -3442,7 +3466,7 @@
             
             const showCopied = () => {
                 btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
-                btn.style.background = '#2ecc71';
+                btn.style.background = '#10b981';
                 showToast('好友码已复制！分享给朋友吧');
                 setTimeout(() => {
                     btn.innerHTML = originalHtml;
@@ -4808,7 +4832,7 @@
                     countdownEl.textContent = data.seconds;
                     // 最后5秒变红
                     if (data.seconds <= 5) {
-                        countdownEl.style.color = '#e74c3c';
+                        countdownEl.style.color = '#ef4444';
                     } else {
                         countdownEl.style.color = '';
                     }
@@ -5139,7 +5163,7 @@
                     text: link,
                     width: 150,
                     height: 150,
-                    colorDark: '#1a5c3a',
+                    colorDark: '#4338ca',
                     colorLight: '#ffffff',
                     correctLevel: QRCode.CorrectLevel.M
                 });
@@ -6158,10 +6182,10 @@
             
             sortedPlayers.forEach((p, idx) => {
                 const change = p.roundScore;
-                const changeColor = change > 0 ? '#2ecc71' : change < 0 ? '#e74c3c' : '#fff';
+                const changeColor = change > 0 ? '#10b981' : change < 0 ? '#ef4444' : '#fff';
                 const changeText = change >= 0 ? `+${change}` : change;
                 const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '4️⃣';
-                const totalColor = p.totalScore > 0 ? '#2ecc71' : p.totalScore < 0 ? '#e74c3c' : '#fff';
+                const totalColor = p.totalScore > 0 ? '#10b981' : p.totalScore < 0 ? '#ef4444' : '#fff';
                 const totalText = p.totalScore >= 0 ? `+${p.totalScore}` : p.totalScore;
                 const rowBg = idx === 0 && change > 0 ? 'rgba(46,204,113,0.15)' : 'transparent';
                 
