@@ -12,15 +12,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --table-green: #1e293b;
-            --table-dark: #0f172a;
-            --gold: #818cf8;
-            --gold-light: #a5b4fc;
-            --tile-bg: #f8fafc;
-            --tile-border: #cbd5e1;
+            --table-green: #111633;
+            --table-dark: #0a0e22;
+            --gold: #67e8f9;
+            --gold-light: #a5f3fc;
+            --tile-bg: #f0f1f5;
+            --tile-border: rgba(180,185,200,0.6);
             --red: #ef4444;
-            --blue: #3b82f6;
+            --blue: #0891b2;
             --green: #10b981;
+            --neon-cyan: rgba(0, 210, 255, 0.5);
+            --neon-orange: rgba(255, 120, 50, 0.4);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -29,7 +31,7 @@
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background: linear-gradient(180deg, #050a18 0%, #0a1628 30%, #0d1b30 60%, #060e1f 100%);
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
@@ -358,7 +360,7 @@
         .game-info-icon {
             width: 26px;
             height: 26px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #0d9488, #0891b2);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -366,20 +368,56 @@
             color: #fff;
             font-weight: bold;
             font-size: 0.75rem;
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
         }
 
-        /* 麻将桌 - 竖屏友好布局 */
-        .mahjong-table {
-            background: radial-gradient(ellipse at center, #1e293b 0%, #151d2e 50%, #0f172a 100%);
-            border: 2px solid rgba(129,140,248,0.15);
-            border-radius: 15px;
-            box-shadow: inset 0 0 30px rgba(0,0,0,0.3), 0 5px 20px rgba(0,0,0,0.5);
+        /* 3D 透视容器 */
+        .table-perspective {
+            perspective: 900px;
+            perspective-origin: 50% 100%;
             width: 100%;
             max-width: 600px;
-            display: flex;
-            flex-direction: column;
+        }
+
+        /* 麻将桌 - 3D 透视布局 */
+        .mahjong-table {
+            background: radial-gradient(ellipse at center, #1a1f3a 0%, #111633 40%, #0a0e22 100%);
+            border: 2px solid rgba(0, 210, 255, 0.25);
+            border-radius: 12px;
+            box-shadow:
+                inset 0 0 80px rgba(0, 180, 255, 0.04),
+                0 0 20px rgba(0, 180, 255, 0.12),
+                0 0 60px rgba(0, 180, 255, 0.06),
+                0 8px 32px rgba(0,0,0,0.6);
+            width: 100%;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            grid-template-columns: 1fr;
             padding: 10px;
-            gap: 8px;
+            gap: 6px;
+            transform: rotateX(28deg);
+            transform-style: preserve-3d;
+            transform-origin: center bottom;
+            position: relative;
+        }
+
+        .mahjong-table::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(0,210,255,0.3), rgba(255,100,50,0.15), rgba(0,210,255,0.3));
+            z-index: -1;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask-composite: xor;
+            padding: 2px;
+        }
+
+        .table-row-middle {
+            display: flex;
+            gap: 4px;
+            align-items: stretch;
         }
 
         /* 对手区域 - 横向排列 */
@@ -400,8 +438,6 @@
             min-width: 0;
         }
 
-        /* 竖屏布局不需要 grid 位置类 */
-
         .seat-info {
             display: flex;
             align-items: center;
@@ -410,32 +446,38 @@
         }
 
         .seat-avatar {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #0d9488, #0891b2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
-            border: 2px solid rgba(255,255,255,0.3);
+            border: 2px solid rgba(0, 210, 255, 0.4);
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.15);
         }
 
         .seat-avatar.current-turn {
-            animation: pulse 1s infinite;
-            box-shadow: 0 0 15px var(--gold);
+            animation: pulse-neon 1.2s infinite;
+            border-color: rgba(0, 255, 200, 0.7);
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.4), 0 0 40px rgba(0, 255, 200, 0.15);
         }
-        
-        /* 【新增】离线玩家样式 */
+
         .seat-avatar.offline {
             filter: grayscale(100%);
             opacity: 0.5;
         }
-        
+
         .seat-info.offline .seat-name::after {
             content: ' (离线)';
             color: #ff6b6b;
             font-size: 0.7rem;
+        }
+
+        @keyframes pulse-neon {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 30px rgba(0, 255, 200, 0.6), 0 0 60px rgba(0, 255, 200, 0.2); }
         }
 
         @keyframes pulse {
@@ -446,14 +488,16 @@
         .seat-name {
             font-size: 0.9rem;
             font-weight: bold;
+            color: rgba(255,255,255,0.9);
         }
 
         .seat-wind {
-            background: var(--red);
+            background: linear-gradient(135deg, #0d9488, #0891b2);
             color: white;
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.75rem;
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
         }
 
         .seat-tiles {
@@ -471,8 +515,21 @@
             justify-content: center;
             gap: 8px;
             padding: 10px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 15, 40, 0.5);
+            border: 1px solid rgba(0, 210, 255, 0.1);
             border-radius: 10px;
+            position: relative;
+        }
+
+        .table-center::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 60px; height: 60px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(0,210,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .discard-area {
@@ -494,15 +551,17 @@
             color: rgba(255,255,255,0.7);
         }
 
-        /* 手牌区域 - 竖屏优化 */
+        /* 手牌区域 - 不受 3D 影响 */
         .my-hand-area {
             width: 100%;
             max-width: 600px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(0, 15, 40, 0.7);
+            border: 1px solid rgba(0, 210, 255, 0.15);
             border-radius: 12px;
             padding: 12px;
             margin-top: 8px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .my-hand-label {
@@ -532,23 +591,27 @@
         .meld-group {
             display: flex;
             gap: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(0, 15, 40, 0.4);
+            border: 1px solid rgba(0, 210, 255, 0.08);
             padding: 4px;
             border-radius: 5px;
         }
 
-        /* 麻将牌样式 - 使用精灵图 */
+        /* 麻将牌样式 - 3D 立体 */
         .tile {
             width: 45px;
             height: 63px;
-            background-color: #f8fafc;
+            background-color: #f0f1f5;
             background-image: url('img/majiang.png');
             background-repeat: no-repeat;
-            border: 2px solid var(--tile-border);
+            border: 1px solid rgba(180,185,200,0.6);
             border-radius: 5px;
             cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            box-shadow:
+                1px 3px 0 0 #c8cbd4,
+                2px 5px 0 0 #b0b3bc,
+                0 6px 12px rgba(0,0,0,0.4);
             position: relative;
             user-select: none;
         }
@@ -574,21 +637,27 @@
 
         .tile:hover {
             transform: translateY(-8px);
-            box-shadow: 2px 8px 15px rgba(0,0,0,0.4);
+            box-shadow:
+                1px 3px 0 0 #c8cbd4,
+                2px 5px 0 0 #b0b3bc,
+                0 12px 20px rgba(0,0,0,0.5);
         }
 
         .tile.selected {
             transform: translateY(-12px);
-            border-color: var(--gold);
-            box-shadow: 0 0 20px rgba(129,140,248,0.6);
+            border-color: rgba(0, 210, 255, 0.7);
+            box-shadow:
+                0 0 15px rgba(0, 210, 255, 0.5),
+                0 0 30px rgba(0, 210, 255, 0.2),
+                1px 3px 0 0 #c8cbd4;
         }
         
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
             margin-left: 25px;
-            border: 3px solid #818cf8;
-            box-shadow: 0 0 20px rgba(129,140,248,0.9), 0 0 40px rgba(129,140,248,0.5);
-            animation: newTilePulse 1s ease-in-out infinite;
+            border: 2px solid rgba(0, 255, 200, 0.7);
+            box-shadow: 0 0 15px rgba(0, 255, 200, 0.6), 0 0 30px rgba(0, 255, 200, 0.3);
+            animation: newTilePulse 1.2s ease-in-out infinite;
             position: relative;
         }
         
@@ -597,7 +666,7 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background: #ef4444;
+            background: linear-gradient(135deg, #0d9488, #06b6d4);
             color: white;
             font-size: 10px;
             padding: 2px 5px;
@@ -606,8 +675,8 @@
         }
         
         @keyframes newTilePulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(129,140,248,0.9), 0 0 40px rgba(129,140,248,0.5); }
-            50% { box-shadow: 0 0 30px rgba(129,140,248,1), 0 0 60px rgba(129,140,248,0.7); }
+            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 200, 0.6), 0 0 30px rgba(0, 255, 200, 0.3); }
+            50% { box-shadow: 0 0 25px rgba(0, 255, 200, 0.8), 0 0 50px rgba(0, 255, 200, 0.4); }
         }
         
         /* 每个座位的弃牌区 */
@@ -618,7 +687,8 @@
             justify-content: center;
             margin-top: 8px;
             padding: 5px;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 10, 30, 0.4);
+            border: 1px solid rgba(0, 210, 255, 0.06);
             border-radius: 8px;
             min-height: 35px;
             max-width: 200px;
@@ -635,17 +705,23 @@
         }
         
         .deck-info {
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 15, 40, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.15);
             padding: 10px 20px;
             border-radius: 10px;
             font-size: 1.1rem;
-            color: var(--gold);
+            color: #67e8f9;
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
         }
 
         .tile.back {
             background-image: none;
-            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
-            border-color: #3730a3;
+            background: linear-gradient(135deg, #1a2744 0%, #0f1a30 50%, #162040 100%);
+            border-color: rgba(0, 180, 255, 0.2);
+            box-shadow:
+                1px 3px 0 0 #0a1525,
+                2px 5px 0 0 #060f1c,
+                0 6px 12px rgba(0,0,0,0.4);
         }
 
         .tile.back::after {
@@ -655,7 +731,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 1.2rem;
-            opacity: 0.5;
+            opacity: 0.4;
         }
 
         .tile.small {
@@ -723,40 +799,59 @@
             font-size: 1.1rem;
             font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
         }
 
+        .action-btn::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.4s ease;
+        }
+        .action-btn:hover::after { left: 100%; }
+
         .action-btn.hu {
-            background: linear-gradient(135deg, #f87171, #ef4444);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: white;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
         }
 
         .action-btn.gang {
-            background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
             color: white;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
         }
 
         .action-btn.peng {
-            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
             color: white;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
         }
 
         .action-btn.pass {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.15);
         }
 
         .action-btn.draw {
-            background: linear-gradient(135deg, var(--gold), #6366f1);
+            background: linear-gradient(135deg, #0891b2, #0e7490);
             color: #fff;
+            box-shadow: 0 0 15px rgba(8, 145, 178, 0.3);
         }
 
         .action-btn.discard {
-            background: linear-gradient(135deg, #34d399, #10b981);
+            background: linear-gradient(135deg, #059669, #047857);
             color: white;
+            box-shadow: 0 0 15px rgba(5, 150, 105, 0.3);
         }
 
         /* Toast提示 */
@@ -1046,8 +1141,8 @@
         }
         
         .score-item {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(129,140,248,0.15);
+            background: rgba(0, 15, 40, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.12);
             border-radius: 8px;
             padding: 5px 15px;
             display: flex;
@@ -1057,23 +1152,24 @@
         
         .flower-count {
             font-size: 0.7rem;
-            color: #ff9999;
+            color: #fda4af;
             min-width: 70px;
         }
         
         .score-name {
             font-size: 0.8rem;
-            color: rgba(255,255,255,0.7);
+            color: rgba(200, 220, 255, 0.7);
         }
         
         .score-value {
             font-size: 1.2rem;
             font-weight: bold;
-            color: var(--gold);
+            color: #67e8f9;
+            text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
         }
         
-        .score-value.positive { color: #10b981; }
-        .score-value.negative { color: #ef4444; }
+        .score-value.positive { color: #34d399; text-shadow: 0 0 8px rgba(52, 211, 153, 0.3); }
+        .score-value.negative { color: #f87171; text-shadow: 0 0 8px rgba(248, 113, 113, 0.3); }
         
         /* 玩家准备状态 */
         .player-ready-item {
@@ -1402,8 +1498,9 @@
             .mahjong-table {
                 padding: 6px;
                 gap: 5px;
-                border-width: 4px;
+                border-width: 2px;
                 border-radius: 10px;
+                transform: rotateX(22deg);
             }
             
             /* 对手区横向排列 */
@@ -1800,20 +1897,20 @@
         
         /* 轮到自己时的边框发光 */
         .my-hand-area.my-turn {
-            box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 
-                        inset 0 0 20px rgba(129, 140, 248, 0.3);
-            border: 2px solid var(--gold);
+            box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
+                        inset 0 0 15px rgba(0, 255, 200, 0.15);
+            border: 2px solid rgba(0, 255, 200, 0.6);
             animation: myTurnPulse 1.5s ease-in-out infinite;
         }
         
         @keyframes myTurnPulse {
             0%, 100% {
-                box-shadow: 0 0 30px rgba(129, 140, 248, 0.8), 
-                            inset 0 0 20px rgba(129, 140, 248, 0.3);
+                box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
+                            inset 0 0 15px rgba(0, 255, 200, 0.15);
             }
             50% {
-                box-shadow: 0 0 50px rgba(129, 140, 248, 1), 
-                            inset 0 0 30px rgba(129, 140, 248, 0.5);
+                box-shadow: 0 0 40px rgba(0, 255, 200, 0.7),
+                            inset 0 0 25px rgba(0, 255, 200, 0.25);
             }
         }
         
@@ -3028,48 +3125,50 @@
             </div>
         </div>
 
-        <div class="mahjong-table">
-            <!-- 对手区域 - 横向排列 -->
-            <div class="opponents-row">
-                <!-- 左家 -->
-                <div class="seat" id="seat-3">
-                    <div class="seat-info">
-                        <div class="seat-avatar" id="avatar-3">🤖</div>
-                        <span class="seat-name" id="name-3">等待中</span>
-                        <span class="seat-wind" id="wind-3">北</span>
+        <div class="table-perspective">
+            <div class="mahjong-table">
+                <!-- 对手区域 - 横向排列 -->
+                <div class="opponents-row">
+                    <!-- 左家 -->
+                    <div class="seat" id="seat-3">
+                        <div class="seat-info">
+                            <div class="seat-avatar" id="avatar-3">🤖</div>
+                            <span class="seat-name" id="name-3">等待中</span>
+                            <span class="seat-wind" id="wind-3">北</span>
+                        </div>
+                        <div class="seat-tiles" id="tiles-3"></div>
+                        <div class="seat-discards" id="discards-3"></div>
                     </div>
-                    <div class="seat-tiles" id="tiles-3"></div>
-                    <div class="seat-discards" id="discards-3"></div>
+
+                    <!-- 对家（中间） -->
+                    <div class="seat" id="seat-2">
+                        <div class="seat-info">
+                            <div class="seat-avatar" id="avatar-2">🤖</div>
+                            <span class="seat-name" id="name-2">等待中</span>
+                            <span class="seat-wind" id="wind-2">西</span>
+                        </div>
+                        <div class="seat-tiles" id="tiles-2"></div>
+                        <div class="seat-discards" id="discards-2"></div>
+                    </div>
+
+                    <!-- 右家 -->
+                    <div class="seat" id="seat-1">
+                        <div class="seat-info">
+                            <div class="seat-avatar" id="avatar-1">🤖</div>
+                            <span class="seat-name" id="name-1">等待中</span>
+                            <span class="seat-wind" id="wind-1">南</span>
+                        </div>
+                        <div class="seat-tiles" id="tiles-1"></div>
+                        <div class="seat-discards" id="discards-1"></div>
+                    </div>
                 </div>
 
-                <!-- 对家（中间） -->
-                <div class="seat" id="seat-2">
-                    <div class="seat-info">
-                        <div class="seat-avatar" id="avatar-2">🤖</div>
-                        <span class="seat-name" id="name-2">等待中</span>
-                        <span class="seat-wind" id="wind-2">西</span>
-                    </div>
-                    <div class="seat-tiles" id="tiles-2"></div>
-                    <div class="seat-discards" id="discards-2"></div>
+                <!-- 中央出牌区域 -->
+                <div class="table-center">
+                    <div class="deck-info">🀄 剩余: <span id="centerDeckCount">0</span></div>
+                    <!-- 我的出牌区 -->
+                    <div class="seat-discards my-discards" id="discards-0"></div>
                 </div>
-
-                <!-- 右家 -->
-                <div class="seat" id="seat-1">
-                    <div class="seat-info">
-                        <div class="seat-avatar" id="avatar-1">🤖</div>
-                        <span class="seat-name" id="name-1">等待中</span>
-                        <span class="seat-wind" id="wind-1">南</span>
-                    </div>
-                    <div class="seat-tiles" id="tiles-1"></div>
-                    <div class="seat-discards" id="discards-1"></div>
-                </div>
-            </div>
-
-            <!-- 中央出牌区域 -->
-            <div class="table-center">
-                <div class="deck-info">🀄 剩余: <span id="centerDeckCount">0</span></div>
-                <!-- 我的出牌区 -->
-                <div class="seat-discards my-discards" id="discards-0"></div>
             </div>
         </div>
 
