@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
             --board-color: #DEB887;
@@ -611,6 +612,119 @@
         .back-link:hover {
             color: var(--gold);
         }
+
+        .invite-btn {
+            background: #10b981;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            margin-left: 8px;
+            transition: all 0.3s;
+        }
+        .invite-btn:hover { background: #059669; }
+
+        .share-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .share-modal.active { display: flex; }
+
+        .share-modal-content {
+            background: rgba(15,23,42,0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(233,69,96,0.2);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+        }
+        .share-modal-title {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+        .share-qrcode {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .share-qrcode canvas { display: block; }
+
+        .share-link-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .share-link-label {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 8px;
+        }
+        .share-link-box {
+            display: flex;
+            gap: 10px;
+        }
+        .share-link-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 0.85rem;
+            text-overflow: ellipsis;
+        }
+        .share-copy-btn {
+            padding: 10px 15px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .share-copy-btn.copied {
+            background: #10b981;
+        }
+        .share-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .share-action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        .share-action-btn.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .share-action-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -658,7 +772,10 @@
             <div class="room-code-label">房间号</div>
             <div class="room-code" id="displayRoomCode">------</div>
             <button class="copy-btn" onclick="copyRoomCode()">
-                <i class="fas fa-copy"></i> 复制房间号
+                <i class="fas fa-copy"></i> 复制
+            </button>
+            <button class="invite-btn" onclick="openShareModal()">
+                <i class="fas fa-qrcode"></i> 邀请
             </button>
         </div>
         
@@ -737,6 +854,31 @@
                 </button>
                 <button class="btn secondary" onclick="rejectUndo()">
                     <i class="fas fa-times"></i> 拒绝
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享弹窗 -->
+    <div class="share-modal" id="shareModal">
+        <div class="share-modal-content">
+            <div class="share-modal-title">
+                <i class="fas fa-qrcode"></i> 邀请好友
+            </div>
+            <div class="share-qrcode" id="shareQrcode"></div>
+            <div class="share-link-section">
+                <div class="share-link-label">分享链接</div>
+                <div class="share-link-box">
+                    <input type="text" class="share-link-input" id="shareLinkInput" readonly>
+                    <button class="share-copy-btn" id="shareLinkBtn" onclick="copyShareLink()">复制</button>
+                </div>
+            </div>
+            <div class="share-actions">
+                <button class="share-action-btn primary" onclick="copyShareText()">
+                    <i class="fas fa-copy"></i> 复制文案
+                </button>
+                <button class="share-action-btn secondary" onclick="closeShareModal()">
+                    关闭
                 </button>
             </div>
         </div>
@@ -1187,6 +1329,7 @@
             
             socket.on('connect', () => {
                 console.log('已连接到服务器');
+                checkAutoJoin();
             });
             
             socket.on('connect_error', (err) => {
@@ -1603,6 +1746,74 @@
             toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 2000);
+        }
+
+        // ==================== 分享功能 ====================
+        let shareQrcode = null;
+
+        function getShareLink() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            let baseUrl = window.location.origin + window.location.pathname;
+            baseUrl = baseUrl.replace(/\/index\.html$/, '').replace(/\/$/, '');
+            return `${baseUrl}?room=${roomCode}`;
+        }
+
+        function openShareModal() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const link = getShareLink();
+
+            document.getElementById('shareLinkInput').value = link;
+
+            const qrcodeContainer = document.getElementById('shareQrcode');
+            qrcodeContainer.innerHTML = '';
+            if (typeof QRCode !== 'undefined') {
+                shareQrcode = new QRCode(qrcodeContainer, {
+                    text: link,
+                    width: 150,
+                    height: 150,
+                    colorDark: '#1a1a2e',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+            document.getElementById('shareModal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const link = getShareLink();
+            const btn = document.getElementById('shareLinkBtn');
+            navigator.clipboard.writeText(link).then(() => {
+                btn.textContent = '已复制 ✓';
+                btn.classList.add('copied');
+                showToast('链接已复制');
+                setTimeout(() => { btn.textContent = '复制'; btn.classList.remove('copied'); }, 2000);
+            }).catch(() => showToast('复制失败'));
+        }
+
+        function copyShareText() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const link = getShareLink();
+            const text = `来玩五子棋！⚫⚪\n房间号：${roomCode}\n点击链接直接加入：${link}`;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('文案已复制');
+                closeShareModal();
+            }).catch(() => showToast('复制失败'));
+        }
+
+        // 检查 URL 参数自动加入房间
+        function checkAutoJoin() {
+            const params = new URLSearchParams(window.location.search);
+            const roomCode = params.get('room');
+            if (roomCode && socket && socket.connected) {
+                username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+                document.getElementById('roomCodeInput').value = roomCode;
+                socket.emit('join_room', { roomCode: roomCode.toUpperCase().trim(), username });
+                window.history.replaceState({}, '', window.location.pathname);
+            }
         }
 
         // 初始化
