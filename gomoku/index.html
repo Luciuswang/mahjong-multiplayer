@@ -1716,7 +1716,14 @@
                 connectServer();
                 return;
             }
-            username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+            const input = document.getElementById('usernameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
+            localStorage.setItem('gomoku_nickname', username);
             socket.emit('create_room', { username });
         }
 
@@ -1727,7 +1734,14 @@
                 connectServer();
                 return;
             }
-            username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+            const input = document.getElementById('usernameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
+            localStorage.setItem('gomoku_nickname', username);
             const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             
             if (!roomCode || roomCode.length !== 6) {
@@ -1918,7 +1932,14 @@
 
         // 人机对战
         function playWithAI() {
-            username = document.getElementById('usernameInput').value.trim() || '玩家';
+            const input = document.getElementById('usernameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
+            localStorage.setItem('gomoku_nickname', username);
             isAIMode = true;
             startAIGame();
         }
@@ -2012,7 +2033,16 @@
             const params = new URLSearchParams(window.location.search);
             const roomCode = params.get('room');
             if (roomCode && socket && socket.connected) {
-                username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
+                const input = document.getElementById('usernameInput');
+                if (!input.value.trim()) {
+                    showToast('请先输入昵称再加入房间');
+                    document.getElementById('roomCodeInput').value = roomCode.toUpperCase().trim();
+                    input.focus();
+                    window.history.replaceState({}, '', window.location.pathname);
+                    return;
+                }
+                username = input.value.trim();
+                localStorage.setItem('gomoku_nickname', username);
                 document.getElementById('roomCodeInput').value = roomCode;
                 socket.emit('join_room', { roomCode: roomCode.toUpperCase().trim(), username });
                 window.history.replaceState({}, '', window.location.pathname);

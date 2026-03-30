@@ -5145,8 +5145,13 @@
                 showServerRequiredModal();
                 return;
             }
-            username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
-            // 保存昵称到本地
+            const input = document.getElementById('usernameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
             localStorage.setItem('mahjong_nickname', username);
             socket.emit('create_room', { username, avatar: '👤', voice: myVoice });
         }
@@ -5157,8 +5162,13 @@
                 showServerRequiredModal();
                 return;
             }
-            username = document.getElementById('usernameInput').value.trim() || '玩家' + Math.floor(Math.random() * 1000);
-            // 保存昵称到本地
+            const input = document.getElementById('usernameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
             localStorage.setItem('mahjong_nickname', username);
             const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             
@@ -5396,18 +5406,14 @@
             const roomCode = urlParams.get('room');
             
             if (roomCode && roomCode.length === 6) {
-                // 清除URL参数，避免刷新后重复
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
-                // 生成默认昵称
                 const savedNickname = localStorage.getItem('mahjong_nickname');
-                if (!savedNickname) {
-                    username = '玩家' + Math.floor(Math.random() * 9000 + 1000);
-                } else {
+                if (savedNickname) {
                     username = savedNickname;
+                    document.getElementById('usernameInput').value = savedNickname;
                 }
                 
-                // 等待socket连接后直接加入房间
                 pendingRoomJoin = roomCode.toUpperCase();
                 showToast('正在加入房间 ' + roomCode.toUpperCase() + '...');
             }
@@ -5420,12 +5426,20 @@
         function tryJoinPendingRoom() {
             if (pendingRoomJoin && socket && socket.connected) {
                 const roomCode = pendingRoomJoin;
+                
+                const savedNickname = localStorage.getItem('mahjong_nickname');
+                if (!savedNickname && !document.getElementById('usernameInput').value.trim()) {
+                    showToast('请先输入昵称再加入房间');
+                    document.getElementById('roomCodeInput').value = roomCode;
+                    document.getElementById('usernameInput').focus();
+                    pendingRoomJoin = null;
+                    return;
+                }
                 pendingRoomJoin = null;
                 
-                // 使用默认昵称或已保存的昵称
                 if (!username) {
-                    const savedNickname = localStorage.getItem('mahjong_nickname');
-                    username = savedNickname || '玩家' + Math.floor(Math.random() * 9000 + 1000);
+                    username = document.getElementById('usernameInput').value.trim() || savedNickname;
+                    localStorage.setItem('mahjong_nickname', username);
                 }
                 
                 console.log('扫码直接加入房间:', roomCode, '昵称:', username);
