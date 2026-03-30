@@ -4824,7 +4824,11 @@
                 if (!isMe) {
                     showToast(`${playerName}: ${data.tileName}`);
                 }
-                playAudioFile('audio/environment/clik.mp4', 0.6);
+                // 根据座位距离调整音量：自己最大，左右家中等，对家最小
+                const seatDist = Math.abs(data.playerIndex - mySeatIndex);
+                const dist = Math.min(seatDist, 4 - seatDist);
+                const clickVol = dist === 0 ? 0.9 : dist === 1 ? 0.5 : 0.3;
+                playAudioFile('audio/environment/clik.mp4', clickVol);
                 speakDiscard(data.tile, playerVoice);
             });
 
