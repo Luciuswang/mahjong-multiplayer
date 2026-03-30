@@ -848,8 +848,13 @@
             border-radius: 20px;
             background: rgba(255,255,255,0.06);
             color: #fff;
-            font-size: 0.85rem;
+            font-size: 16px;
             outline: none;
+            -webkit-appearance: none;
+        }
+        .chat-input-row input:focus {
+            border-color: var(--accent);
+            background: rgba(255,255,255,0.1);
         }
         .chat-input-row input::placeholder { color: rgba(255,255,255,0.4); }
         .chat-input-row button {
@@ -860,7 +865,30 @@
             border-radius: 20px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .chat-emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 4px;
+            padding: 6px 10px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .chat-emoji-grid button {
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 6px 2px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .chat-emoji-grid button:hover,
+        .chat-emoji-grid button:active {
+            background: rgba(233,69,96,0.25);
+            border-color: var(--accent);
         }
 
         @media (max-width: 480px) {
@@ -1043,13 +1071,25 @@
             <button class="chat-panel-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
         </div>
         <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-emoji-grid">
+            <button onclick="sendQuick('😄')">😄</button>
+            <button onclick="sendQuick('😭')">😭</button>
+            <button onclick="sendQuick('😡')">😡</button>
+            <button onclick="sendQuick('🤔')">🤔</button>
+            <button onclick="sendQuick('👍')">👍</button>
+            <button onclick="sendQuick('👎')">👎</button>
+            <button onclick="sendQuick('🎉')">🎉</button>
+            <button onclick="sendQuick('💪')">💪</button>
+            <button onclick="sendQuick('🙏')">🙏</button>
+            <button onclick="sendQuick('😎')">😎</button>
+            <button onclick="sendQuick('🤣')">🤣</button>
+            <button onclick="sendQuick('😱')">😱</button>
+        </div>
         <div class="chat-shortcuts">
             <button class="quick-chat-btn" onclick="sendQuick('你好👋')">你好👋</button>
             <button class="quick-chat-btn" onclick="sendQuick('好棋！')">好棋！</button>
             <button class="quick-chat-btn" onclick="sendQuick('请快点')">请快点</button>
             <button class="quick-chat-btn" onclick="sendQuick('再来一局')">再来一局</button>
-            <button class="quick-chat-btn" onclick="sendQuick('😂')">😂</button>
-            <button class="quick-chat-btn" onclick="sendQuick('🤔')">🤔</button>
             <button class="quick-chat-btn" onclick="sendQuick('GG')">GG</button>
             <button class="quick-chat-btn" onclick="sendQuick('失误了😅')">失误了😅</button>
         </div>

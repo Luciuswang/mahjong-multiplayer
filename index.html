@@ -5307,9 +5307,9 @@
         // 生成分享链接
         function getShareLink() {
             const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
-            // 获取基础URL，移除可能的index.html和尾部斜杠
             let baseUrl = window.location.origin + window.location.pathname;
-            baseUrl = baseUrl.replace(/\/index\.html$/, '').replace(/\/$/, '');
+            baseUrl = baseUrl.replace(/\/index\.html$/, '/');
+            if (!baseUrl.endsWith('/')) baseUrl += '/';
             return `${baseUrl}?room=${roomCode}`;
         }
         
