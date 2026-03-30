@@ -1469,7 +1469,7 @@
             }
             
             /* 游戏界面优化 */
-            .game-screen {
+            .game-screen.active {
                 padding: 5px;
                 display: flex;
                 flex-direction: column;
@@ -6871,10 +6871,17 @@
         
         // 加载访问统计
         function loadSiteStats() {
-            fetch('/api/stats').then(r => r.json()).then(data => {
+            const base = window.location.origin + window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
+            fetch(base + '/api/stats').then(r => {
+                if (!r.ok) throw new Error(r.status);
+                return r.json();
+            }).then(data => {
                 const el = document.getElementById('siteStats');
-                if (el) el.textContent = `今日访问 ${data.today.pv} · 累计 ${data.total_pv} · 在线 ${data.online.mahjong + data.online.gomoku}`;
-            }).catch(() => {});
+                if (el) {
+                    const online = (data.online?.mahjong || 0) + (data.online?.gomoku || 0);
+                    el.textContent = `今日访问 ${data.today?.pv || 0} · 累计 ${data.total_pv || 0}` + (online > 0 ? ` · 在线 ${online}` : '');
+                }
+            }).catch(e => console.log('stats fetch error:', e));
         }
 
         // 初始化
