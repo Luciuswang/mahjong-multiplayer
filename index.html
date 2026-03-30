@@ -755,6 +755,34 @@
             opacity: 0.4;
         }
 
+        /* 透视厚度修正：对家 — 只看到正面朝你的立面 */
+        #seat-2 .tile {
+            box-shadow:
+                0px 3px 0 0 #c8cbd4,
+                0px 5px 0 0 #b0b3bc,
+                0 6px 12px rgba(0,0,0,0.4);
+        }
+        #seat-2 .tile.back {
+            box-shadow:
+                0px 3px 0 0 #0a1525,
+                0px 5px 0 0 #060f1c,
+                0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        /* 透视厚度修正：右家 — 看到左侧面 + 下面 */
+        #seat-1 .tile {
+            box-shadow:
+                -1px 3px 0 0 #c8cbd4,
+                -2px 5px 0 0 #b0b3bc,
+                0 6px 12px rgba(0,0,0,0.4);
+        }
+        #seat-1 .tile.back {
+            box-shadow:
+                -1px 3px 0 0 #0a1525,
+                -2px 5px 0 0 #060f1c,
+                0 6px 12px rgba(0,0,0,0.4);
+        }
+
         .tile.small {
             width: 28px;
             height: 39px;
