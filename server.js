@@ -46,6 +46,81 @@ app.use((req, res, next) => {
     next();
 });
 
+// ==================== 访问统计 ====================
+const STATS_FILE = path.join(__dirname, 'visit_stats.json');
+
+function loadStats() {
+    try {
+        if (fs.existsSync(STATS_FILE)) {
+            return JSON.parse(fs.readFileSync(STATS_FILE, 'utf8'));
+        }
+    } catch (e) { console.error('读取统计数据失败:', e.message); }
+    return { total: 0, uniqueIPs: [], daily: {} };
+}
+
+function saveStats(stats) {
+    try {
+        const slim = { ...stats, uniqueIPs: stats.uniqueIPs.slice(-5000) };
+        fs.writeFileSync(STATS_FILE, JSON.stringify(slim, null, 2));
+    } catch (e) { console.error('保存统计数据失败:', e.message); }
+}
+
+let visitStats = loadStats();
+
+function getClientIP(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+           req.headers['x-real-ip'] ||
+           req.connection?.remoteAddress || 'unknown';
+}
+
+app.use((req, res, next) => {
+    if (req.path === '/' || req.path === '/index.html' || req.path === '/gomoku/' || req.path === '/gomoku/index.html') {
+        const ip = getClientIP(req);
+        const today = new Date().toISOString().slice(0, 10);
+        const page = req.path.includes('gomoku') ? 'gomoku' : 'mahjong';
+
+        visitStats.total++;
+        if (!visitStats.daily[today]) visitStats.daily[today] = { pv: 0, ips: [], mahjong: 0, gomoku: 0 };
+        visitStats.daily[today].pv++;
+        visitStats.daily[today][page]++;
+        if (!visitStats.daily[today].ips.includes(ip)) visitStats.daily[today].ips.push(ip);
+        if (!visitStats.uniqueIPs.includes(ip)) visitStats.uniqueIPs.push(ip);
+
+        // 只保留最近 90 天
+        const keys = Object.keys(visitStats.daily).sort();
+        if (keys.length > 90) {
+            keys.slice(0, keys.length - 90).forEach(k => delete visitStats.daily[k]);
+        }
+    }
+    next();
+});
+
+// 每 5 分钟保存一次统计
+setInterval(() => saveStats(visitStats), 300000);
+process.on('exit', () => saveStats(visitStats));
+process.on('SIGINT', () => { saveStats(visitStats); process.exit(); });
+process.on('SIGTERM', () => { saveStats(visitStats); process.exit(); });
+
+// 统计数据 API
+app.get('/api/stats', (req, res) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const todayData = visitStats.daily[today] || { pv: 0, ips: [], mahjong: 0, gomoku: 0 };
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const data = visitStats.daily[key] || { pv: 0, ips: [], mahjong: 0, gomoku: 0 };
+        last7.push({ date: key, pv: data.pv, uv: data.ips.length, mahjong: data.mahjong, gomoku: data.gomoku });
+    }
+    res.json({
+        total_pv: visitStats.total,
+        total_uv: visitStats.uniqueIPs.length,
+        today: { pv: todayData.pv, uv: todayData.ips.length, mahjong: todayData.mahjong, gomoku: todayData.gomoku },
+        last7days: last7,
+        online: { mahjong: io.engine?.clientsCount || 0, gomoku: (typeof gomokuIO !== 'undefined' ? gomokuIO.sockets?.size : 0) || 0 }
+    });
+});
+
 // 静态文件服务
 app.use(express.static(path.join(__dirname)));
 

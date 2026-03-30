@@ -906,6 +906,10 @@
                 <i class="fas fa-robot"></i> 人机对战
             </button>
         </div>
+
+        <div class="site-footer" style="margin-top: 20px; text-align: center; font-size: 0.75rem;">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow" style="color: rgba(255,255,255,0.3); text-decoration: none;">沪ICP备2026008048号-1</a>
+        </div>
     </div>
 
     <!-- 房间等待界面 -->
@@ -2075,6 +2079,11 @@
         }
 
         // 初始化
+        const savedName = localStorage.getItem('gomoku_nickname') || localStorage.getItem('mahjong_nickname');
+        if (savedName) document.getElementById('usernameInput').value = savedName;
+        document.getElementById('usernameInput').addEventListener('change', function() {
+            if (this.value.trim()) localStorage.setItem('gomoku_nickname', this.value.trim());
+        });
         connectServer();
     </script>
 </body>

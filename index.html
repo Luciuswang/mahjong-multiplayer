@@ -74,6 +74,25 @@
             width: 100%;
         }
 
+        .site-stats {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.35);
+            text-align: center;
+        }
+
+        .site-footer {
+            margin-top: 10px;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 0.75rem;
+        }
+        .site-footer a {
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+        }
+        .site-footer a:hover { color: rgba(255,255,255,0.6); }
+
         .input-group {
             margin-bottom: 20px;
         }
@@ -3007,6 +3026,12 @@
             <button class="btn secondary" onclick="window.location.href='./gomoku/'" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-color: #818cf8;">
                 <i class="fas fa-circle"></i> 五子棋
             </button>
+        </div>
+
+        <div class="site-stats" id="siteStats"></div>
+
+        <div class="site-footer">
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow">沪ICP备2026008048号-1</a>
         </div>
     </div>
 
@@ -6830,8 +6855,17 @@
             };
         }
         
+        // 加载访问统计
+        function loadSiteStats() {
+            fetch('/api/stats').then(r => r.json()).then(data => {
+                const el = document.getElementById('siteStats');
+                if (el) el.textContent = `今日访问 ${data.today.pv} · 累计 ${data.total_pv} · 在线 ${data.online.mahjong + data.online.gomoku}`;
+            }).catch(() => {});
+        }
+
         // 初始化
         connectServer();
+        loadSiteStats();
     </script>
 </body>
 </html>
