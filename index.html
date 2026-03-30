@@ -392,8 +392,8 @@
 
         /* 3D 透视容器 */
         .table-perspective {
-            perspective: 900px;
-            perspective-origin: 50% 100%;
+            perspective: 1400px;
+            perspective-origin: 50% 85%;
             width: 100%;
             max-width: 600px;
         }
@@ -414,7 +414,7 @@
             grid-template-columns: 1fr;
             padding: 10px;
             gap: 6px;
-            transform: rotateX(28deg);
+            transform: rotateX(15deg);
             transform-style: preserve-3d;
             transform-origin: center bottom;
             position: relative;
@@ -439,11 +439,13 @@
             align-items: stretch;
         }
 
-        /* 对手区域 - 横向排列 */
+        /* 对手区域 - 横向排列，补偿透视压缩 */
         .opponents-row {
             display: flex;
             justify-content: space-around;
             gap: 5px;
+            transform: scaleY(1.08);
+            transform-origin: center bottom;
         }
 
         /* 玩家区域 */
@@ -1519,7 +1521,7 @@
                 gap: 5px;
                 border-width: 2px;
                 border-radius: 10px;
-                transform: rotateX(22deg);
+                transform: rotateX(12deg);
             }
             
             /* 对手区横向排列 */
@@ -3500,7 +3502,7 @@
         
         // 游戏状态
         let socket = null;
-        let currentRoom = null;
+        let currentRoom = sessionStorage.getItem('mj_currentRoom') || null;
         let myPlayerId = null;
         let mySeatIndex = -1;
         let selectedTileId = null;
@@ -4491,6 +4493,9 @@
                 userLogin();
                 
                 // 自动重连房间（如果之前在房间中）
+                if (!username) {
+                    username = localStorage.getItem('mahjong_nickname') || '';
+                }
                 if (currentRoom && username) {
                     console.log('检测到断线重连，尝试重新加入房间:', currentRoom);
                     socket.emit('join_room', { 
@@ -4595,16 +4600,23 @@
             // 房间事件
             socket.on('room_created', (data) => {
                 currentRoom = data.roomCode;
+                sessionStorage.setItem('mj_currentRoom', currentRoom);
                 showRoomScreen();
             });
 
             socket.on('room_joined', (data) => {
                 currentRoom = data.roomCode;
+                sessionStorage.setItem('mj_currentRoom', currentRoom);
                 showRoomScreen();
             });
 
             socket.on('join_error', (data) => {
                 showToast(data.message);
+                // 重连失败时清除存储的房间号
+                if (currentRoom) {
+                    currentRoom = null;
+                    sessionStorage.removeItem('mj_currentRoom');
+                }
             });
 
             socket.on('room_updated', (data) => {
@@ -5679,6 +5691,7 @@
         function leaveRoom() {
             socket.emit('leave_room');
             currentRoom = null;
+            sessionStorage.removeItem('mj_currentRoom');
             isReady = false;
             document.getElementById('roomScreen').classList.remove('active');
             document.getElementById('lobbyScreen').classList.add('active');
@@ -6518,6 +6531,7 @@
                 document.getElementById('chatArea').style.display = 'none';
                 document.body.classList.remove('in-game');
                 currentRoom = null;
+                sessionStorage.removeItem('mj_currentRoom');
                 // 隐藏聊天按钮并清空聊天记录
                 hideChatButton();
                 clearChatMessages();

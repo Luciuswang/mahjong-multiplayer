@@ -512,6 +512,13 @@ class MahjongRoom {
             
             console.log(`玩家 ${username} 重连房间 ${this.code}，座位: ${offlinePlayer.seatIndex}`);
             
+            // 取消全员离线删除计时器
+            if (this.allOfflineTimer) {
+                clearTimeout(this.allOfflineTimer);
+                this.allOfflineTimer = null;
+                console.log(`房间 ${this.code}: 玩家重连，取消删除计时器`);
+            }
+            
             // 广播玩家重连
             this.broadcast('player_reconnected', { 
                 username: username, 
@@ -1747,15 +1754,27 @@ class MahjongRoom {
             return;
         }
         
-        // 检查是否所有真人玩家都离线了
+        // 检查是否所有真人玩家都离线了 — 给5分钟重连窗口而不是立即删除
         const onlineRealPlayers = this.players.filter(p => !p.isBot && !p.offline);
         if (onlineRealPlayers.length === 0) {
-            console.log(`房间 ${this.code}: 所有真人玩家都离线，结束游戏`);
-            this.gameRunning = false;
-            this.cleanup();
-            gameRooms.delete(this.code);
-            console.log(`房间 ${this.code} 已解散（所有玩家离线）`);
+            if (!this.allOfflineTimer) {
+                console.log(`房间 ${this.code}: 所有真人玩家都离线，等待5分钟重连...`);
+                this.allOfflineTimer = setTimeout(() => {
+                    const stillAllOffline = this.players.filter(p => !p.isBot && !p.offline).length === 0;
+                    if (stillAllOffline && this.gameRunning) {
+                        console.log(`房间 ${this.code}: 5分钟内无人重连，解散房间`);
+                        this.gameRunning = false;
+                        this.cleanup();
+                        gameRooms.delete(this.code);
+                    }
+                    this.allOfflineTimer = null;
+                }, 300000);
+            }
             return;
+        }
+        if (this.allOfflineTimer) {
+            clearTimeout(this.allOfflineTimer);
+            this.allOfflineTimer = null;
         }
         
         console.log(`aiAction: 玩家 ${aiPlayer.username} 开始AI行动, 阶段: ${this.gameState.turnPhase}`);
@@ -2516,6 +2535,10 @@ class MahjongRoom {
 
     // 清理资源
     cleanup() {
+        if (this.allOfflineTimer) {
+            clearTimeout(this.allOfflineTimer);
+            this.allOfflineTimer = null;
+        }
         if (this.gameState) {
             if (this.gameState.actionTimeout) {
                 clearTimeout(this.gameState.actionTimeout);
@@ -2706,8 +2729,16 @@ io.on('connection', (socket) => {
             return;
         }
         
+        // 游戏进行中：仅允许断线重连（匹配同名离线玩家）
         if (room.gameRunning) {
-            socket.emit('join_error', { message: '游戏已开始，无法加入' });
+            const offlinePlayer = room.players.find(p => !p.isBot && p.offline && p.username === username);
+            if (!offlinePlayer) {
+                socket.emit('join_error', { message: '游戏已开始，无法加入' });
+                return;
+            }
+            console.log(`玩家 ${username} 断线重连中（游戏进行中），允许加入`);
+            room.addPlayer(socket, username, avatar, voice || 'female01');
+            socket.emit('room_joined', { roomCode: room.code });
             return;
         }
         
