@@ -4824,7 +4824,7 @@
                 if (!isMe) {
                     showToast(`${playerName}: ${data.tileName}`);
                 }
-                // 语音播报出牌（使用出牌玩家的语音）
+                playAudioFile('audio/environment/clik.mp4', 0.6);
                 speakDiscard(data.tile, playerVoice);
             });
 
