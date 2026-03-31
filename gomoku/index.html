@@ -895,12 +895,127 @@
             .chat-toggle-btn { bottom: 15px; left: 15px; width: 42px; height: 42px; }
             .chat-panel { bottom: 65px; left: 10px; right: 10px; width: auto; }
         }
+
+        /* 扫码邀请专属覆盖层 */
+        .invite-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: rgba(5, 3, 14, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .invite-overlay.active { display: flex; }
+        .invite-card {
+            background: rgba(12, 8, 28, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 20px;
+            padding: 40px 35px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(168, 85, 247, 0.1);
+        }
+        .invite-card h2 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+        .invite-card .invite-room-code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #d8b4fe;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 10px;
+            padding: 8px 18px;
+            margin: 16px auto;
+            display: inline-block;
+        }
+        .invite-card .invite-hint {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+        }
+        .invite-card .input-group { margin-bottom: 16px; text-align: left; }
+        .invite-card .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+        .invite-card .input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .invite-card .input-group input:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
+        }
+        .invite-join-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #e64980);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+            margin-bottom: 12px;
+        }
+        .invite-join-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+        }
+        .invite-cancel-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 6px 12px;
+        }
+        .invite-cancel-btn:hover { color: rgba(255,255,255,0.7); }
     </style>
 </head>
 <body>
     <a href="../" class="back-link">
         <i class="fas fa-arrow-left"></i> 返回游戏大厅
     </a>
+
+    <!-- 扫码邀请专属界面 -->
+    <div class="invite-overlay" id="inviteOverlay">
+        <div class="invite-card">
+            <h2>⚫⚪ 好友邀请你下五子棋</h2>
+            <div class="invite-hint">房间号</div>
+            <div class="invite-room-code" id="inviteRoomCode">------</div>
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> 你的昵称</label>
+                <input type="text" id="inviteNicknameInput" placeholder="输入昵称" maxlength="8">
+            </div>
+            <button class="invite-join-btn" onclick="confirmInviteJoin()">
+                <i class="fas fa-sign-in-alt"></i> 加入房间
+            </button>
+            <button class="invite-cancel-btn" onclick="cancelInviteJoin()">返回大厅</button>
+        </div>
+    </div>
 
     <!-- 大厅界面 -->
     <div id="lobbyScreen" class="screen active">
@@ -2068,25 +2183,48 @@
             }).catch(() => showToast('复制失败'));
         }
 
-        // 检查 URL 参数自动加入房间
+        let inviteRoomCode = null;
+
         function checkAutoJoin() {
             const params = new URLSearchParams(window.location.search);
             const roomCode = params.get('room');
-            if (roomCode && socket && socket.connected) {
-                const input = document.getElementById('usernameInput');
-                if (!input.value.trim()) {
-                    showToast('请先输入昵称再加入房间');
-                    document.getElementById('roomCodeInput').value = roomCode.toUpperCase().trim();
-                    input.focus();
-                    window.history.replaceState({}, '', window.location.pathname);
-                    return;
-                }
-                username = input.value.trim();
-                localStorage.setItem('gomoku_nickname', username);
-                document.getElementById('roomCodeInput').value = roomCode;
-                socket.emit('join_room', { roomCode: roomCode.toUpperCase().trim(), username });
+            if (roomCode && roomCode.length >= 4) {
                 window.history.replaceState({}, '', window.location.pathname);
+                inviteRoomCode = roomCode.toUpperCase().trim();
+
+                const savedNickname = localStorage.getItem('gomoku_nickname');
+                const inviteInput = document.getElementById('inviteNicknameInput');
+                if (savedNickname) inviteInput.value = savedNickname;
+
+                document.getElementById('inviteRoomCode').textContent = inviteRoomCode;
+                document.getElementById('inviteOverlay').classList.add('active');
             }
+        }
+
+        function confirmInviteJoin() {
+            const input = document.getElementById('inviteNicknameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
+            localStorage.setItem('gomoku_nickname', username);
+            document.getElementById('usernameInput').value = username;
+            document.getElementById('inviteOverlay').classList.remove('active');
+
+            if (socket && socket.connected) {
+                socket.emit('join_room', { roomCode: inviteRoomCode, username });
+            } else {
+                showToast('正在连接服务器，请稍后再试...');
+                document.getElementById('roomCodeInput').value = inviteRoomCode;
+            }
+            inviteRoomCode = null;
+        }
+
+        function cancelInviteJoin() {
+            document.getElementById('inviteOverlay').classList.remove('active');
+            inviteRoomCode = null;
         }
 
         // ==================== 聊天功能 ====================

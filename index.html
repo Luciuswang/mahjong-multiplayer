@@ -1546,6 +1546,140 @@
             color: rgba(255,255,255,0.6);
         }
 
+        /* 扫码邀请专属覆盖层 */
+        .invite-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            background: rgba(5, 3, 14, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .invite-overlay.active {
+            display: flex;
+        }
+
+        .invite-card {
+            background: rgba(12, 8, 28, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 20px;
+            padding: 40px 35px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(168, 85, 247, 0.1);
+        }
+
+        .invite-card h2 {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 8px;
+        }
+
+        .invite-card .invite-room-code {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #d8b4fe;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 10px;
+            padding: 8px 18px;
+            margin: 16px auto;
+            display: inline-block;
+        }
+
+        .invite-card .invite-hint {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 20px;
+        }
+
+        .invite-card .input-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .invite-card .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9rem;
+        }
+
+        .invite-card .input-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .invite-card .input-group input:focus {
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.15);
+        }
+
+        .invite-join-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+            margin-bottom: 12px;
+        }
+
+        .invite-join-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
+        }
+
+        .invite-cancel-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 6px 12px;
+        }
+
+        .invite-cancel-btn:hover {
+            color: rgba(255,255,255,0.7);
+        }
+
+        /* 语音选择（邀请覆盖层内） */
+        .invite-card .voice-selector {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .invite-card .voice-btn {
+            flex: 1;
+            min-width: 60px;
+            padding: 8px 6px;
+            font-size: 0.8rem;
+        }
+
         /* 响应式 - 平板 */
         @media (max-width: 768px) {
             .lobby-title { font-size: 2.5rem; }
@@ -3109,6 +3243,40 @@
         <i class="fas fa-users"></i>
         <span class="friend-badge" id="onlineFriendBadge" style="display: none;">0</span>
     </button>
+
+    <!-- 扫码邀请专属界面 -->
+    <div class="invite-overlay" id="inviteOverlay">
+        <div class="invite-card">
+            <h2>🀄 好友邀请你打麻将</h2>
+            <div class="invite-hint">房间号</div>
+            <div class="invite-room-code" id="inviteRoomCode">------</div>
+            <div class="input-group">
+                <label><i class="fas fa-user"></i> 你的昵称</label>
+                <input type="text" id="inviteNicknameInput" placeholder="输入昵称" maxlength="8">
+            </div>
+            <div class="input-group">
+                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <div class="voice-selector">
+                    <button type="button" class="voice-btn active" onclick="selectInviteVoice(this,'female01')">
+                        <i class="fas fa-venus"></i> 女1
+                    </button>
+                    <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'female02')">
+                        <i class="fas fa-venus"></i> 女2
+                    </button>
+                    <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'male')">
+                        <i class="fas fa-mars"></i> 男1
+                    </button>
+                    <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'male02')">
+                        <i class="fas fa-mars"></i> 男2
+                    </button>
+                </div>
+            </div>
+            <button class="invite-join-btn" onclick="confirmInviteJoin()">
+                <i class="fas fa-sign-in-alt"></i> 加入房间
+            </button>
+            <button class="invite-cancel-btn" onclick="cancelInviteJoin()">返回大厅</button>
+        </div>
+    </div>
 
     <!-- 大厅界面 -->
     <div id="lobbyScreen" class="screen active">
@@ -5553,53 +5721,89 @@
         }
         
         // 检查URL参数自动加入房间
+        let pendingRoomJoin = null;
+        let inviteRoomCode = null;
+
         function checkUrlRoomCode() {
             const urlParams = new URLSearchParams(window.location.search);
             const roomCode = urlParams.get('room');
-            
+
             if (roomCode && roomCode.length === 6) {
                 window.history.replaceState({}, document.title, window.location.pathname);
-                
+                inviteRoomCode = roomCode.toUpperCase();
+
                 const savedNickname = localStorage.getItem('mahjong_nickname');
-                if (savedNickname) {
-                    username = savedNickname;
-                    document.getElementById('usernameInput').value = savedNickname;
-                }
-                
-                pendingRoomJoin = roomCode.toUpperCase();
-                showToast('正在加入房间 ' + roomCode.toUpperCase() + '...');
+                const inviteInput = document.getElementById('inviteNicknameInput');
+                if (savedNickname) inviteInput.value = savedNickname;
+
+                document.getElementById('inviteRoomCode').textContent = inviteRoomCode;
+                document.getElementById('inviteOverlay').classList.add('active');
             }
         }
-        
-        // 待加入的房间（扫码直接进入）
-        let pendingRoomJoin = null;
-        
-        // 尝试加入待加入的房间
+
+        function selectInviteVoice(btn, voice) {
+            const card = btn.closest('.invite-card');
+            card.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            myVoice = voice;
+        }
+
+        function confirmInviteJoin() {
+            const input = document.getElementById('inviteNicknameInput');
+            if (!input.value.trim()) {
+                showToast('请先输入你的昵称');
+                input.focus();
+                return;
+            }
+            username = input.value.trim();
+            localStorage.setItem('mahjong_nickname', username);
+            document.getElementById('usernameInput').value = username;
+
+            document.getElementById('inviteOverlay').classList.remove('active');
+
+            if (socket && socket.connected) {
+                console.log('扫码直接加入房间:', inviteRoomCode, '昵称:', username);
+                socket.emit('join_room', {
+                    roomCode: inviteRoomCode,
+                    username: username,
+                    avatar: '👤',
+                    voice: myVoice
+                });
+            } else {
+                pendingRoomJoin = inviteRoomCode;
+                showToast('正在连接服务器，稍后自动加入...');
+            }
+            inviteRoomCode = null;
+        }
+
+        function cancelInviteJoin() {
+            document.getElementById('inviteOverlay').classList.remove('active');
+            inviteRoomCode = null;
+        }
+
         function tryJoinPendingRoom() {
             if (pendingRoomJoin && socket && socket.connected) {
                 const roomCode = pendingRoomJoin;
-                
+                pendingRoomJoin = null;
+
                 const savedNickname = localStorage.getItem('mahjong_nickname');
-                if (!savedNickname && !document.getElementById('usernameInput').value.trim()) {
+                if (!username && !savedNickname) {
                     showToast('请先输入昵称再加入房间');
                     document.getElementById('roomCodeInput').value = roomCode;
                     document.getElementById('usernameInput').focus();
-                    pendingRoomJoin = null;
                     return;
                 }
-                pendingRoomJoin = null;
-                
                 if (!username) {
                     username = document.getElementById('usernameInput').value.trim() || savedNickname;
                     localStorage.setItem('mahjong_nickname', username);
                 }
-                
+
                 console.log('扫码直接加入房间:', roomCode, '昵称:', username);
-                socket.emit('join_room', { 
-                    roomCode: roomCode, 
-                    username: username, 
-                    avatar: '👤', 
-                    voice: myVoice 
+                socket.emit('join_room', {
+                    roomCode: roomCode,
+                    username: username,
+                    avatar: '👤',
+                    voice: myVoice
                 });
             }
         }
