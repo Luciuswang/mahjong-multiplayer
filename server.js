@@ -2978,12 +2978,13 @@ class GomokuRoom {
         console.log(`[五子棋] 房间 ${code} 已创建，房主: ${hostName}`);
     }
 
-    addPlayer(socket, username) {
+    addPlayer(socket, username, avatar) {
         if (this.players.length >= 2) return null;
         
         const player = {
             id: socket.id,
             username: username,
+            avatar: avatar || '',
             socket: socket,
             ready: false,
             color: this.players.length === 0 ? 'black' : 'white'
@@ -3059,7 +3060,9 @@ class GomokuRoom {
             player.socket.emit('game_started', {
                 yourColor: player.color,
                 blackPlayer: blackPlayer.username,
-                whitePlayer: whitePlayer.username
+                blackAvatar: blackPlayer.avatar || '',
+                whitePlayer: whitePlayer.username,
+                whiteAvatar: whitePlayer.avatar || ''
             });
         });
         
@@ -3262,7 +3265,9 @@ class GomokuRoom {
             player.socket.emit('game_restarted', {
                 yourColor: player.color,
                 blackPlayer: blackPlayer.username,
-                whitePlayer: whitePlayer.username
+                blackAvatar: blackPlayer.avatar || '',
+                whitePlayer: whitePlayer.username,
+                whiteAvatar: whitePlayer.avatar || ''
             });
         });
     }
@@ -3272,6 +3277,7 @@ class GomokuRoom {
             code: this.code,
             players: this.players.map(p => ({
                 username: p.username,
+                avatar: p.avatar || '',
                 color: p.color,
                 ready: p.ready
             }))
@@ -3293,7 +3299,7 @@ gomokuIO.on('connection', (socket) => {
     console.log('[五子棋] 新连接:', socket.id);
 
     socket.on('create_room', (data) => {
-        const { username } = data;
+        const { username, avatar } = data;
         let code;
         do {
             code = generateGomokuRoomCode();
@@ -3301,18 +3307,18 @@ gomokuIO.on('connection', (socket) => {
         
         const room = new GomokuRoom(code, socket.id, username);
         gomokuRooms.set(code, room);
-        room.addPlayer(socket, username);
+        room.addPlayer(socket, username, avatar);
         
         socket.emit('room_created', { 
             roomCode: code,
             players: room.players.map(p => ({
-                username: p.username, color: p.color, ready: p.ready
+                username: p.username, avatar: p.avatar || '', color: p.color, ready: p.ready
             }))
         });
     });
 
     socket.on('join_room', (data) => {
-        const { roomCode, username } = data;
+        const { roomCode, username, avatar } = data;
         const code = roomCode.toUpperCase().trim();
         const room = gomokuRooms.get(code);
         
@@ -3329,11 +3335,11 @@ gomokuIO.on('connection', (socket) => {
             return;
         }
         
-        room.addPlayer(socket, username);
+        room.addPlayer(socket, username, avatar);
         socket.emit('room_joined', { 
             roomCode: room.code,
             players: room.players.map(p => ({
-                username: p.username, color: p.color, ready: p.ready
+                username: p.username, avatar: p.avatar || '', color: p.color, ready: p.ready
             }))
         });
     });

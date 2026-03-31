@@ -272,6 +272,12 @@
             font-size: 1.5rem;
             border: 2px solid rgba(168, 85, 247, 0.5);
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            overflow: hidden;
+        }
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         #opponent1 .player-avatar { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 12px rgba(245, 158, 11, 0.2); }
         #opponent2 .player-avatar { border-color: rgba(6, 182, 212, 0.6); box-shadow: 0 0 12px rgba(6, 182, 212, 0.2); }
@@ -816,20 +822,20 @@
             <!-- 语音选择 -->
             <div class="voice-select-group">
                 <label style="color: var(--gold); margin-bottom: 10px; display: block;">
-                    <i class="fas fa-volume-up"></i> 选择语音
+                    <i class="fas fa-user-circle"></i> 选择角色
                 </label>
                 <div class="voice-selector">
                     <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
-                        <i class="fas fa-venus"></i> 女1
+                        <img src="../img/avatar_female1.png" alt="女1" style="width:28px;height:28px;border-radius:6px;"> 女1
                     </button>
                     <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
-                        <i class="fas fa-venus"></i> 女2
+                        <img src="../img/avatar_female2.png" alt="女2" style="width:28px;height:28px;border-radius:6px;"> 女2
                     </button>
                     <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
-                        <i class="fas fa-mars"></i> 男1
+                        <img src="../img/avatar_male1.png" alt="男1" style="width:28px;height:28px;border-radius:6px;"> 男1
                     </button>
                     <button type="button" class="voice-btn" id="voiceMale02" onclick="selectVoice('male02')">
-                        <i class="fas fa-mars"></i> 男2
+                        <img src="../img/avatar_male2.png" alt="男2" style="width:28px;height:28px;border-radius:6px;"> 男2
                     </button>
                 </div>
             </div>
@@ -968,7 +974,7 @@
             <div class="opponents-area">
                 <div class="opponent" id="opponent2">
                     <div class="player-info">
-                        <div class="player-avatar">🧠</div>
+                        <div class="player-avatar"><img src="../img/avatar_male2.png" alt="AI-南"></div>
                         <span class="player-name">AI-南</span>
                         <span class="player-wind">南</span>
                     </div>
@@ -977,7 +983,7 @@
                 </div>
                 <div class="opponent" id="opponent1">
                     <div class="player-info">
-                        <div class="player-avatar">🤖</div>
+                        <div class="player-avatar"><img src="../img/avatar_male1.png" alt="AI-东"></div>
                         <span class="player-name">AI-东</span>
                         <span class="player-wind">东</span>
                     </div>
@@ -986,7 +992,7 @@
                 </div>
                 <div class="opponent" id="opponent3">
                     <div class="player-info">
-                        <div class="player-avatar">🦾</div>
+                        <div class="player-avatar"><img src="../img/avatar_female2.png" alt="AI-北"></div>
                         <span class="player-name">AI-北</span>
                         <span class="player-wind">北</span>
                     </div>
@@ -1020,7 +1026,7 @@
             <!-- 玩家区域 -->
             <div class="player-area">
                 <div class="player-info">
-                    <div class="player-avatar current-turn" id="playerAvatar">😊</div>
+                    <div class="player-avatar current-turn" id="playerAvatar"><img src="../img/avatar_female1.png" alt="玩家" id="playerAvatarImg"></div>
                     <span class="player-name">玩家</span>
                     <span class="player-wind">西</span>
                     <span id="turnIndicator" style="margin-left: 10px; color: var(--gold);">轮到你了！</span>
@@ -1281,25 +1287,38 @@
         let speechReady = false;
         let voiceList = [];
         
-        // 语音选择
-        let playerVoice = 'female01';  // 玩家语音类型
-        let aiVoices = ['male', 'female02', 'male02'];  // AI 东家/南家/北家 的语音（动态更新）
-        
-        // 选择语音（并动态调整 AI 语音避免重复）
+        // 语音 & 头像
+        let playerVoice = 'female01';
+        let aiVoices = ['male', 'female02', 'male02'];
+
+        const VOICE_AVATAR_MAP = {
+            'female01': '../img/avatar_female1.png',
+            'female02': '../img/avatar_female2.png',
+            'male':     '../img/avatar_male1.png',
+            'male02':   '../img/avatar_male2.png'
+        };
+
         function selectVoice(voice) {
             playerVoice = voice;
-            
-            // 动态分配 AI 语音，避开玩家选择的语音
+
             const allVoices = ['female01', 'female02', 'male', 'male02'];
             const availableVoices = allVoices.filter(v => v !== voice);
-            aiVoices = availableVoices.slice(0, 3);  // 取前 3 个给 AI
-            
-            // 更新按钮状态
+            aiVoices = availableVoices.slice(0, 3);
+
             document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
             document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
             document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
             document.getElementById('voiceMale02').classList.toggle('active', voice === 'male02');
-            console.log('选择语音:', voice, 'AI语音:', aiVoices);
+
+            const avatarImg = document.getElementById('playerAvatarImg');
+            if (avatarImg) avatarImg.src = VOICE_AVATAR_MAP[voice];
+
+            const aiAvatarEls = [
+                { el: document.querySelector('#opponent1 .player-avatar img'), v: availableVoices[0] },
+                { el: document.querySelector('#opponent2 .player-avatar img'), v: availableVoices[1] },
+                { el: document.querySelector('#opponent3 .player-avatar img'), v: availableVoices[2] }
+            ];
+            aiAvatarEls.forEach(({ el, v }) => { if (el) el.src = VOICE_AVATAR_MAP[v]; });
         }
         
         // ==================== 音频播放系统 ====================

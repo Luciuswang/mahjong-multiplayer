@@ -321,6 +321,15 @@
         .player-avatar {
             font-size: 2.5rem;
             margin-bottom: 8px;
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .player-name {
@@ -518,6 +527,12 @@
             font-size: 1.3rem;
             border: 2px solid rgba(168, 85, 247, 0.5);
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+            overflow: hidden;
+        }
+        .seat-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         #seat-0 .seat-avatar { border-color: rgba(168, 85, 247, 0.6); }
@@ -3450,19 +3465,19 @@
                 <input type="text" id="inviteNicknameInput" placeholder="输入昵称" maxlength="8">
             </div>
             <div class="input-group">
-                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <label><i class="fas fa-user-circle"></i> 选择角色</label>
                 <div class="voice-selector">
                     <button type="button" class="voice-btn active" onclick="selectInviteVoice(this,'female01')">
-                        <i class="fas fa-venus"></i> 女1
+                        <img src="img/avatar_female1.png" alt="女1" style="width:24px;height:24px;border-radius:5px;"> 女1
                     </button>
                     <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'female02')">
-                        <i class="fas fa-venus"></i> 女2
+                        <img src="img/avatar_female2.png" alt="女2" style="width:24px;height:24px;border-radius:5px;"> 女2
                     </button>
                     <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'male')">
-                        <i class="fas fa-mars"></i> 男1
+                        <img src="img/avatar_male1.png" alt="男1" style="width:24px;height:24px;border-radius:5px;"> 男1
                     </button>
                     <button type="button" class="voice-btn" onclick="selectInviteVoice(this,'male02')">
-                        <i class="fas fa-mars"></i> 男2
+                        <img src="img/avatar_male2.png" alt="男2" style="width:24px;height:24px;border-radius:5px;"> 男2
                     </button>
                 </div>
             </div>
@@ -3484,21 +3499,21 @@
                 <input type="text" id="usernameInput" placeholder="输入昵称" maxlength="8">
             </div>
             
-            <!-- 语音选择 -->
+            <!-- 角色 & 语音选择 -->
             <div class="input-group">
-                <label><i class="fas fa-volume-up"></i> 选择语音</label>
+                <label><i class="fas fa-user-circle"></i> 选择角色</label>
                 <div class="voice-selector">
                     <button type="button" class="voice-btn active" id="voiceFemale01" onclick="selectVoice('female01')">
-                        <i class="fas fa-venus"></i> 女1
+                        <img src="img/avatar_female1.png" alt="女1" style="width:28px;height:28px;border-radius:6px;"> 女1
                     </button>
                     <button type="button" class="voice-btn" id="voiceFemale02" onclick="selectVoice('female02')">
-                        <i class="fas fa-venus"></i> 女2
+                        <img src="img/avatar_female2.png" alt="女2" style="width:28px;height:28px;border-radius:6px;"> 女2
                     </button>
                     <button type="button" class="voice-btn" id="voiceMale" onclick="selectVoice('male')">
-                        <i class="fas fa-mars"></i> 男1
+                        <img src="img/avatar_male1.png" alt="男1" style="width:28px;height:28px;border-radius:6px;"> 男1
                     </button>
                     <button type="button" class="voice-btn" id="voiceMale02" onclick="selectVoice('male02')">
-                        <i class="fas fa-mars"></i> 男2
+                        <img src="img/avatar_male2.png" alt="男2" style="width:28px;height:28px;border-radius:6px;"> 男2
                     </button>
                 </div>
             </div>
@@ -4013,6 +4028,18 @@
         let isAITakeover = false; // 是否被AI接管
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
+
+        const VOICE_AVATAR_MAP = {
+            'female01': 'img/avatar_female1.png',
+            'female02': 'img/avatar_female2.png',
+            'male':     'img/avatar_male1.png',
+            'male02':   'img/avatar_male2.png'
+        };
+        function getMyAvatar() { return VOICE_AVATAR_MAP[myVoice] || 'img/avatar_male1.png'; }
+        function avatarHTML(src, size) {
+            if (src && src.startsWith('img/')) return `<img src="${src}" alt="avatar" width="${size||46}" height="${size||46}">`;
+            return src || '👤';
+        }
         
         // ==================== 好友系统变量 ====================
         let myOderId = null;      // 我的用户ID
@@ -4999,7 +5026,7 @@
                     socket.emit('join_room', { 
                         roomCode: currentRoom, 
                         username: username, 
-                        avatar: '👤', 
+                        avatar: getMyAvatar(), 
                         voice: myVoice 
                     });
                 } else {
@@ -5681,7 +5708,7 @@
             }
             username = input.value.trim();
             localStorage.setItem('mahjong_nickname', username);
-            socket.emit('create_room', { username, avatar: '👤', voice: myVoice });
+            socket.emit('create_room', { username, avatar: getMyAvatar(), voice: myVoice });
         }
 
         // 加入房间
@@ -5705,7 +5732,7 @@
                 return;
             }
             
-            socket.emit('join_room', { roomCode, username, avatar: '👤', voice: myVoice });
+            socket.emit('join_room', { roomCode, username, avatar: getMyAvatar(), voice: myVoice });
         }
 
         // 显示房间界面
@@ -5731,7 +5758,7 @@
                 if (player) {
                     const isMe = player.id === myPlayerId;
                     slot.innerHTML = `
-                        <div class="player-avatar">${player.avatar || '👤'}</div>
+                        <div class="player-avatar">${avatarHTML(player.avatar, 64)}</div>
                         <div class="player-name">${player.username}${isMe ? ' (我)' : ''}</div>
                         <div class="player-wind">${player.windName}风</div>
                         <div class="player-status ${player.isHost ? 'host' : (player.ready ? 'ready' : 'waiting')}">
@@ -5974,7 +6001,7 @@
                 socket.emit('join_room', {
                     roomCode: inviteRoomCode,
                     username: username,
-                    avatar: '👤',
+                    avatar: getMyAvatar(),
                     voice: myVoice
                 });
             } else {
@@ -6010,7 +6037,7 @@
                 socket.emit('join_room', {
                     roomCode: roomCode,
                     username: username,
-                    avatar: '👤',
+                    avatar: getMyAvatar(),
                     voice: myVoice
                 });
             }
@@ -6384,7 +6411,7 @@
             const prefix = displaySeat === 1 ? 'seat-1' : displaySeat === 2 ? 'seat-2' : 'seat-3';
             
             const avatarEl = document.getElementById(`avatar-${displaySeat}`);
-            avatarEl.textContent = player.avatar || '🤖';
+            avatarEl.innerHTML = avatarHTML(player.avatar, 46);
             avatarEl.classList.toggle('current-turn', gameState.currentPlayerIndex === player.seatIndex);
             avatarEl.classList.toggle('offline', player.offline === true);  // 【新增】离线样式
             
