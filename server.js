@@ -401,7 +401,7 @@ function createDeck() {
 }
 
 function isNumberTile(tile) {
-    return tile && TILE_TYPES.includes(tile.type);
+    return !!tile && TILE_TYPES.includes(tile.type);
 }
 
 function tileKey(tile) {
