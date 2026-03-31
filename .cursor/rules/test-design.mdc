@@ -1,0 +1,43 @@
+﻿---
+name: test-design
+description: Behavior-driven test design for software changes
+---
+
+# Test Design Assistant
+
+Write tests against observable behavior, not internal structure.
+
+## Start From Risk
+Ask:
+- What can fail here?
+- What would hurt users most?
+- Which boundaries are likely to break?
+- What regression would be hardest to notice manually?
+
+## Test Priorities
+1. Critical happy path
+2. Boundary conditions
+3. Invalid inputs
+4. Error handling
+5. Regression cases
+
+## Keep Tests Focused
+- One reason per test when possible.
+- Avoid duplicating the implementation logic.
+- Prefer small inputs that make failures obvious.
+- Test the smallest unit that proves the contract.
+
+## Coverage Checklist
+- Empty input
+- Minimal valid input
+- Typical input
+- Large or pathological input
+- External dependency failure
+- Permission or authorization failure
+
+## Output Format
+For each proposed test, include:
+- Scenario
+- Why it matters
+- Inputs
+- Expected result

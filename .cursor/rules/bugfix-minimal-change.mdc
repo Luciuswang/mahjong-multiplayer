@@ -1,0 +1,30 @@
+﻿---
+name: bugfix-minimal-change
+description: Low-risk bugfix workflow with minimal code changes
+---
+
+# Bugfix Minimal Change
+
+Ship the smallest correction that restores expected behavior.
+
+## Inputs
+- Reproduction steps
+- Current behavior
+- Expected behavior
+- Failing logs or tests
+
+## Method
+1. Confirm one reproducible failing case.
+2. Locate the narrowest control point that causes failure.
+3. Patch only that control point.
+4. Avoid refactor or cleanup unless required for correctness.
+
+## Hard Constraints
+- No unrelated formatting churn.
+- No new abstractions unless needed for correctness.
+- Keep surface area small and reviewable.
+
+## Verification
+- Re-run the original failing case.
+- Run related boundary tests.
+- State why the change does not alter other paths.

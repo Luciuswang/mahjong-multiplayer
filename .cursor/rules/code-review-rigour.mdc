@@ -1,0 +1,44 @@
+﻿---
+name: code-review-rigour
+description: Severity-first code review workflow
+---
+
+# Code Review Rigour
+
+Review the change from first principles. Do not praise style before checking correctness.
+
+## Review Order
+1. Correctness
+2. Security
+3. Reliability
+4. Test coverage
+5. Maintainability
+6. Performance
+
+## Questions to Answer
+- What assumption could break?
+- What happens on empty, invalid, or extreme input?
+- Can this fail silently?
+- Is behavior consistent across paths?
+- Is the change testable?
+
+## Findings Format
+Use severity labels:
+- Critical: must fix before merge
+- High: likely bug or serious risk
+- Medium: should fix for robustness
+- Low: nice improvement
+
+## What to Call Out
+- Logic bugs
+- Missing validation
+- Race conditions
+- Security gaps
+- Overly complex design
+- Missing or weak tests
+- Hidden coupling
+
+## Avoid
+- Generic praise
+- Style-only comments without impact
+- Speculation without evidence

@@ -863,8 +863,10 @@ class MahjongRoom {
         // 创建并洗牌
         let deck = shuffleDeck(createDeck());
         
-        // 随机庄家
-        const dealerIndex = Math.floor(Math.random() * 4);
+        // 庄家：上局赢家当庄，首局随机
+        const dealerIndex = (this.lastWinnerIndex >= 0 && this.lastWinnerIndex < this.players.length)
+            ? this.lastWinnerIndex
+            : Math.floor(Math.random() * 4);
         
         // 初始化游戏状态
         this.gameState = {
@@ -1880,7 +1882,14 @@ class MahjongRoom {
         
         // 执行出牌
         const tileIndex = aiPlayer.hand.findIndex(t => t.id === discardTile.id);
-        aiPlayer.hand.splice(tileIndex, 1);
+        if (tileIndex === -1) {
+            console.error(`aiDiscard: 找不到要出的牌 ${discardTile?.id}，手牌数: ${aiPlayer.hand.length}`);
+            if (aiPlayer.hand.length === 0) return;
+            discardTile = aiPlayer.hand[0];
+            aiPlayer.hand.splice(0, 1);
+        } else {
+            aiPlayer.hand.splice(tileIndex, 1);
+        }
         aiPlayer.discards.push(discardTile);
         aiPlayer.hand = sortTiles(aiPlayer.hand);
         
@@ -2117,29 +2126,25 @@ class MahjongRoom {
         return this.canFormAllPeng(hand);
     }
     
-    // 检查手牌是否能组成全刻子
-    canFormAllPeng(tiles) {
-        if (tiles.length === 0) return true;
-        if (tiles.length === 2) {
-            return tiles[0].type === tiles[1].type && tiles[0].value === tiles[1].value;
-        }
-        if (tiles.length < 3) return false;
+    // 检查手牌是否能组成全刻子 + 一对将（碰碰胡判定）
+    canFormAllPeng(tiles, hasPair = false) {
+        if (tiles.length === 0) return hasPair;
+        if (tiles.length === 1) return false;
         
         const sorted = sortTiles(tiles);
         
-        // 尝试将第一组作为刻子
+        // 尝试将前三张作为刻子
         if (sorted.length >= 3 &&
             sorted[0].type === sorted[1].type && sorted[1].type === sorted[2].type &&
             sorted[0].value === sorted[1].value && sorted[1].value === sorted[2].value) {
-            const remaining = sorted.slice(3);
-            if (this.canFormAllPeng(remaining)) return true;
+            if (this.canFormAllPeng(sorted.slice(3), hasPair)) return true;
         }
         
-        // 尝试将前两张作为将（只在剩余2张时）
-        if (sorted.length === 2 &&
+        // 尝试将前两张作为将对（每手只能有一对）
+        if (!hasPair && sorted.length >= 2 &&
             sorted[0].type === sorted[1].type &&
             sorted[0].value === sorted[1].value) {
-            return true;
+            if (this.canFormAllPeng(sorted.slice(2), true)) return true;
         }
         
         return false;

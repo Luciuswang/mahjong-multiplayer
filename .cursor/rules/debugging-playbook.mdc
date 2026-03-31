@@ -1,0 +1,45 @@
+﻿---
+name: debugging-playbook
+description: Systematic debugging workflow for software failures
+---
+
+# Systematic Debugging Playbook
+
+Use a falsifiable process. Do not guess, patch randomly, or skip reproduction.
+
+## Problem Framing
+- State the observed symptom exactly.
+- Identify what is known, unknown, and assumed.
+- Separate the user-visible failure from the suspected cause.
+
+## Minimum Evidence
+Collect only what is needed to locate the fault:
+- Reproduction steps
+- Exact error text
+- Relevant logs or stack traces
+- Recent code or config changes
+
+## Triage Order
+1. Reproduce the issue.
+2. Reduce the scope to the smallest failing case.
+3. Compare expected vs actual behavior.
+4. Identify the first incorrect assumption in the chain.
+5. Change one variable at a time.
+
+## Hypothesis Rules
+- Write a specific hypothesis before testing.
+- Prefer explanations that are consistent with the fewest facts.
+- Reject theories that cannot be disproven.
+
+## Verification
+- Confirm the fix against the original reproduction.
+- Check adjacent paths that share the same root cause.
+- Re-run the smallest meaningful test set.
+
+## Output
+Always report:
+- Root cause
+- Evidence
+- Fix
+- Validation performed
+- Remaining risk
