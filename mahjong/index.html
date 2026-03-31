@@ -10,25 +10,39 @@
     <link rel="preload" href="img/majiang.png" as="image" type="image/png">
     <style>
         :root {
-            --table-green: #1a5c3a;
-            --table-dark: #0d3321;
-            --gold: #d4af37;
-            --gold-light: #f4d03f;
-            --tile-bg: #f5f0e1;
-            --tile-border: #c9b896;
-            --red: #c0392b;
-            --blue: #2980b9;
-            --green: #27ae60;
+            --table-green: #0e0a1e;
+            --table-dark: #08061a;
+            --gold: #c084fc;
+            --gold-light: #d8b4fe;
+            --tile-bg: #eef0f5;
+            --tile-border: rgba(160,150,180,0.5);
+            --red: #ef4444;
+            --blue: #7c3aed;
+            --green: #10b981;
+            --neon-primary: rgba(168, 85, 247, 0.6);
+            --neon-secondary: rgba(249, 115, 22, 0.5);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: radial-gradient(ellipse at center, var(--table-green) 0%, var(--table-dark) 100%);
+            background: #05030e;
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120, 40, 200, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 70% 40% at 50% 90%, rgba(100, 50, 180, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* 开始界面 */
@@ -40,13 +54,15 @@
             min-height: 100vh;
             padding: 20px;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
 
         .game-logo {
             font-family: 'Ma Shan Zheng', cursive;
             font-size: 4rem;
             color: var(--gold);
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.4), 0 2px 4px rgba(0,0,0,0.3);
             margin-bottom: 10px;
         }
 
@@ -55,19 +71,18 @@
             color: rgba(255,255,255,0.8);
             margin-bottom: 20px;
         }
-        
+
         .scoreboard-preview {
-            background: linear-gradient(135deg, rgba(243,156,18,0.3) 0%, rgba(211,84,0,0.3) 100%);
-            border: 2px solid var(--gold);
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
+            border: 2px solid rgba(168, 85, 247, 0.4);
             border-radius: 15px;
             padding: 15px 30px;
             margin-bottom: 20px;
             display: inline-block;
             font-size: 1.1rem;
             color: #fff;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
-        
+
         .scoreboard-preview .score-big {
             font-size: 2rem;
             font-weight: bold;
@@ -75,12 +90,14 @@
         }
 
         .menu-container {
-            background: rgba(0,0,0,0.4);
-            border: 2px solid var(--gold);
+            background: rgba(12, 8, 28, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.2);
             border-radius: 20px;
             padding: 40px;
             max-width: 500px;
             width: 100%;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
 
         /* 语音选择器 */
@@ -118,7 +135,7 @@
         
         .voice-btn.active {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(212,175,55,0.3) 0%, rgba(184,134,11,0.3) 100%);
+            background: linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(124,58,237,0.3) 100%);
             color: var(--gold);
             font-weight: bold;
         }
@@ -134,8 +151,8 @@
             margin: 15px 0;
             font-size: 1.3rem;
             font-family: 'Ma Shan Zheng', cursive;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: #fff;
             border: none;
             border-radius: 12px;
             cursor: pointer;
@@ -145,13 +162,13 @@
 
         .menu-btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(212,175,55,0.4);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4);
         }
 
         .menu-btn.secondary {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.06);
             color: #fff;
-            border: 2px solid var(--gold);
+            border: 1px solid rgba(168, 85, 247, 0.3);
         }
 
         /* 游戏界面 */
@@ -167,7 +184,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 20px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(12, 8, 28, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.08);
             border-radius: 10px;
             margin-bottom: 10px;
         }
@@ -181,18 +199,19 @@
         .status-icon {
             width: 30px;
             height: 30px;
-            background: var(--gold);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #1a1a1a;
+            color: #fff;
             font-weight: bold;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
         }
 
         .back-btn {
-            background: rgba(255,255,255,0.2);
-            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(168, 85, 247, 0.2);
             color: white;
             padding: 8px 16px;
             border-radius: 8px;
@@ -201,14 +220,33 @@
         }
 
         /* 麻将桌面 */
-        .mahjong-table { 
-            background: radial-gradient(ellipse at center, #2d8b57 0%, #1a5c3a 50%, #0d3321 100%);
-            border: 8px solid #5d4037;
-            border-radius: 20px;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.3), 0 10px 30px rgba(0,0,0,0.5);
+        .mahjong-table {
+            background:
+                radial-gradient(ellipse 120% 80% at 50% 40%, rgba(80, 40, 140, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at center, #141028 0%, #0e0a20 40%, #08061a 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            box-shadow:
+                inset 0 0 60px rgba(100, 50, 180, 0.06),
+                0 0 25px rgba(168, 85, 247, 0.15),
+                0 0 60px rgba(120, 50, 200, 0.08),
+                0 10px 40px rgba(0,0,0,0.7);
             padding: 20px;
             position: relative;
             min-height: 500px;
+        }
+
+        .mahjong-table::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(249,115,22,0.2), rgba(168,85,247,0.3));
+            z-index: -1;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask-composite: xor;
+            padding: 2px;
         }
 
         /* 玩家区域 */
@@ -224,15 +262,16 @@
         }
 
         .player-avatar {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            border-radius: 50%;
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
-            border: 3px solid white;
+            border: 2px solid rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
         }
 
         .player-name {
@@ -241,19 +280,20 @@
         }
 
         .player-wind {
-            background: var(--red);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.9rem;
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
         }
 
         .current-turn {
-            animation: pulse 1s infinite;
+            animation: pulse 1.2s infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.7); }
-            50% { box-shadow: 0 0 0 10px rgba(212,175,55,0); }
+            0%, 100% { box-shadow: 0 0 18px rgba(168, 85, 247, 0.5); }
+            50% { box-shadow: 0 0 28px rgba(168, 85, 247, 0.7), 0 0 50px rgba(168, 85, 247, 0.25); }
         }
 
         /* 手牌区域 */
@@ -263,49 +303,73 @@
             flex-wrap: wrap;
             gap: 4px;
             padding: 15px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
+            background: rgba(12, 8, 30, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.06);
+            border-radius: 12px;
             min-height: 100px;
         }
 
         /* 麻将牌 - 使用精灵图 */
-        .tile { 
+        .tile {
             width: 50px;
             height: 70px;
-            background-color: #f5f0e1;
+            background-color: #eef0f5;
             background-image: url('img/majiang.png');
             background-repeat: no-repeat;
-            border: 2px solid var(--tile-border);
-            border-radius: 6px;
+            border: 1px solid rgba(160, 150, 180, 0.5);
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow:
+                1px 2px 0 0 #d0cee0,
+                2px 4px 0 0 #a8a4be,
+                3px 6px 0 0 #8a85a0,
+                0 8px 16px rgba(0,0,0,0.45);
             position: relative;
             user-select: none;
         }
 
+        .tile::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 1px;
+            right: 1px;
+            height: 5px;
+            background: linear-gradient(180deg, #b8b5cc, #908ca6);
+            border-radius: 0 0 3px 3px;
+            pointer-events: none;
+        }
+
         .tile:hover {
             transform: translateY(-8px);
-            box-shadow: 2px 8px 15px rgba(0,0,0,0.4);
+            box-shadow:
+                1px 2px 0 0 #d0cee0,
+                2px 4px 0 0 #a8a4be,
+                3px 6px 0 0 #8a85a0,
+                0 14px 24px rgba(0,0,0,0.5);
         }
 
         .tile.selected {
-            transform: translateY(-15px);
-            border-color: var(--gold);
-            box-shadow: 0 0 20px rgba(212,175,55,0.6);
+            transform: translateY(-12px);
+            border-color: rgba(168, 85, 247, 0.7);
+            box-shadow:
+                0 0 12px rgba(168, 85, 247, 0.5),
+                0 0 25px rgba(168, 85, 247, 0.2),
+                1px 2px 0 0 #d0cee0;
         }
-        
+
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
             margin-left: 15px;
-            border-color: #3498db;
-            box-shadow: 0 0 15px rgba(52,152,219,0.8);
-            animation: newTilePulse 1s ease-in-out infinite;
+            border: 2px solid rgba(168, 85, 247, 0.7);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3);
+            animation: newTilePulse 1.2s ease-in-out infinite;
         }
-        
+
         @keyframes newTilePulse {
-            0%, 100% { box-shadow: 0 0 15px rgba(52,152,219,0.8); }
-            50% { box-shadow: 0 0 25px rgba(52,152,219,1); }
+            0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(168, 85, 247, 0.4); }
         }
 
         .tile.disabled {
@@ -318,30 +382,41 @@
             width: 32px;
             height: 45px;
         }
-        
+
+        .tile.small::after {
+            height: 3px;
+            bottom: -3px;
+        }
+
         /* 牌面加载中状态 */
         .tile.loading {
             background-image: none;
-            background: linear-gradient(135deg, #e0d8c8 25%, #f5f0e1 50%, #e0d8c8 75%);
+            background: linear-gradient(135deg, #dde0ea 25%, #f0f2f8 50%, #dde0ea 75%);
             background-size: 200% 100%;
             animation: tileLoading 1s ease-in-out infinite;
         }
-        
+
         @keyframes tileLoading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
-        
-        /* 精灵图加载完成后移除加载状态 */
+
         body.sprites-loaded .tile.loading {
             animation: none;
-            background: #f5f0e1;
+            background: #eef0f5;
         }
 
         .tile.back {
             background-image: none;
-            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-            border-color: #1b5e20;
+            background:
+                repeating-linear-gradient(45deg, rgba(120, 60, 200, 0.06) 0px, rgba(120, 60, 200, 0.06) 2px, transparent 2px, transparent 8px),
+                linear-gradient(135deg, #1e1040 0%, #150d30 50%, #1a1245 100%);
+            border-color: rgba(168, 85, 247, 0.2);
+            box-shadow:
+                1px 2px 0 0 #120a28,
+                2px 4px 0 0 #0a0618,
+                3px 6px 0 0 #060412,
+                0 8px 14px rgba(0,0,0,0.45);
         }
 
         .tile.back::after {
@@ -351,7 +426,11 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 1.2rem;
-            opacity: 0.5;
+            opacity: 0.35;
+            bottom: auto;
+            height: auto;
+            border-radius: 0;
+            background: none;
         }
 
         .tile.small.back::after {
@@ -405,7 +484,8 @@
         }
 
         .opponent {
-            background: rgba(0,0,0,0.3);
+            background: rgba(12, 8, 28, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.06);
             border-radius: 10px;
             padding: 10px;
         }
@@ -419,14 +499,16 @@
 
         /* 中央出牌区域 */
         .center-area {
-            background: rgba(0,0,0,0.15);
+            background: rgba(10, 5, 25, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.06);
             border-radius: 15px;
             padding: 15px;
             margin: 15px 0;
         }
 
         .discard-zone {
-            background: rgba(0,0,0,0.2);
+            background: rgba(5, 3, 15, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.06);
             border-radius: 8px;
             padding: 8px;
             margin: 5px 0;
@@ -434,7 +516,7 @@
 
         .discard-zone .zone-label {
             font-size: 0.75rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(200, 180, 255, 0.5);
             margin-bottom: 5px;
             text-align: center;
         }
@@ -459,8 +541,8 @@
         }
 
         .discard-zone.bottom {
-            border: 1px solid var(--gold);
-            background: rgba(212,175,55,0.1);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            background: rgba(168, 85, 247, 0.06);
         }
 
         .discard-zone.bottom .zone-label {
@@ -471,41 +553,58 @@
         .action-panel {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-top: 15px;
             flex-wrap: wrap;
+            background: rgba(12, 8, 30, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            border-radius: 20px;
+            padding: 8px 14px;
         }
 
         .action-btn {
-            padding: 12px 25px;
-            font-size: 1.1rem;
-            font-family: 'Ma Shan Zheng', cursive;
+            padding: 10px 22px;
+            font-size: 1rem;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 700;
             border: none;
-            border-radius: 10px;
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
             min-width: 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.06);
+            filter: brightness(1.15);
         }
 
         .action-btn.primary {
-            background: linear-gradient(135deg, var(--gold) 0%, #b8860b 100%);
-            color: #1a1a1a;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #fff;
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .action-btn.secondary {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .action-btn.danger {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            background: linear-gradient(135deg, #dc2626, #991b1b);
             color: white;
+            box-shadow: 0 0 14px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
         }
 
         .action-btn.success {
-            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            background: linear-gradient(135deg, #059669, #065f46);
             color: white;
+            box-shadow: 0 0 14px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .action-btn:disabled {
@@ -515,8 +614,7 @@
         }
 
         .action-btn:not(:disabled):hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transform: translateY(-2px) scale(1.04);
         }
 
         /* 提示框 */
@@ -533,14 +631,15 @@
         .hint-btn {
             padding: 15px 30px;
             font-size: 1.2rem;
-            font-family: 'Ma Shan Zheng', cursive;
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            font-family: 'Noto Sans SC', sans-serif;
+            font-weight: 700;
+            background: linear-gradient(135deg, #dc2626, #991b1b);
             color: white;
-            border: 3px solid white;
-            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 16px;
             cursor: pointer;
             animation: bounce 0.5s ease infinite;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 14px rgba(220, 38, 38, 0.4), 0 5px 20px rgba(0,0,0,0.5);
         }
 
         @keyframes bounce {
@@ -567,14 +666,17 @@
         }
 
         .modal-content {
-            background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
-            border: 3px solid var(--gold);
+            background: rgba(12, 8, 28, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
             max-width: 400px;
             width: 90%;
             animation: modalIn 0.3s ease;
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.08);
         }
 
         @keyframes modalIn {
@@ -608,8 +710,8 @@
         }
 
         .rules-card {
-            background: rgba(0,0,0,0.5);
-            border: 2px solid var(--gold);
+            background: rgba(12, 8, 28, 0.7);
+            border: 1px solid rgba(168, 85, 247, 0.15);
             border-radius: 15px;
             padding: 30px;
             margin-bottom: 20px;
@@ -653,7 +755,8 @@
         .meld-group {
             display: flex;
             gap: 2px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(10, 5, 25, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.08);
             padding: 5px;
             border-radius: 5px;
         }
@@ -662,12 +765,16 @@
         @media (max-width: 768px) {
             .game-logo { font-size: 2.5rem; }
             .tile { width: 38px; height: 55px; }
+            .tile::after { height: 4px; bottom: -4px; }
             .tile-value { font-size: 1.4rem; }
             .tile.small { width: 25px; height: 35px; }
+            .tile.small::after { height: 3px; bottom: -3px; }
             .tile.small .tile-value { font-size: 0.9rem; }
             .opponents-area { grid-template-columns: 1fr; }
             .status-bar { flex-wrap: wrap; gap: 10px; }
-            .action-btn { padding: 10px 18px; font-size: 1rem; }
+            .action-btn { padding: 8px 16px; font-size: 0.95rem; border-radius: 14px; }
+            .action-panel { padding: 6px 10px; border-radius: 16px; }
+            .player-avatar { width: 36px; height: 36px; border-radius: 10px; font-size: 1.2rem; }
         }
 
         /* 花牌区域 */
@@ -3537,7 +3644,7 @@
             let text = '<div style="margin: 15px 0;">';
             text += '<div style="text-align: center; font-size: 1.1rem; margin-bottom: 10px;">🏆 本局结算榜单 🏆</div>';
             text += '<table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">';
-            text += '<thead><tr style="background: rgba(212,175,55,0.3);">';
+            text += '<thead><tr style="background: rgba(168,85,247,0.2);">';
             text += '<th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2);">排名</th>';
             text += '<th style="padding: 8px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.2);">玩家</th>';
             text += '<th style="padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.2);">得分</th>';
