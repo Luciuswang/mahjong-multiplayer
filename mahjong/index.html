@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>上海敲麻 - 哈灵规则 | AI小游戏平台</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -273,6 +273,9 @@
             border: 2px solid rgba(168, 85, 247, 0.5);
             box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
         }
+        #opponent1 .player-avatar { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 0 12px rgba(245, 158, 11, 0.2); }
+        #opponent2 .player-avatar { border-color: rgba(6, 182, 212, 0.6); box-shadow: 0 0 12px rgba(6, 182, 212, 0.2); }
+        #opponent3 .player-avatar { border-color: rgba(34, 197, 94, 0.6); box-shadow: 0 0 12px rgba(34, 197, 94, 0.2); }
 
         .player-name {
             font-size: 1.2rem;
@@ -620,7 +623,7 @@
         /* 提示框 */
         .action-hints {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -759,6 +762,14 @@
             border: 1px solid rgba(168, 85, 247, 0.08);
             padding: 5px;
             border-radius: 5px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
 
         /* 响应式 */
@@ -957,7 +968,7 @@
             <div class="opponents-area">
                 <div class="opponent" id="opponent2">
                     <div class="player-info">
-                        <div class="player-avatar">🤖</div>
+                        <div class="player-avatar">🧠</div>
                         <span class="player-name">AI-南</span>
                         <span class="player-wind">南</span>
                     </div>
@@ -975,7 +986,7 @@
                 </div>
                 <div class="opponent" id="opponent3">
                     <div class="player-info">
-                        <div class="player-avatar">🤖</div>
+                        <div class="player-avatar">🦾</div>
                         <span class="player-name">AI-北</span>
                         <span class="player-wind">北</span>
                     </div>
@@ -1051,7 +1062,7 @@
     </div>
 
     <!-- 消息弹窗 -->
-    <div class="modal" id="modal">
+    <div class="modal" id="modal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2 class="modal-title" id="modalTitle">🎉 恭喜！</h2>
             <p class="modal-message" id="modalMessage">你赢了！</p>

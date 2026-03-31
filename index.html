@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>上海敲麻·哈灵规则 - 多人联机版 | AI小游戏平台</title>
     <!-- 预加载关键资源 -->
     <link rel="preload" href="img/majiang.png" as="image" fetchpriority="high">
@@ -61,8 +61,17 @@
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            opacity: 0;
+            transform: translateY(16px);
         }
-        .screen.active { display: flex; }
+        .screen.active {
+            display: flex;
+            animation: screenFadeIn 0.35s ease forwards;
+        }
+        @keyframes screenFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* 大厅界面 */
         .lobby-title {
@@ -129,6 +138,9 @@
             background: rgba(255,255,255,0.06);
             color: #fff;
             outline: none;
+        }
+
+        .input-group input.room-code-input {
             text-transform: uppercase;
         }
 
@@ -991,6 +1003,21 @@
             font-size: 1.2rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
+        .toast.toast-error {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: rgba(60, 10, 10, 0.92);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+        }
+        .toast.toast-success {
+            border-color: rgba(34, 197, 94, 0.5);
+            background: rgba(10, 50, 20, 0.92);
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.15);
+        }
+        .toast.toast-warning {
+            border-color: rgba(245, 158, 11, 0.5);
+            background: rgba(50, 30, 5, 0.92);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
+        }
 
         @keyframes fadeInOut {
             0% { opacity: 0; transform: translate(-50%, 10px); }
@@ -1100,7 +1127,7 @@
         /* 聊天悬浮钮 */
         .chat-toggle-btn {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 20px;
             right: auto;
             width: 50px;
@@ -1235,7 +1262,7 @@
         /* 手机上聊天按钮位置调整 */
         @media (max-width: 768px) {
             .chat-toggle-btn {
-                bottom: 15px;
+                bottom: calc(15px + env(safe-area-inset-bottom, 0px));
                 left: 15px;
                 width: 45px;
                 height: 45px;
@@ -1746,6 +1773,10 @@
                 height: 22px;
                 font-size: 0.65rem;
             }
+
+            .header-deck-info {
+                display: none;
+            }
             
             /* 积分面板紧凑化 */
             .score-panel {
@@ -2017,6 +2048,33 @@
             background: rgba(241, 196, 15, 0.9);
             color: #333;
         }
+
+        /* 连接状态指示灯 */
+        .conn-status {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            z-index: 999;
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .conn-status.reconnecting {
+            background: #f59e0b;
+            box-shadow: 0 0 6px #f59e0b;
+            animation: connBlink 1s infinite;
+        }
+        .conn-status.disconnected {
+            background: #ef4444;
+            box-shadow: 0 0 6px #ef4444;
+        }
+        @keyframes connBlink {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
         
         /* GPU 加速优化 */
         .tile, .seat-avatar, .modal-content {
@@ -2031,6 +2089,125 @@
             }
         }
         
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* 护眼模式 */
+        body.eye-comfort {
+            --neon-primary: rgba(168, 85, 247, 0.2);
+            --neon-secondary: rgba(249, 115, 22, 0.15);
+            --neon-cyan: rgba(168, 85, 247, 0.15);
+            --neon-orange: rgba(249, 115, 22, 0.12);
+        }
+        body.eye-comfort .mahjong-table {
+            box-shadow: 0 0 20px rgba(0,0,0,0.5) !important;
+        }
+        body.eye-comfort .mahjong-table::before {
+            opacity: 0.3;
+        }
+        body.eye-comfort .seat-avatar {
+            box-shadow: none !important;
+        }
+        body.eye-comfort .tile {
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+        }
+        body.eye-comfort .turn-indicator,
+        body.eye-comfort .my-hand-area.my-turn {
+            box-shadow: none !important;
+            animation: none !important;
+        }
+        body.eye-comfort body::before {
+            opacity: 0.3;
+        }
+        .eye-comfort-btn {
+            position: fixed;
+            top: 12px;
+            right: 30px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.4);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            cursor: pointer;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .eye-comfort-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.8);
+        }
+        .eye-comfort-btn.active {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
+            color: #22c55e;
+        }
+
+        /* 新手引导 */
+        .onboard-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: screenFadeIn 0.3s ease forwards;
+        }
+        .onboard-card {
+            background: rgba(15, 10, 35, 0.95);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 340px;
+            width: 90%;
+            text-align: center;
+            color: #fff;
+        }
+        .onboard-card h3 {
+            color: var(--gold);
+            margin: 0 0 16px;
+            font-size: 1.2rem;
+        }
+        .onboard-card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0 0 20px;
+            color: rgba(255,255,255,0.8);
+        }
+        .onboard-card button {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .onboard-card button:hover { transform: scale(1.05); }
+        .onboard-steps {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .onboard-step {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+        .onboard-step.active { background: var(--gold); }
+
         /* ==================== UI/UX 改进 - 动画效果 ==================== */
         
         /* 出牌飞行动画 */
@@ -2205,6 +2382,21 @@
             }
         }
         
+        /* 轮到自己时全屏边框闪光 */
+        .turn-flash-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1499;
+            border: 3px solid transparent;
+            border-radius: 0;
+            animation: turnFlash 0.8s ease-out forwards;
+        }
+        @keyframes turnFlash {
+            0%   { border-color: rgba(168, 85, 247, 0.7); box-shadow: inset 0 0 40px rgba(168, 85, 247, 0.3); }
+            100% { border-color: transparent; box-shadow: inset 0 0 0 transparent; }
+        }
+
         /* 轮到自己时的提示文字 */
         .turn-indicator {
             position: fixed;
@@ -2608,7 +2800,6 @@
             background: rgba(255,255,255,0.1);
             color: #fff;
             font-size: 1rem;
-            text-transform: uppercase;
             -webkit-user-select: text;
             user-select: text;
             -webkit-touch-callout: default;
@@ -3104,6 +3295,10 @@
     <div class="network-indicator" id="networkIndicator">
         <span id="networkStatus">⚡ 网络较慢</span>
     </div>
+    <!-- 连接状态指示灯 -->
+    <div class="conn-status" id="connStatus" title="已连接"></div>
+    <!-- 护眼模式按钮 -->
+    <button class="eye-comfort-btn" id="eyeComfortBtn" onclick="toggleEyeComfort()" title="护眼模式">👁</button>
 
     <!-- 背景粒子效果 -->
     <div class="particles-container" id="particlesContainer"></div>
@@ -3168,7 +3363,7 @@
     </div>
     
     <!-- 修改昵称弹窗 -->
-    <div class="nickname-modal" id="nicknameModal">
+    <div class="nickname-modal" id="nicknameModal" role="dialog" aria-modal="true">
         <div class="nickname-modal-content">
             <h3><i class="fas fa-edit"></i> 修改昵称</h3>
             <input type="text" id="newNicknameInput" placeholder="输入新昵称" maxlength="12">
@@ -3316,7 +3511,7 @@
             
             <div class="input-group">
                 <label><i class="fas fa-door-open"></i> 房间号</label>
-                <input type="text" id="roomCodeInput" placeholder="输入6位房间号" maxlength="6">
+                <input type="text" id="roomCodeInput" class="room-code-input" placeholder="输入6位房间号" maxlength="6">
             </div>
             
             <button class="btn secondary" onclick="joinRoom()">
@@ -3342,7 +3537,7 @@
     </div>
 
     <!-- 分享弹窗 -->
-    <div class="share-modal" id="shareModal">
+    <div class="share-modal" id="shareModal" role="dialog" aria-modal="true">
         <div class="share-modal-content">
             <div class="share-modal-title">
                 <i class="fas fa-share-alt"></i> 邀请好友
@@ -3411,16 +3606,15 @@
     <div id="gameScreen" class="screen game-screen">
         <div class="game-header">
             <div class="game-info">
-                <!-- 局数显示 -->
                 <div class="game-info-item round-display">
                     <div class="game-info-icon" style="background: #ef4444;">
                         <span id="currentRoundNum">1</span>
                     </div>
-                    <span>第 <span id="currentRoundText">1</span>/<span id="totalRoundsText">10</span> 局</span>
+                    <span><span id="currentRoundText">1</span>/<span id="totalRoundsText">10</span> 局</span>
                 </div>
-                <div class="game-info-item">
+                <div class="game-info-item header-deck-info">
                     <div class="game-info-icon"><i class="fas fa-layer-group"></i></div>
-                    <span>剩余: <span id="deckCount">0</span></span>
+                    <span>余<span id="deckCount">0</span></span>
                 </div>
                 <div class="game-info-item">
                     <div class="game-info-icon" id="currentWindIcon">东</div>
@@ -3532,7 +3726,7 @@
     </div>
 
     <!-- 结果弹窗（旧版保留） -->
-    <div class="modal" id="resultModal">
+    <div class="modal" id="resultModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2 class="modal-title" id="resultTitle">游戏结束</h2>
             <p class="modal-message" id="resultMessage"></p>
@@ -3541,7 +3735,7 @@
     </div>
     
     <!-- 单局结算弹窗 -->
-    <div class="round-result-modal" id="roundResultModal">
+    <div class="round-result-modal" id="roundResultModal" role="dialog" aria-modal="true">
         <div class="round-result-content">
             <h2 class="round-result-title" id="roundResultTitle">本局结算</h2>
             
@@ -3596,7 +3790,7 @@
     </div>
     
     <!-- 最终结算弹窗 -->
-    <div class="match-result-modal" id="matchResultModal">
+    <div class="match-result-modal" id="matchResultModal" role="dialog" aria-modal="true">
         <div class="match-result-content">
             <h2 class="match-result-title">🏆 比赛结束 🏆</h2>
             
@@ -3897,7 +4091,7 @@
             const showCopied = () => {
                 btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
                 btn.style.background = '#10b981';
-                showToast('好友码已复制！分享给朋友吧');
+                showToast('好友码已复制！分享给朋友吧', 2000, 'success');
                 setTimeout(() => {
                     btn.innerHTML = originalHtml;
                     btn.style.background = '';
@@ -3930,7 +4124,7 @@
                 return;
             }
             if (code === myFriendCode) {
-                showToast('不能添加自己');
+                showToast('不能添加自己', 2000, 'error');
                 return;
             }
             socket.emit('add_friend', { friendCode: code });
@@ -4789,7 +4983,7 @@
                 isConnected = true;
                 connectionAttempts = 0;
                 
-                // 启动网络质量检测
+                updateConnStatus('connected');
                 startPingMonitor();
                 updateNetworkIndicator('good');
                 
@@ -4849,7 +5043,7 @@
                     renderFriendList();
                     updateOnlineFriendBadge();
                 } else {
-                    showToast(data.error || '添加失败');
+                    showToast(data.error || '添加失败', 2000, 'error');
                 }
             });
             
@@ -4891,7 +5085,12 @@
             socket.on('disconnect', () => {
                 console.log('与服务器断开连接');
                 isConnected = false;
-                showToast('连接已断开');
+                updateConnStatus('disconnected');
+                showToast('连接已断开', 2000, 'error');
+            });
+
+            socket.io.on('reconnect_attempt', () => {
+                updateConnStatus('reconnecting');
             });
             
             socket.on('connect_error', () => {
@@ -4929,12 +5128,12 @@
             
             // 玩家离线提示
             socket.on('player_offline', (data) => {
-                showToast(`⚠️ ${data.username} 断线了，等待重连...`, 5000);
+                showToast(`⚠️ ${data.username} 断线了，等待重连...`, 5000, 'warning');
             });
             
             // 玩家重连
             socket.on('player_reconnected', (data) => {
-                showToast(`✅ ${data.username} 已重连！`);
+                showToast(`✅ ${data.username} 已重连！`, 2000, 'success');
                 addSystemMessage(`${data.username} 重新连接了`);
             });
             
@@ -4994,7 +5193,7 @@
                     isAITakeover = true;
                     showTakeoverButton();
                     if (data.isReconnect) {
-                        showToast('⚠️ 重连成功！AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
+                        showToast('⚠️ 重连成功！AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000, 'warning');
                     } else {
                         showToast('⚠️ AI正在代替你进行游戏，点击"接管AI"恢复控制', 5000);
                     }
@@ -5002,7 +5201,7 @@
                     isAITakeover = false;
                     hideTakeoverButton();
                     if (data.isReconnect) {
-                        showToast('✅ 重连成功！', 2000);
+                        showToast('✅ 重连成功！', 2000, 'success');
                     }
                 }
                 
@@ -5024,7 +5223,7 @@
                 
                 // 【增强】处理重连
                 if (data.isReconnect) {
-                    showToast('🔄 已重新连接！继续游戏...', 3000);
+                    showToast('🔄 已重新连接！继续游戏...', 3000, 'success');
                     console.log('断线重连成功，座位:', mySeatIndex, '当前轮到:', gameState.currentPlayerIndex);
                     
                     // 如果轮到自己，触发自动摸牌或显示出牌提示
@@ -5384,6 +5583,15 @@
             }, 5000); // 每5秒检测一次
         }
         
+        function updateConnStatus(state) {
+            const dot = document.getElementById('connStatus');
+            if (!dot) return;
+            dot.className = 'conn-status';
+            if (state === 'reconnecting') { dot.classList.add('reconnecting'); dot.title = '重连中...'; }
+            else if (state === 'disconnected') { dot.classList.add('disconnected'); dot.title = '已断开'; }
+            else { dot.title = '已连接'; }
+        }
+
         // 更新网络指示器
         function updateNetworkIndicator(quality) {
             const indicator = $('networkIndicator') || document.getElementById('networkIndicator');
@@ -5467,7 +5675,7 @@
             }
             const input = document.getElementById('usernameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -5484,7 +5692,7 @@
             }
             const input = document.getElementById('usernameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -5751,7 +5959,7 @@
         function confirmInviteJoin() {
             const input = document.getElementById('inviteNicknameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -5771,7 +5979,7 @@
                 });
             } else {
                 pendingRoomJoin = inviteRoomCode;
-                showToast('正在连接服务器，稍后自动加入...');
+                showToast('正在连接服务器，稍后自动加入...', 2000, 'warning');
             }
             inviteRoomCode = null;
         }
@@ -5788,7 +5996,7 @@
 
                 const savedNickname = localStorage.getItem('mahjong_nickname');
                 if (!username && !savedNickname) {
-                    showToast('请先输入昵称再加入房间');
+                    showToast('请先输入昵称再加入房间', 2000, 'warning');
                     document.getElementById('roomCodeInput').value = roomCode;
                     document.getElementById('usernameInput').focus();
                     return;
@@ -6421,7 +6629,7 @@
         // 出牌
         function discardTile() {
             if (!selectedTileId) {
-                showToast('请先选择要打出的牌');
+                showToast('请先选择要打出的牌', 2000, 'warning');
                 return;
             }
             
@@ -6911,11 +7119,60 @@
             }
         }
         
-        // Toast提示
-        function showToast(message, duration = 2000) {
+        // 护眼模式
+        function toggleEyeComfort() {
+            const on = document.body.classList.toggle('eye-comfort');
+            document.getElementById('eyeComfortBtn').classList.toggle('active', on);
+            localStorage.setItem('eye_comfort', on ? '1' : '');
+        }
+        if (localStorage.getItem('eye_comfort') === '1') {
+            document.body.classList.add('eye-comfort');
+            document.getElementById('eyeComfortBtn')?.classList.add('active');
+        }
+
+        // 新手引导
+        (function initOnboarding() {
+            if (localStorage.getItem('mj_onboarded')) return;
+            const steps = [
+                { title: '欢迎来到上海敲麻', text: '这是一个多人在线麻将游戏，支持哈灵规则。\n先输入你的昵称，然后创建或加入房间开始游戏。' },
+                { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕上会弹出对应按钮。' },
+                { title: '邀请好友', text: '创建房间后，点击「邀请」按钮可以生成二维码或链接分享给好友，扫码即可加入。' }
+            ];
+            let cur = 0;
+            function render() {
+                let ov = document.getElementById('_onboardOv');
+                if (!ov) {
+                    ov = document.createElement('div');
+                    ov.id = '_onboardOv';
+                    ov.className = 'onboard-overlay';
+                    document.body.appendChild(ov);
+                }
+                const s = steps[cur];
+                const dots = steps.map((_, i) => `<div class="onboard-step${i === cur ? ' active' : ''}"></div>`).join('');
+                ov.innerHTML = `<div class="onboard-card">
+                    <h3>${s.title}</h3>
+                    <div class="onboard-steps">${dots}</div>
+                    <p>${s.text.replace(/\n/g, '<br>')}</p>
+                    <button id="_onboardNext">${cur < steps.length - 1 ? '下一步' : '开始游戏'}</button>
+                </div>`;
+                document.getElementById('_onboardNext').onclick = () => {
+                    cur++;
+                    if (cur >= steps.length) {
+                        ov.remove();
+                        localStorage.setItem('mj_onboarded', '1');
+                    } else { render(); }
+                };
+            }
+            render();
+        })();
+
+        // Toast提示 — level: 'info'(default) | 'error' | 'success' | 'warning'
+        function showToast(message, duration = 2000, level = 'info') {
             const toast = document.createElement('div');
-            toast.className = 'toast';
+            toast.className = 'toast' + (level !== 'info' ? ' toast-' + level : '');
             toast.textContent = message;
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), duration);
         }
@@ -7067,20 +7324,42 @@
         }
         
         // 显示/隐藏轮到自己的提示
+        let _titleFlashTimer = null;
+        const _originalTitle = document.title;
+
         function showTurnIndicator(show = true) {
             const indicator = document.getElementById('turnIndicator');
             if (!indicator) return;
             
             if (show) {
                 indicator.classList.add('active');
-                // 3秒后自动隐藏
-                setTimeout(() => {
-                    indicator.classList.remove('active');
-                }, 3000);
+                setTimeout(() => indicator.classList.remove('active'), 3000);
+
+                if (navigator.vibrate) navigator.vibrate(200);
+
+                const flash = document.createElement('div');
+                flash.className = 'turn-flash-overlay';
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 900);
+
+                if (document.hidden && !_titleFlashTimer) {
+                    let on = false;
+                    _titleFlashTimer = setInterval(() => {
+                        document.title = (on = !on) ? '🎯 轮到你了！' : _originalTitle;
+                    }, 800);
+                }
             } else {
                 indicator.classList.remove('active');
             }
         }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && _titleFlashTimer) {
+                clearInterval(_titleFlashTimer);
+                _titleFlashTimer = null;
+                document.title = _originalTitle;
+            }
+        });
         
         // 更新手牌区域的轮到自己效果
         function updateMyTurnEffect(isMyTurn) {

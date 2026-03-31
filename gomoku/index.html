@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>五子棋 - 多人联机版 | AI小游戏平台</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,8 +40,17 @@
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
+            opacity: 0;
+            transform: translateY(16px);
         }
-        .screen.active { display: flex; }
+        .screen.active {
+            display: flex;
+            animation: screenFadeIn 0.35s ease forwards;
+        }
+        @keyframes screenFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* 大厅界面 */
         .lobby-title {
@@ -589,6 +598,18 @@
             z-index: 2000;
             animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
         }
+        .toast.toast-error {
+            background: rgba(60, 10, 10, 0.95);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.3);
+        }
+        .toast.toast-success {
+            background: rgba(10, 50, 20, 0.95);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+        }
+        .toast.toast-warning {
+            background: rgba(50, 30, 5, 0.95);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+        }
 
         @keyframes toastIn {
             from { opacity: 0; transform: translate(-50%, 20px); }
@@ -597,6 +618,14 @@
 
         @keyframes toastOut {
             to { opacity: 0; transform: translate(-50%, -20px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
 
         /* 返回链接 */
@@ -732,7 +761,7 @@
 
         .chat-toggle-btn {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
             left: 20px;
             width: 48px;
             height: 48px;
@@ -765,7 +794,7 @@
         .chat-panel {
             display: none;
             position: fixed;
-            bottom: 80px;
+            bottom: calc(80px + env(safe-area-inset-bottom, 0px));
             left: 20px;
             width: 300px;
             max-height: 380px;
@@ -993,12 +1022,70 @@
             padding: 6px 12px;
         }
         .invite-cancel-btn:hover { color: rgba(255,255,255,0.7); }
+
+        /* 连接状态指示灯 */
+        .conn-status {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            z-index: 999;
+            background: #22c55e;
+            box-shadow: 0 0 6px #22c55e;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .conn-status.reconnecting {
+            background: #f59e0b;
+            box-shadow: 0 0 6px #f59e0b;
+            animation: connBlink 1s infinite;
+        }
+        .conn-status.disconnected {
+            background: #ef4444;
+            box-shadow: 0 0 6px #ef4444;
+        }
+        @keyframes connBlink {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 护眼模式 */
+        body.eye-comfort .lobby-title,
+        body.eye-comfort .btn {
+            text-shadow: none !important;
+        }
+        body.eye-comfort .board {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3) !important;
+        }
+        .eye-comfort-btn {
+            position: fixed;
+            top: 12px;
+            right: 30px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.4);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            cursor: pointer;
+            z-index: 998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .eye-comfort-btn:hover { border-color: rgba(255,255,255,0.4); color: rgba(255,255,255,0.8); }
+        .eye-comfort-btn.active { background: rgba(34,197,94,0.3); border-color: rgba(34,197,94,0.5); color: #22c55e; }
     </style>
 </head>
 <body>
     <a href="../" class="back-link">
         <i class="fas fa-arrow-left"></i> 返回游戏大厅
     </a>
+    <div class="conn-status" id="connStatus" title="已连接"></div>
+    <button class="eye-comfort-btn" id="eyeComfortBtn" onclick="toggleEyeComfort()" title="护眼模式">👁</button>
 
     <!-- 扫码邀请专属界面 -->
     <div class="invite-overlay" id="inviteOverlay">
@@ -1119,7 +1206,7 @@
     </div>
 
     <!-- 结果弹窗 -->
-    <div class="modal" id="resultModal">
+    <div class="modal" id="resultModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2 class="modal-title" id="resultTitle">游戏结束</h2>
             <div class="winner-display" id="winnerDisplay">
@@ -1133,7 +1220,7 @@
     </div>
     
     <!-- 悔棋请求弹窗 -->
-    <div class="modal" id="undoModal">
+    <div class="modal" id="undoModal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <h2 class="modal-title">🔄 悔棋请求</h2>
             <p class="modal-message" id="undoMessage">对方请求悔棋，是否同意？</p>
@@ -1148,8 +1235,20 @@
         </div>
     </div>
 
+    <!-- 通用确认弹窗 -->
+    <div class="modal" id="confirmModal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h2 class="modal-title" id="confirmTitle">确认</h2>
+            <p class="modal-message" id="confirmMessage"></p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button class="btn" id="confirmYesBtn"><i class="fas fa-check"></i> 确定</button>
+                <button class="btn secondary" id="confirmNoBtn"><i class="fas fa-times"></i> 取消</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 分享弹窗 -->
-    <div class="share-modal" id="shareModal">
+    <div class="share-modal" id="shareModal" role="dialog" aria-modal="true">
         <div class="share-modal-content">
             <div class="share-modal-title">
                 <i class="fas fa-qrcode"></i> 邀请好友
@@ -1682,12 +1781,18 @@
             
             socket.on('connect', () => {
                 console.log('已连接到服务器');
+                updateConnStatus('connected');
                 checkAutoJoin();
             });
             
             socket.on('connect_error', (err) => {
                 console.error('连接失败:', err.message);
-                showToast('连接服务器失败: ' + err.message);
+                updateConnStatus('disconnected');
+                showToast('连接服务器失败: ' + err.message, 2000, 'error');
+            });
+
+            socket.io.on('reconnect_attempt', () => {
+                updateConnStatus('reconnecting');
             });
 
             socket.on('chat_message', (data) => {
@@ -1744,16 +1849,16 @@
             });
             
             socket.on('opponent_left', () => {
-                showToast('对手已离开');
+                showToast('对手已离开', 2000, 'warning');
                 switchScreen('roomScreen');
             });
             
             socket.on('play_again_request', () => {
-                if (confirm('对手想要再来一局，是否同意？')) {
+                showConfirm('🔄 再来一局', '对手想要再来一局，是否同意？', () => {
                     socket.emit('play_again_accept');
-                } else {
+                }, () => {
                     socket.emit('play_again_reject');
-                }
+                });
             });
             
             socket.on('game_restarted', (data) => {
@@ -1764,7 +1869,7 @@
                 updateTurnDisplay();
                 resetUndoState();
                 document.getElementById('resultModal').classList.remove('active');
-                showToast('新一局开始！');
+                showToast('新一局开始！', 2000, 'success');
             });
             
             // 悔棋相关事件
@@ -1796,7 +1901,7 @@
             });
             
             socket.on('undo_rejected', () => {
-                showToast('对方拒绝了悔棋请求');
+                showToast('对方拒绝了悔棋请求', 2000, 'error');
             });
             
             socket.on('action_error', (data) => {
@@ -1806,6 +1911,7 @@
             
             socket.on('disconnect', () => {
                 console.log('与服务器断开连接');
+                updateConnStatus('disconnected');
             });
         }
 
@@ -1873,7 +1979,7 @@
             }
             const input = document.getElementById('usernameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -1891,7 +1997,7 @@
             }
             const input = document.getElementById('usernameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -1911,9 +2017,9 @@
         function copyRoomCode() {
             const code = document.getElementById('displayRoomCode').textContent;
             navigator.clipboard.writeText(code).then(() => {
-                showToast('房间号已复制');
+                showToast('房间号已复制', 2000, 'success');
             }).catch(() => {
-                showToast('复制失败，请手动复制');
+                showToast('复制失败，请手动复制', 2000, 'error');
             });
         }
 
@@ -1953,7 +2059,7 @@
 
         // 离开游戏
         function leaveGame() {
-            if (confirm('确定要退出游戏吗？')) {
+            showConfirm('退出游戏', '确定要退出游戏吗？', () => {
                 if (isAIMode) {
                     switchScreen('lobbyScreen');
                     isAIMode = false;
@@ -1962,7 +2068,7 @@
                     switchScreen('lobbyScreen');
                     currentRoom = null;
                 }
-            }
+            });
         }
         
         // ==================== 悔棋功能 ====================
@@ -2015,11 +2121,11 @@
             } else {
                 // 联机模式：发送悔棋请求
                 if (!socket) {
-                    showToast('未连接到服务器');
+                    showToast('未连接到服务器', 2000, 'error');
                     return;
                 }
                 if (!socket.connected) {
-                    showToast('服务器连接已断开');
+                    showToast('服务器连接已断开', 2000, 'error');
                     return;
                 }
                 console.log('发送悔棋请求到服务器');
@@ -2089,7 +2195,7 @@
         function playWithAI() {
             const input = document.getElementById('usernameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
@@ -2114,16 +2220,87 @@
             switchScreen('gameScreen');
         }
 
-        // Toast提示
-        function showToast(message) {
+        function updateConnStatus(state) {
+            const dot = document.getElementById('connStatus');
+            if (!dot) return;
+            dot.className = 'conn-status';
+            if (state === 'reconnecting') { dot.classList.add('reconnecting'); dot.title = '重连中...'; }
+            else if (state === 'disconnected') { dot.classList.add('disconnected'); dot.title = '已断开'; }
+            else { dot.title = '已连接'; }
+        }
+
+        function toggleEyeComfort() {
+            const on = document.body.classList.toggle('eye-comfort');
+            document.getElementById('eyeComfortBtn').classList.toggle('active', on);
+            localStorage.setItem('eye_comfort', on ? '1' : '');
+        }
+        if (localStorage.getItem('eye_comfort') === '1') {
+            document.body.classList.add('eye-comfort');
+            document.getElementById('eyeComfortBtn')?.classList.add('active');
+        }
+
+        function showConfirm(title, message, onYes, onNo) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            const yesBtn = document.getElementById('confirmYesBtn');
+            const noBtn  = document.getElementById('confirmNoBtn');
+            const cleanup = () => {
+                modal.classList.remove('active');
+                yesBtn.replaceWith(yesBtn.cloneNode(true));
+                noBtn.replaceWith(noBtn.cloneNode(true));
+            };
+            yesBtn.onclick = () => { cleanup(); if (onYes) onYes(); };
+            noBtn.onclick  = () => { cleanup(); if (onNo) onNo(); };
+            modal.classList.add('active');
+        }
+
+        // 新手引导
+        (function initOnboarding() {
+            if (localStorage.getItem('gomoku_onboarded')) return;
+            const steps = [
+                { title: '欢迎来到五子棋', text: '支持双人对战和人机对战两种模式。\n先输入你的昵称，然后选择游戏模式。' },
+                { title: '游戏操作', text: '轮到你时，点击棋盘上的交叉点放置棋子。\n先连成五子的一方获胜！每局有一次悔棋机会。' }
+            ];
+            let cur = 0;
+            function render() {
+                let ov = document.getElementById('_onboardOv');
+                if (!ov) {
+                    ov = document.createElement('div');
+                    ov.id = '_onboardOv';
+                    ov.className = 'onboard-overlay';
+                    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;';
+                    document.body.appendChild(ov);
+                }
+                const s = steps[cur];
+                const dots = steps.map((_, i) => `<div style="width:8px;height:8px;border-radius:50%;background:${i===cur?'var(--gold)':'rgba(255,255,255,0.2)'}"></div>`).join('');
+                ov.innerHTML = `<div style="background:rgba(15,10,35,0.95);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:30px;max-width:340px;width:90%;text-align:center;color:#fff;">
+                    <h3 style="color:var(--gold);margin:0 0 16px;font-size:1.2rem;">${s.title}</h3>
+                    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;">${dots}</div>
+                    <p style="font-size:0.95rem;line-height:1.6;margin:0 0 20px;color:rgba(255,255,255,0.8);">${s.text.replace(/\n/g,'<br>')}</p>
+                    <button id="_onboardNext" style="padding:10px 30px;border:none;border-radius:20px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:1rem;cursor:pointer;">${cur<steps.length-1?'下一步':'开始游戏'}</button>
+                </div>`;
+                document.getElementById('_onboardNext').onclick = () => {
+                    cur++;
+                    if (cur >= steps.length) { ov.remove(); localStorage.setItem('gomoku_onboarded','1'); }
+                    else { render(); }
+                };
+            }
+            render();
+        })();
+
+        // Toast提示 — level: 'info'(default) | 'error' | 'success' | 'warning'
+        function showToast(message, duration = 2000, level = 'info') {
             const existing = document.querySelector('.toast');
             if (existing) existing.remove();
             
             const toast = document.createElement('div');
-            toast.className = 'toast';
+            toast.className = 'toast' + (level !== 'info' ? ' toast-' + level : '');
             toast.textContent = message;
+            toast.setAttribute('role', 'status');
+            toast.setAttribute('aria-live', 'polite');
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 2000);
+            setTimeout(() => toast.remove(), duration);
         }
 
         // ==================== 分享功能 ====================
@@ -2204,7 +2381,7 @@
         function confirmInviteJoin() {
             const input = document.getElementById('inviteNicknameInput');
             if (!input.value.trim()) {
-                showToast('请先输入你的昵称');
+                showToast('请先输入你的昵称', 2000, 'warning');
                 input.focus();
                 return;
             }
