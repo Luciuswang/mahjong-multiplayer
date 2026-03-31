@@ -12,29 +12,45 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --table-green: #111633;
-            --table-dark: #0a0e22;
-            --gold: #67e8f9;
-            --gold-light: #a5f3fc;
-            --tile-bg: #f0f1f5;
-            --tile-border: rgba(180,185,200,0.6);
+            --table-green: #0e0a1e;
+            --table-dark: #08061a;
+            --gold: #c084fc;
+            --gold-light: #d8b4fe;
+            --tile-bg: #eef0f5;
+            --tile-border: rgba(160,150,180,0.5);
             --red: #ef4444;
-            --blue: #0891b2;
+            --blue: #7c3aed;
             --green: #10b981;
-            --neon-cyan: rgba(0, 210, 255, 0.5);
-            --neon-orange: rgba(255, 120, 50, 0.4);
+            --neon-primary: rgba(168, 85, 247, 0.6);
+            --neon-secondary: rgba(249, 115, 22, 0.5);
+            --neon-cyan: rgba(168, 85, 247, 0.5);
+            --neon-orange: rgba(249, 115, 22, 0.4);
+            --seat-self: #a855f7;
+            --seat-right: #f97316;
+            --seat-opposite: #06b6d4;
+            --seat-left: #22c55e;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        /* 横屏提示已移除 - 竖屏模式 */
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: linear-gradient(180deg, #050a18 0%, #0a1628 30%, #0d1b30 60%, #060e1f 100%);
+            background: #05030e;
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120, 40, 200, 0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 70% 40% at 50% 90%, rgba(100, 50, 180, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
         /* 通用容器 */
@@ -53,7 +69,7 @@
             font-family: 'Ma Shan Zheng', cursive;
             font-size: 3.5rem;
             color: var(--gold);
-            text-shadow: 0 0 30px rgba(129,140,248,0.4), 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.4), 0 2px 4px rgba(0,0,0,0.3);
             margin-bottom: 10px;
         }
 
@@ -64,10 +80,10 @@
         }
 
         .lobby-container {
-            background: rgba(255,255,255,0.05);
+            background: rgba(12, 8, 28, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(168, 85, 247, 0.12);
             border-radius: 20px;
             padding: 40px;
             max-width: 450px;
@@ -108,7 +124,7 @@
             width: 100%;
             padding: 15px;
             font-size: 1.1rem;
-            border: 1px solid rgba(129,140,248,0.3);
+            border: 1px solid rgba(168,85,247,0.3);
             border-radius: 10px;
             background: rgba(255,255,255,0.06);
             color: #fff;
@@ -152,7 +168,7 @@
         
         .voice-btn.active {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(129,140,248,0.3) 0%, rgba(99,102,241,0.3) 100%);
+            background: linear-gradient(135deg, rgba(168,85,247,0.3) 0%, rgba(124,58,237,0.3) 100%);
             color: var(--gold);
             font-weight: bold;
         }
@@ -168,7 +184,7 @@
             margin: 12px 0;
             font-size: 1.2rem;
             font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
             color: #fff;
             border: none;
             border-radius: 12px;
@@ -179,13 +195,13 @@
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(129,140,248,0.4);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.4);
         }
 
         .btn.secondary {
             background: rgba(255,255,255,0.06);
             color: #fff;
-            border: 1px solid rgba(129,140,248,0.3);
+            border: 1px solid rgba(168, 85, 247, 0.3);
         }
 
         .btn:disabled {
@@ -224,11 +240,11 @@
             font-weight: bold;
             color: var(--gold);
             letter-spacing: 6px;
-            text-shadow: 0 0 20px rgba(129,140,248,0.5);
+            text-shadow: 0 0 20px rgba(168,85,247,0.5);
             background: rgba(255,255,255,0.05);
             padding: 10px 20px;
             border-radius: 10px;
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
         }
 
         .room-code-label {
@@ -249,10 +265,10 @@
         }
 
         .room-container {
-            background: rgba(255,255,255,0.05);
+            background: rgba(12, 8, 28, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(168, 85, 247, 0.12);
             border-radius: 20px;
             padding: 30px;
             max-width: 600px;
@@ -281,8 +297,8 @@
 
         .player-slot.filled {
             border-style: solid;
-            border-color: rgba(129,140,248,0.3);
-            background: rgba(129,140,248,0.06);
+            border-color: rgba(168,85,247,0.3);
+            background: rgba(168,85,247,0.06);
         }
 
         .player-slot.ready {
@@ -355,10 +371,10 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 600px;
+            max-width: 620px;
             padding: 8px 15px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(12, 8, 28, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.08);
             border-radius: 10px;
             margin-bottom: 8px;
         }
@@ -379,7 +395,7 @@
         .game-info-icon {
             width: 26px;
             height: 26px;
-            background: linear-gradient(135deg, #0d9488, #0891b2);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -387,32 +403,36 @@
             color: #fff;
             font-weight: bold;
             font-size: 0.75rem;
-            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
         }
 
         /* 3D 透视容器 */
         .table-perspective {
-            perspective: 1400px;
+            perspective: 1200px;
             perspective-origin: 50% 85%;
             width: 100%;
-            max-width: 600px;
+            max-width: 620px;
         }
 
         /* 麻将桌 - 3D 透视布局 */
         .mahjong-table {
-            background: radial-gradient(ellipse at center, #1a1f3a 0%, #111633 40%, #0a0e22 100%);
-            border: 2px solid rgba(0, 210, 255, 0.25);
-            border-radius: 12px;
+            background:
+                radial-gradient(ellipse 120% 80% at 50% 40%, rgba(80, 40, 140, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at center, #141028 0%, #0e0a20 40%, #08061a 100%);
+            border: 2px solid rgba(168, 85, 247, 0.3);
+            border-radius: 14px;
             box-shadow:
-                inset 0 0 80px rgba(0, 180, 255, 0.04),
-                0 0 20px rgba(0, 180, 255, 0.12),
-                0 0 60px rgba(0, 180, 255, 0.06),
-                0 8px 32px rgba(0,0,0,0.6);
+                inset 0 0 60px rgba(100, 50, 180, 0.06),
+                inset 0 0 120px rgba(80, 30, 160, 0.03),
+                0 0 25px rgba(168, 85, 247, 0.15),
+                0 0 60px rgba(120, 50, 200, 0.08),
+                0 0 100px rgba(168, 85, 247, 0.04),
+                0 10px 40px rgba(0,0,0,0.7);
             width: 100%;
             display: grid;
             grid-template-rows: auto 1fr auto;
             grid-template-columns: 1fr;
-            padding: 10px;
+            padding: 12px;
             gap: 6px;
             transform: rotateX(15deg);
             transform-style: preserve-3d;
@@ -424,13 +444,22 @@
             content: '';
             position: absolute;
             inset: -2px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, rgba(0,210,255,0.3), rgba(255,100,50,0.15), rgba(0,210,255,0.3));
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(249,115,22,0.2), rgba(168,85,247,0.3));
             z-index: -1;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
             -webkit-mask-composite: xor;
             padding: 2px;
+        }
+
+        .mahjong-table::after {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(168, 85, 247, 0.06);
+            pointer-events: none;
         }
 
         .table-row-middle {
@@ -467,22 +496,27 @@
         }
 
         .seat-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, #0d9488, #0891b2);
-            border-radius: 50%;
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.3rem;
-            border: 2px solid rgba(0, 210, 255, 0.4);
-            box-shadow: 0 0 12px rgba(0, 210, 255, 0.15);
+            border: 2px solid rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
         }
+
+        #seat-0 .seat-avatar { border-color: rgba(168, 85, 247, 0.6); }
+        #seat-1 .seat-avatar { border-color: rgba(249, 115, 22, 0.5); background: linear-gradient(135deg, #c2410c, #f97316); }
+        #seat-2 .seat-avatar { border-color: rgba(6, 182, 212, 0.5); background: linear-gradient(135deg, #0891b2, #06b6d4); }
+        #seat-3 .seat-avatar { border-color: rgba(34, 197, 94, 0.5); background: linear-gradient(135deg, #16a34a, #22c55e); }
 
         .seat-avatar.current-turn {
             animation: pulse-neon 1.2s infinite;
-            border-color: rgba(0, 255, 200, 0.7);
-            box-shadow: 0 0 20px rgba(0, 255, 200, 0.4), 0 0 40px rgba(0, 255, 200, 0.15);
+            border-color: rgba(168, 85, 247, 0.8);
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.5), 0 0 35px rgba(168, 85, 247, 0.2);
         }
 
         .seat-avatar.offline {
@@ -497,8 +531,8 @@
         }
 
         @keyframes pulse-neon {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); }
-            50% { transform: scale(1.08); box-shadow: 0 0 30px rgba(0, 255, 200, 0.6), 0 0 60px rgba(0, 255, 200, 0.2); }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 18px rgba(168, 85, 247, 0.5); }
+            50% { transform: scale(1.08); box-shadow: 0 0 28px rgba(168, 85, 247, 0.7), 0 0 50px rgba(168, 85, 247, 0.25); }
         }
 
         @keyframes pulse {
@@ -513,12 +547,12 @@
         }
 
         .seat-wind {
-            background: linear-gradient(135deg, #0d9488, #0891b2);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             color: white;
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 0.75rem;
-            box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+            box-shadow: 0 0 8px rgba(168, 85, 247, 0.25);
         }
 
         .seat-tiles {
@@ -536,8 +570,8 @@
             justify-content: center;
             gap: 8px;
             padding: 10px;
-            background: rgba(0, 15, 40, 0.5);
-            border: 1px solid rgba(0, 210, 255, 0.1);
+            background: rgba(10, 5, 25, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.1);
             border-radius: 10px;
             position: relative;
         }
@@ -546,16 +580,16 @@
             content: '';
             position: absolute;
             top: 50%; left: 50%;
-            width: 60px; height: 60px;
+            width: 70px; height: 70px;
             transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(0,210,255,0.08) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
         }
 
         .discard-area {
-            background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(5, 3, 15, 0.4);
+            border: 1px solid rgba(168, 85, 247, 0.1);
             border-radius: 10px;
             padding: 10px;
             width: 100%;
@@ -569,20 +603,21 @@
 
         .last-discard-label {
             font-size: 0.85rem;
-            color: rgba(255,255,255,0.7);
+            color: rgba(200, 180, 255, 0.7);
         }
 
         /* 手牌区域 - 不受 3D 影响 */
         .my-hand-area {
             width: 100%;
-            max-width: 600px;
-            background: rgba(0, 15, 40, 0.7);
-            border: 1px solid rgba(0, 210, 255, 0.15);
-            border-radius: 12px;
+            max-width: 620px;
+            background: rgba(12, 8, 30, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.15);
+            border-radius: 14px;
             padding: 12px;
             margin-top: 8px;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 -4px 20px rgba(168, 85, 247, 0.06);
         }
 
         .my-hand-label {
@@ -612,8 +647,8 @@
         .meld-group {
             display: flex;
             gap: 2px;
-            background: rgba(0, 15, 40, 0.4);
-            border: 1px solid rgba(0, 210, 255, 0.08);
+            background: rgba(10, 5, 25, 0.5);
+            border: 1px solid rgba(168, 85, 247, 0.08);
             padding: 4px;
             border-radius: 5px;
         }
@@ -622,82 +657,96 @@
         .tile {
             width: 45px;
             height: 63px;
-            background-color: #f0f1f5;
+            background-color: #eef0f5;
             background-image: url('img/majiang.png');
             background-repeat: no-repeat;
-            border: 1px solid rgba(180,185,200,0.6);
+            border: 1px solid rgba(160, 150, 180, 0.5);
             border-radius: 5px;
             cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             box-shadow:
-                1px 3px 0 0 #c8cbd4,
-                2px 5px 0 0 #b0b3bc,
-                0 6px 12px rgba(0,0,0,0.4);
+                1px 2px 0 0 #d0cee0,
+                2px 4px 0 0 #a8a4be,
+                3px 6px 0 0 #8a85a0,
+                0 8px 16px rgba(0,0,0,0.45);
             position: relative;
             user-select: none;
         }
-        
+
+        .tile::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 1px;
+            right: 1px;
+            height: 5px;
+            background: linear-gradient(180deg, #b8b5cc, #908ca6);
+            border-radius: 0 0 3px 3px;
+            pointer-events: none;
+        }
+
         /* 牌面加载中状态 */
         .tile.loading {
             background-image: none;
-            background: linear-gradient(135deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+            background: linear-gradient(135deg, #dde0ea 25%, #f0f2f8 50%, #dde0ea 75%);
             background-size: 200% 100%;
             animation: tileLoading 1s ease-in-out infinite;
         }
-        
+
         @keyframes tileLoading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
-        
-        /* 精灵图加载完成后移除加载状态 */
+
         body.sprites-loaded .tile.loading {
             animation: none;
-            background: #f8fafc;
+            background: #eef0f5;
         }
 
         .tile:hover {
             transform: translateY(-8px);
             box-shadow:
-                1px 3px 0 0 #c8cbd4,
-                2px 5px 0 0 #b0b3bc,
-                0 12px 20px rgba(0,0,0,0.5);
+                1px 2px 0 0 #d0cee0,
+                2px 4px 0 0 #a8a4be,
+                3px 6px 0 0 #8a85a0,
+                0 14px 24px rgba(0,0,0,0.5);
         }
 
         .tile.selected {
             transform: translateY(-12px);
-            border-color: rgba(0, 210, 255, 0.7);
+            border-color: rgba(168, 85, 247, 0.7);
             box-shadow:
-                0 0 15px rgba(0, 210, 255, 0.5),
-                0 0 30px rgba(0, 210, 255, 0.2),
-                1px 3px 0 0 #c8cbd4;
+                0 0 12px rgba(168, 85, 247, 0.5),
+                0 0 25px rgba(168, 85, 247, 0.2),
+                1px 2px 0 0 #d0cee0;
         }
-        
+
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
             margin-left: 25px;
-            border: 2px solid rgba(0, 255, 200, 0.7);
-            box-shadow: 0 0 15px rgba(0, 255, 200, 0.6), 0 0 30px rgba(0, 255, 200, 0.3);
+            border: 2px solid rgba(168, 85, 247, 0.7);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3);
             animation: newTilePulse 1.2s ease-in-out infinite;
             position: relative;
         }
-        
+
         .tile.new-tile::before {
             content: '新';
             position: absolute;
             top: -10px;
             right: -10px;
-            background: linear-gradient(135deg, #0d9488, #06b6d4);
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
             color: white;
             font-size: 10px;
             padding: 2px 5px;
             border-radius: 8px;
             font-weight: bold;
+            z-index: 2;
         }
-        
+
         @keyframes newTilePulse {
-            0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 200, 0.6), 0 0 30px rgba(0, 255, 200, 0.3); }
-            50% { box-shadow: 0 0 25px rgba(0, 255, 200, 0.8), 0 0 50px rgba(0, 255, 200, 0.4); }
+            0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(168, 85, 247, 0.4); }
         }
         
         /* 每个座位的弃牌区 */
@@ -708,41 +757,44 @@
             justify-content: center;
             margin-top: 8px;
             padding: 5px;
-            background: rgba(0, 10, 30, 0.4);
-            border: 1px solid rgba(0, 210, 255, 0.06);
+            background: rgba(8, 5, 20, 0.45);
+            border: 1px solid rgba(168, 85, 247, 0.06);
             border-radius: 8px;
             min-height: 35px;
             max-width: 200px;
         }
-        
+
         .opponents-row .seat-discards {
             margin-top: 5px;
             max-width: 100px;
         }
-        
+
         .my-discards {
             max-width: 350px;
             min-height: 45px;
         }
-        
+
         .deck-info {
-            background: rgba(0, 15, 40, 0.6);
-            border: 1px solid rgba(0, 210, 255, 0.15);
-            padding: 10px 20px;
-            border-radius: 10px;
+            background: rgba(15, 8, 35, 0.7);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            padding: 10px 22px;
+            border-radius: 12px;
             font-size: 1.1rem;
-            color: #67e8f9;
-            text-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+            color: #c084fc;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
         }
 
         .tile.back {
             background-image: none;
-            background: linear-gradient(135deg, #1a2744 0%, #0f1a30 50%, #162040 100%);
-            border-color: rgba(0, 180, 255, 0.2);
+            background:
+                repeating-linear-gradient(45deg, rgba(120, 60, 200, 0.06) 0px, rgba(120, 60, 200, 0.06) 2px, transparent 2px, transparent 8px),
+                linear-gradient(135deg, #1e1040 0%, #150d30 50%, #1a1245 100%);
+            border-color: rgba(168, 85, 247, 0.2);
             box-shadow:
-                1px 3px 0 0 #0a1525,
-                2px 5px 0 0 #060f1c,
-                0 6px 12px rgba(0,0,0,0.4);
+                1px 2px 0 0 #120a28,
+                2px 4px 0 0 #0a0618,
+                3px 6px 0 0 #060412,
+                0 8px 14px rgba(0,0,0,0.45);
         }
 
         .tile.back::after {
@@ -752,35 +804,43 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 1.2rem;
-            opacity: 0.4;
+            opacity: 0.35;
+            bottom: auto;
+            height: auto;
+            border-radius: 0;
+            background: none;
         }
 
         /* 透视厚度修正：对家 — 只看到正面朝你的立面 */
         #seat-2 .tile {
             box-shadow:
-                0px 3px 0 0 #c8cbd4,
-                0px 5px 0 0 #b0b3bc,
-                0 6px 12px rgba(0,0,0,0.4);
+                0px 2px 0 0 #d0cee0,
+                0px 4px 0 0 #a8a4be,
+                0px 6px 0 0 #8a85a0,
+                0 8px 14px rgba(0,0,0,0.4);
         }
         #seat-2 .tile.back {
             box-shadow:
-                0px 3px 0 0 #0a1525,
-                0px 5px 0 0 #060f1c,
-                0 6px 12px rgba(0,0,0,0.4);
+                0px 2px 0 0 #120a28,
+                0px 4px 0 0 #0a0618,
+                0px 6px 0 0 #060412,
+                0 8px 14px rgba(0,0,0,0.4);
         }
 
         /* 透视厚度修正：右家 — 看到左侧面 + 下面 */
         #seat-1 .tile {
             box-shadow:
-                -1px 3px 0 0 #c8cbd4,
-                -2px 5px 0 0 #b0b3bc,
-                0 6px 12px rgba(0,0,0,0.4);
+                -1px 2px 0 0 #d0cee0,
+                -2px 4px 0 0 #a8a4be,
+                -3px 6px 0 0 #8a85a0,
+                0 8px 14px rgba(0,0,0,0.4);
         }
         #seat-1 .tile.back {
             box-shadow:
-                -1px 3px 0 0 #0a1525,
-                -2px 5px 0 0 #060f1c,
-                0 6px 12px rgba(0,0,0,0.4);
+                -1px 2px 0 0 #120a28,
+                -2px 4px 0 0 #0a0618,
+                -3px 6px 0 0 #060412,
+                0 8px 14px rgba(0,0,0,0.4);
         }
 
         .tile.small {
@@ -834,9 +894,15 @@
         /* 动作按钮 */
         .action-buttons {
             display: none;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 12px;
             justify-content: center;
+            background: rgba(12, 8, 30, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            border-radius: 20px;
+            padding: 8px 14px;
         }
 
         .action-buttons.active {
@@ -844,11 +910,11 @@
         }
 
         .action-btn {
-            padding: 12px 25px;
-            font-size: 1.1rem;
+            padding: 10px 22px;
+            font-size: 1rem;
             font-family: 'Noto Sans SC', sans-serif; font-weight: 700;
             border: none;
-            border-radius: 8px;
+            border-radius: 16px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-transform: uppercase;
@@ -857,50 +923,56 @@
             overflow: hidden;
         }
 
+        .action-btn:hover {
+            transform: scale(1.06);
+            filter: brightness(1.15);
+        }
+
         .action-btn::after {
             content: '';
             position: absolute;
             top: 0; left: -100%;
             width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
             transition: left 0.4s ease;
         }
         .action-btn:hover::after { left: 100%; }
 
         .action-btn.hu {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            background: linear-gradient(135deg, #dc2626, #991b1b);
             color: white;
-            box-shadow: 0 0 15px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 0 14px rgba(220, 38, 38, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
         }
 
         .action-btn.gang {
-            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            background: linear-gradient(135deg, #7c3aed, #5b21b6);
             color: white;
-            box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+            box-shadow: 0 0 14px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .action-btn.peng {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            background: linear-gradient(135deg, #2563eb, #1e40af);
             color: white;
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 0 14px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .action-btn.pass {
-            background: rgba(255,255,255,0.08);
-            color: rgba(255,255,255,0.7);
-            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
         }
 
         .action-btn.draw {
-            background: linear-gradient(135deg, #0891b2, #0e7490);
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
             color: #fff;
-            box-shadow: 0 0 15px rgba(8, 145, 178, 0.3);
+            box-shadow: 0 0 14px rgba(124, 58, 237, 0.3), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         .action-btn.discard {
-            background: linear-gradient(135deg, #059669, #047857);
+            background: linear-gradient(135deg, #059669, #065f46);
             color: white;
-            box-shadow: 0 0 15px rgba(5, 150, 105, 0.3);
+            box-shadow: 0 0 14px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
         }
 
         /* Toast提示 */
@@ -909,13 +981,15 @@
             top: 20%;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
+            background: rgba(12, 8, 30, 0.92);
             color: white;
             padding: 15px 30px;
-            border-radius: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
             z-index: 2000;
             animation: fadeInOut 2s ease forwards;
             font-size: 1.2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }
 
         @keyframes fadeInOut {
@@ -944,15 +1018,16 @@
         }
 
         .modal-content {
-            background: rgba(15,23,42,0.95);
+            background: rgba(12, 8, 28, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168, 85, 247, 0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
             max-width: 500px;
             width: 90%;
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.08);
         }
 
         .modal-title {
@@ -1022,7 +1097,7 @@
             cursor: pointer;
         }
 
-        /* 聊天悬浮钮（仅一处定义，避免与下文重复规则叠加导致错位/错色） */
+        /* 聊天悬浮钮 */
         .chat-toggle-btn {
             position: fixed;
             bottom: 20px;
@@ -1031,14 +1106,14 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: linear-gradient(145deg, #a5b4fc, var(--gold), #4f46e5);
+            background: linear-gradient(145deg, #a855f7, #7c3aed);
             color: #fff;
             border: none;
             font-size: 1.35rem;
             line-height: 1;
             cursor: pointer;
             z-index: 1200;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.3), 0 4px 14px rgba(0,0,0,0.35);
             display: none;
             align-items: center;
             justify-content: center;
@@ -1089,27 +1164,27 @@
             left: 20px;
             width: 300px;
             max-height: 420px;
-            background: rgba(15,23,42,0.95);
+            background: rgba(12, 8, 28, 0.95);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(129,140,248,0.15);
+            border: 1px solid rgba(168, 85, 247, 0.15);
             border-radius: 15px;
             overflow: hidden;
             z-index: 1300;
             flex-direction: column;
         }
-        
+
         .chat-panel.active {
             display: flex;
         }
-        
+
         .chat-panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px 15px;
-            background: rgba(129,140,248,0.1);
-            border-bottom: 1px solid rgba(129,140,248,0.15);
+            background: rgba(168, 85, 247, 0.08);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.12);
         }
         
         .chat-panel .chat-messages {
@@ -1184,20 +1259,26 @@
         .score-panel {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
             margin-bottom: 10px;
             flex-wrap: wrap;
         }
-        
+
         .score-item {
-            background: rgba(0, 15, 40, 0.6);
-            border: 1px solid rgba(0, 210, 255, 0.12);
+            background: rgba(12, 8, 30, 0.7);
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            border-left: 3px solid rgba(168, 85, 247, 0.4);
             border-radius: 8px;
-            padding: 5px 15px;
+            padding: 5px 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
+        .score-item:nth-child(1) { border-left-color: rgba(168, 85, 247, 0.5); }
+        .score-item:nth-child(2) { border-left-color: rgba(249, 115, 22, 0.5); }
+        .score-item:nth-child(3) { border-left-color: rgba(6, 182, 212, 0.5); }
+        .score-item:nth-child(4) { border-left-color: rgba(34, 197, 94, 0.5); }
         
         .flower-count {
             font-size: 0.7rem;
@@ -1213,8 +1294,8 @@
         .score-value {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #67e8f9;
-            text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
+            color: #d8b4fe;
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
         }
         
         .score-value.positive { color: #34d399; text-shadow: 0 0 8px rgba(52, 211, 153, 0.3); }
@@ -1260,10 +1341,10 @@
         .round-result-modal.active { display: flex; }
         
         .round-result-content {
-            background: rgba(15,23,42,0.95);
+            background: rgba(12, 8, 28, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
             border-radius: 20px;
             padding: 30px;
             text-align: center;
@@ -1312,7 +1393,7 @@
             justify-content: space-between;
             padding: 10px;
             margin-top: 10px;
-            background: rgba(129,140,248,0.2);
+            background: rgba(168,85,247,0.2);
             border-radius: 8px;
             font-size: 1.1rem;
         }
@@ -1334,10 +1415,10 @@
         .match-result-modal.active { display: flex; }
         
         .match-result-content {
-            background: rgba(15,23,42,0.95);
+            background: rgba(12, 8, 28, 0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
             border-radius: 20px;
             padding: 40px;
             text-align: center;
@@ -1367,7 +1448,7 @@
         }
         
         .ranking-item.first { 
-            background: linear-gradient(135deg, rgba(129,140,248,0.3), rgba(129,140,248,0.1));
+            background: linear-gradient(135deg, rgba(168,85,247,0.3), rgba(168,85,247,0.1));
             border: 2px solid var(--gold);
         }
         
@@ -1426,7 +1507,7 @@
             background: rgba(15,23,42,0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
             border-radius: 15px;
             padding: 25px 35px;
             text-align: center;
@@ -1471,18 +1552,22 @@
             .room-code { font-size: 1.8rem; letter-spacing: 4px; padding: 8px 15px; }
             .players-grid { grid-template-columns: 1fr; }
             .tile { width: 34px; height: 47px; }
+            .tile::after { height: 4px; bottom: -4px; }
             .tile.small { width: 20px; height: 28px; }
+            .tile.small::after { height: 3px; bottom: -3px; }
             .tile.discarded { width: 24px; height: 33px; }
+            .tile.discarded::after { height: 3px; bottom: -3px; }
             .tile.new-tile { margin-left: 8px; }
             .chat-area { display: none !important; }
             .my-hand { gap: 2px; }
             .score-panel { gap: 8px; }
             .score-item { min-width: 60px; padding: 4px 10px; }
-            
+            .seat-avatar { width: 38px; height: 38px; border-radius: 10px; }
+
             .opponents-row {
                 flex-wrap: nowrap;
             }
-            
+
             .seat-discards {
                 max-width: 100px;
             }
@@ -1570,9 +1655,10 @@
             }
             
             .seat-avatar {
-                width: 22px;
-                height: 22px;
+                width: 24px;
+                height: 24px;
                 font-size: 12px;
+                border-radius: 6px;
             }
             
             .seat-name {
@@ -1594,24 +1680,43 @@
                 height: 42px;
                 font-size: 20px;
                 border-radius: 4px;
+                box-shadow:
+                    1px 2px 0 0 #d0cee0,
+                    2px 3px 0 0 #a8a4be,
+                    0 5px 10px rgba(0,0,0,0.4);
             }
-            
+
+            .tile::after {
+                height: 3px;
+                bottom: -3px;
+            }
+
             .tile.small {
                 width: 16px;
                 height: 22px;
                 font-size: 10px;
             }
-            
+
+            .tile.small::after {
+                height: 2px;
+                bottom: -2px;
+            }
+
             .tile.discarded {
                 width: 18px;
                 height: 25px;
                 font-size: 12px;
             }
-            
+
+            .tile.discarded::after {
+                height: 2px;
+                bottom: -2px;
+            }
+
             .tile.new-tile {
                 margin-left: 10px;
             }
-            
+
             /* 弃牌区紧凑 */
             .seat-discards {
                 gap: 1px;
@@ -1655,16 +1760,19 @@
             
             /* 操作按钮 */
             .action-buttons {
-                gap: 10px;
+                gap: 6px;
                 margin-top: 10px;
                 flex-wrap: wrap;
                 justify-content: center;
+                padding: 6px 10px;
+                border-radius: 16px;
             }
-            
+
             .action-btn {
-                padding: 10px 20px;
-                font-size: 1rem;
-                min-width: 60px;
+                padding: 8px 16px;
+                font-size: 0.95rem;
+                min-width: 55px;
+                border-radius: 14px;
             }
             
             /* 隐藏聊天 */
@@ -1744,7 +1852,7 @@
         
         body.reduce-motion .tile.new-tile {
             animation: none;
-            box-shadow: 0 0 10px rgba(129,140,248,0.9);
+            box-shadow: 0 0 10px rgba(168,85,247,0.9);
         }
         
         body.reduce-motion .seat-avatar.current-turn {
@@ -1946,20 +2054,20 @@
         
         /* 轮到自己时的边框发光 */
         .my-hand-area.my-turn {
-            box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
-                        inset 0 0 15px rgba(0, 255, 200, 0.15);
-            border: 2px solid rgba(0, 255, 200, 0.6);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5),
+                        inset 0 0 15px rgba(168, 85, 247, 0.15);
+            border: 2px solid rgba(168, 85, 247, 0.6);
             animation: myTurnPulse 1.5s ease-in-out infinite;
         }
         
         @keyframes myTurnPulse {
             0%, 100% {
-                box-shadow: 0 0 25px rgba(0, 255, 200, 0.5),
-                            inset 0 0 15px rgba(0, 255, 200, 0.15);
+                box-shadow: 0 0 25px rgba(168, 85, 247, 0.5),
+                            inset 0 0 15px rgba(168, 85, 247, 0.15);
             }
             50% {
-                box-shadow: 0 0 40px rgba(0, 255, 200, 0.7),
-                            inset 0 0 25px rgba(0, 255, 200, 0.25);
+                box-shadow: 0 0 40px rgba(168, 85, 247, 0.7),
+                            inset 0 0 25px rgba(168, 85, 247, 0.25);
             }
         }
         
@@ -2045,7 +2153,7 @@
             justify-content: center;
         }
         .chat-emoji-inline:hover {
-            background: rgba(129, 140, 248, 0.25);
+            background: rgba(168, 85, 247, 0.25);
             border-color: var(--gold);
         }
         .chat-phrase-wrap {
@@ -2181,7 +2289,7 @@
             position: absolute;
             width: 4px;
             height: 4px;
-            background: rgba(129, 140, 248, 0.3);
+            background: rgba(168, 85, 247, 0.3);
             border-radius: 50%;
             animation: floatParticle linear infinite;
         }
@@ -2207,7 +2315,7 @@
         .tile-ripple {
             position: absolute;
             border-radius: 50%;
-            background: rgba(129, 140, 248, 0.4);
+            background: rgba(168, 85, 247, 0.4);
             transform: scale(0);
             animation: ripple 0.6s ease-out;
             pointer-events: none;
@@ -2242,7 +2350,7 @@
             background: rgba(15,23,42,0.98);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-left: 1px solid rgba(129,140,248,0.15);
+            border-left: 1px solid rgba(168,85,247,0.15);
             z-index: 9000;
             transition: right 0.3s ease;
             display: flex;
@@ -2255,7 +2363,7 @@
         
         .friend-panel-header {
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
             color: #fff;
             display: flex;
             justify-content: space-between;
@@ -2278,7 +2386,7 @@
         
         .friend-code-section {
             padding: 15px 20px;
-            background: rgba(129,140,248,0.1);
+            background: rgba(168,85,247,0.1);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
@@ -2480,7 +2588,7 @@
             right: 20px;
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -2546,7 +2654,7 @@
             background: rgba(15,23,42,0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
             border-radius: 20px;
             padding: 30px;
             max-width: 400px;
@@ -2692,7 +2800,7 @@
             background: rgba(15,23,42,0.95);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(129,140,248,0.15);
+            border: 1px solid rgba(168,85,247,0.15);
             border-radius: 10px;
             display: none;
             flex-direction: column;
@@ -2705,7 +2813,7 @@
         
         .chat-header {
             padding: 10px 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
             color: #fff;
             border-radius: 9px 9px 0 0;
             display: flex;
@@ -2824,7 +2932,7 @@
             background: rgba(15,23,42,0.95);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(129,140,248,0.2);
+            border: 1px solid rgba(168,85,247,0.2);
             border-radius: 15px;
             padding: 25px;
             width: 300px;
