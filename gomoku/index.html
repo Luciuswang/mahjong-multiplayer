@@ -1817,6 +1817,7 @@
             
             switchScreen('lobbyScreen');
             currentRoom = null;
+            sessionStorage.removeItem('gomoku_room');
             isAIMode = false;
         }
 
@@ -1849,9 +1850,10 @@
             socket = io(serverUrl + '/gomoku', {
                 path: socketPath,
                 timeout: 10000,
-                reconnectionAttempts: 5,
+                reconnection: true,
+                reconnectionAttempts: Infinity,
                 reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
+                reconnectionDelayMax: 10000,
                 transports: ['websocket', 'polling'],
                 upgrade: true
             });
@@ -1859,7 +1861,15 @@
             socket.on('connect', () => {
                 console.log('已连接到服务器');
                 updateConnStatus('connected');
-                checkAutoJoin();
+
+                // 断线重连：尝试回到之前的房间
+                const savedRoom = sessionStorage.getItem('gomoku_room');
+                if (savedRoom && currentRoom) {
+                    console.log('[五子棋] 重连，尝试回到房间:', savedRoom);
+                    socket.emit('join_room', { roomCode: savedRoom, username, avatar: myAvatarSrc });
+                } else {
+                    checkAutoJoin();
+                }
             });
             
             socket.on('connect_error', (err) => {
@@ -1878,6 +1888,7 @@
             
             socket.on('room_created', (data) => {
                 currentRoom = data.roomCode;
+                sessionStorage.setItem('gomoku_room', data.roomCode);
                 document.getElementById('displayRoomCode').textContent = data.roomCode;
                 switchScreen('roomScreen');
                 updateRoomPlayers(data.players);
@@ -1885,13 +1896,16 @@
             
             socket.on('room_joined', (data) => {
                 currentRoom = data.roomCode;
+                sessionStorage.setItem('gomoku_room', data.roomCode);
                 document.getElementById('displayRoomCode').textContent = data.roomCode;
                 switchScreen('roomScreen');
                 updateRoomPlayers(data.players);
             });
             
             socket.on('join_error', (data) => {
-                showToast(data.message);
+                showToast(data.message, 2000, 'error');
+                sessionStorage.removeItem('gomoku_room');
+                currentRoom = null;
             });
             
             socket.on('room_updated', (data) => {
@@ -1913,6 +1927,52 @@
                 switchScreen('gameScreen');
             });
             
+            // 断线重连恢复游戏状态
+            socket.on('game_reconnect', (data) => {
+                myColor = data.yourColor;
+                gameBoard = data.board;
+                isMyTurn = data.currentTurn === myColor;
+
+                document.getElementById('blackName').textContent = data.blackPlayer;
+                document.getElementById('whiteName').textContent = data.whitePlayer;
+                if (data.blackAvatar) document.getElementById('blackAvatar').src = data.blackAvatar;
+                if (data.whiteAvatar) document.getElementById('whiteAvatar').src = data.whiteAvatar;
+
+                renderBoard();
+                // 重绘已有棋子
+                const boardEl = document.getElementById('board');
+                for (let r = 0; r < 15; r++) {
+                    for (let c = 0; c < 15; c++) {
+                        if (gameBoard[r][c]) {
+                            const cell = boardEl.children[r * 15 + c];
+                            const stone = document.createElement('div');
+                            stone.className = `stone ${gameBoard[r][c]}`;
+                            cell.innerHTML = '';
+                            cell.appendChild(stone);
+                            cell.classList.add('disabled');
+                        }
+                    }
+                }
+                // 标记最后一步
+                if (data.moveHistory && data.moveHistory.length > 0) {
+                    const last = data.moveHistory[data.moveHistory.length - 1];
+                    const lastCell = boardEl.children[last.row * 15 + last.col];
+                    const lastStone = lastCell && lastCell.querySelector('.stone');
+                    if (lastStone) lastStone.classList.add('last-flash');
+                }
+                updateTurnDisplay();
+                switchScreen('gameScreen');
+                showToast('已重连到游戏', 2000, 'success');
+            });
+
+            socket.on('player_offline', (data) => {
+                showToast(`${data.username} 断线了，等待重连...`, 3000, 'warning');
+            });
+
+            socket.on('player_reconnected', (data) => {
+                showToast(`${data.username} 已重连`, 2000, 'success');
+            });
+
             socket.on('stone_placed', (data) => {
                 placeStone(data.row, data.col, data.color);
                 isMyTurn = data.nextColor === myColor;
@@ -1931,6 +1991,7 @@
                 showToast('对手已离开', 2000, 'warning');
                 switchScreen('roomScreen');
             });
+
             
             socket.on('play_again_request', () => {
                 showConfirm('🔄 再来一局', '对手想要再来一局，是否同意？', () => {
@@ -1995,6 +2056,9 @@
             socket.on('disconnect', () => {
                 console.log('与服务器断开连接');
                 updateConnStatus('disconnected');
+                if (currentRoom) {
+                    showToast('连接已断开，正在重连...', 3000, 'warning');
+                }
             });
         }
 
@@ -2114,6 +2178,7 @@
             socket.emit('leave_room');
             switchScreen('lobbyScreen');
             currentRoom = null;
+            sessionStorage.removeItem('gomoku_room');
             isReady = false;
             const btn = document.getElementById('readyBtn');
             btn.innerHTML = '<i class="fas fa-check"></i> 准备';
@@ -2153,6 +2218,7 @@
                     socket.emit('leave_room');
                     switchScreen('lobbyScreen');
                     currentRoom = null;
+                    sessionStorage.removeItem('gomoku_room');
                 }
             });
         }

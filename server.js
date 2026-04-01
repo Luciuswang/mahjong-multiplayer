@@ -2979,14 +2979,49 @@ class GomokuRoom {
     }
 
     addPlayer(socket, username, avatar) {
-        if (this.players.length >= 2) return null;
-        
+        // 重连检查：相同昵称的离线玩家
+        const offlinePlayer = this.players.find(p => p.offline && p.username === username);
+        if (offlinePlayer) {
+            gomokuPlayerSockets.delete(offlinePlayer.id);
+            offlinePlayer.id = socket.id;
+            offlinePlayer.socket = socket;
+            offlinePlayer.avatar = avatar || offlinePlayer.avatar;
+            offlinePlayer.offline = false;
+            offlinePlayer.offlineTime = null;
+            gomokuPlayerSockets.set(socket.id, this);
+
+            console.log(`[五子棋] 玩家 ${username} 重连房间 ${this.code}`);
+            this.broadcast('player_reconnected', { username });
+            this.broadcastRoomUpdate();
+
+            if (this.gameRunning) {
+                const blackP = this.players.find(p => p.color === 'black');
+                const whiteP = this.players.find(p => p.color === 'white');
+                socket.emit('game_reconnect', {
+                    yourColor: offlinePlayer.color,
+                    board: this.board,
+                    currentTurn: this.currentTurn,
+                    moveHistory: this.moveHistory,
+                    blackPlayer: blackP ? blackP.username : '黑方',
+                    blackAvatar: blackP ? blackP.avatar || '' : '',
+                    whitePlayer: whiteP ? whiteP.username : '白方',
+                    whiteAvatar: whiteP ? whiteP.avatar || '' : ''
+                });
+            }
+            return offlinePlayer;
+        }
+
+        const onlineCount = this.players.filter(p => !p.offline).length;
+        if (onlineCount >= 2) return null;
+
         const player = {
             id: socket.id,
             username: username,
             avatar: avatar || '',
             socket: socket,
             ready: false,
+            offline: false,
+            offlineTime: null,
             color: this.players.length === 0 ? 'black' : 'white'
         };
         
@@ -3002,28 +3037,47 @@ class GomokuRoom {
         const playerIndex = this.players.findIndex(p => p.id === socketId);
         if (playerIndex !== -1) {
             const player = this.players[playerIndex];
-            this.players.splice(playerIndex, 1);
             gomokuPlayerSockets.delete(socketId);
-            
-            console.log(`[五子棋] 玩家 ${player.username} 离开房间 ${this.code}`);
-            
-            if (this.gameRunning) {
-                this.broadcast('opponent_left', {});
-            }
-            
+
+            // 标记为离线而非立即移除，给予重连宽限期
+            player.offline = true;
+            player.offlineTime = Date.now();
+            player.socket = null;
+            console.log(`[五子棋] 玩家 ${player.username} 断线，等待重连 (房间 ${this.code}, 游戏中: ${this.gameRunning})`);
+
+            this.broadcast('player_offline', { username: player.username, color: player.color });
+            this.broadcastRoomUpdate();
+
+            const gracePeriod = this.gameRunning ? 180000 : 60000; // 游戏中3分钟，等待中1分钟
+            setTimeout(() => {
+                if (player.offline) {
+                    console.log(`[五子棋] 玩家 ${player.username} 超时未重连，移除`);
+                    this.forceRemovePlayer(player);
+                }
+            }, gracePeriod);
+        }
+    }
+
+    forceRemovePlayer(player) {
+        const idx = this.players.findIndex(p => p.username === player.username);
+        if (idx === -1) return;
+        this.players.splice(idx, 1);
+
+        if (this.gameRunning) {
+            this.broadcast('opponent_left', {});
             this.gameRunning = false;
-            
-            if (this.players.length === 1) {
-                this.players[0].color = 'black';
-                this.players[0].ready = false;
-            }
-            
-            if (this.players.length === 0) {
-                gomokuRooms.delete(this.code);
-                console.log(`[五子棋] 房间 ${this.code} 已解散`);
-            } else {
-                this.broadcastRoomUpdate();
-            }
+        }
+
+        if (this.players.length === 1) {
+            this.players[0].color = 'black';
+            this.players[0].ready = false;
+        }
+
+        if (this.players.filter(p => !p.offline).length === 0) {
+            gomokuRooms.delete(this.code);
+            console.log(`[五子棋] 房间 ${this.code} 已解散（无在线玩家）`);
+        } else {
+            this.broadcastRoomUpdate();
         }
     }
 
@@ -3275,7 +3329,7 @@ class GomokuRoom {
     broadcastRoomUpdate() {
         const roomInfo = {
             code: this.code,
-            players: this.players.map(p => ({
+            players: this.players.filter(p => !p.offline).map(p => ({
                 username: p.username,
                 avatar: p.avatar || '',
                 color: p.color,
@@ -3326,11 +3380,13 @@ gomokuIO.on('connection', (socket) => {
             socket.emit('join_error', { message: '房间不存在' });
             return;
         }
-        if (room.players.length >= 2) {
+        const hasOfflineSlot = room.players.some(p => p.offline && p.username === username);
+        const onlineCount = room.players.filter(p => !p.offline).length;
+        if (!hasOfflineSlot && onlineCount >= 2) {
             socket.emit('join_error', { message: '房间已满' });
             return;
         }
-        if (room.gameRunning) {
+        if (!hasOfflineSlot && room.gameRunning) {
             socket.emit('join_error', { message: '游戏已开始' });
             return;
         }
