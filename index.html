@@ -3624,10 +3624,8 @@
         <div class="game-header">
             <div class="game-info">
                 <div class="game-info-item round-display">
-                    <div class="game-info-icon" style="background: #ef4444;">
-                        <span id="currentRoundNum">1</span>
-                    </div>
-                    <span><span id="currentRoundText">1</span>/<span id="totalRoundsText">10</span> 局</span>
+                    <div class="game-info-icon" style="background: #ef4444;" id="currentRoundNum">1</div>
+                    /<span id="totalRoundsText">10</span> 局
                 </div>
                 <div class="game-info-item header-deck-info">
                     <div class="game-info-icon"><i class="fas fa-layer-group"></i></div>
@@ -6843,7 +6841,6 @@
             currentRound = current;
             totalRounds = total;
             document.getElementById('currentRoundNum').textContent = current;
-            document.getElementById('currentRoundText').textContent = current;
             document.getElementById('totalRoundsText').textContent = total;
         }
         
