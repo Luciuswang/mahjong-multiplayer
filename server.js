@@ -704,14 +704,14 @@ class MahjongRoom {
                     }, 500);
                 }
                 
-                // 等待房间阶段：60秒后如果还没重连，再移除
+                // 等待房间阶段：10分钟后如果还没重连，再移除（微信分享需要时间）
                 if (!this.gameRunning) {
                     setTimeout(() => {
                         if (player.offline && !this.gameRunning) {
-                            console.log(`玩家 ${player.username} 60秒未重连，移除`);
+                            console.log(`玩家 ${player.username} 10分钟未重连，移除`);
                             this.forceRemovePlayer(player);
                         }
-                    }, 60000);
+                    }, 600000);
                 }
                 
                 return;
@@ -2937,9 +2937,9 @@ io.on('connection', (socket) => {
 setInterval(() => {
     const now = Date.now();
     for (const [code, room] of gameRooms) {
-        // 清理超过1小时的空房间
+        // 清理超过2小时的空房间
         if (room.players.filter(p => !p.isBot).length === 0 || 
-            now - room.createdAt > 3600000) {
+            now - room.createdAt > 7200000) {
             room.cleanup();
             gameRooms.delete(code);
             console.log(`清理过期房间: ${code}`);

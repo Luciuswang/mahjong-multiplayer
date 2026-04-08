@@ -3113,7 +3113,30 @@
             background: rgba(255,255,255,0.2);
             color: #fff;
         }
-        
+
+        .share-btn.wechat-share {
+            background: #07c160;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 14px 20px;
+            width: 100%;
+            animation: share-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes share-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(7,193,96,.4); }
+            50% { box-shadow: 0 0 0 8px rgba(7,193,96,0); }
+        }
+
+        .share-tip {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,.5);
+            margin-top: 8px;
+            padding: 0 10px;
+        }
+
         .room-share-btn {
             padding: 8px 15px;
             background: #10b981;
@@ -3580,6 +3603,9 @@
             </div>
             
             <div class="share-actions">
+                <button class="share-btn wechat-share" id="nativeShareBtn" onclick="nativeShare()" style="display:none;">
+                    <i class="fas fa-paper-plane"></i> 发送给好友
+                </button>
                 <button class="share-btn primary" onclick="copyShareText()">
                     <i class="fas fa-copy"></i> 复制文案
                 </button>
@@ -3587,6 +3613,7 @@
                     关闭
                 </button>
             </div>
+            <div class="share-tip" id="shareTip" style="display:none;"></div>
         </div>
     </div>
 
@@ -4015,7 +4042,16 @@
         
         // 游戏状态
         let socket = null;
-        let currentRoom = sessionStorage.getItem('mj_currentRoom') || null;
+        let currentRoom = null;
+        // 从 localStorage 恢复房间号（2小时内有效）
+        try {
+            const saved = JSON.parse(localStorage.getItem('mj_room_session') || 'null');
+            if (saved && saved.room && Date.now() - saved.ts < 7200000) {
+                currentRoom = saved.room;
+            } else {
+                localStorage.removeItem('mj_room_session');
+            }
+        } catch(e) { localStorage.removeItem('mj_room_session'); }
         let myPlayerId = null;
         let mySeatIndex = -1;
         let selectedTileId = null;
@@ -5130,22 +5166,21 @@
             // 房间事件
             socket.on('room_created', (data) => {
                 currentRoom = data.roomCode;
-                sessionStorage.setItem('mj_currentRoom', currentRoom);
+                localStorage.setItem('mj_room_session', JSON.stringify({ room: currentRoom, ts: Date.now() }));
                 showRoomScreen();
             });
 
             socket.on('room_joined', (data) => {
                 currentRoom = data.roomCode;
-                sessionStorage.setItem('mj_currentRoom', currentRoom);
+                localStorage.setItem('mj_room_session', JSON.stringify({ room: currentRoom, ts: Date.now() }));
                 showRoomScreen();
             });
 
             socket.on('join_error', (data) => {
                 showToast(data.message);
-                // 重连失败时清除存储的房间号
                 if (currentRoom) {
                     currentRoom = null;
-                    sessionStorage.removeItem('mj_currentRoom');
+                    localStorage.removeItem('mj_room_session');
                 }
             });
 
@@ -5657,12 +5692,14 @@
             });
         }
         
-        // 页面可见性变化时处理
+        // 页面可见性变化时处理（微信切回来自动重连）
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
-                // 页面恢复可见时，请求完整状态同步
                 if (socket && socket.connected && gameState) {
                     socket.emit('request_sync');
+                } else if (socket && !socket.connected) {
+                    console.log('页面恢复可见，尝试重连...');
+                    socket.connect();
                 }
             }
         });
@@ -5831,6 +5868,10 @@
             return `来玩上海敲麻（哈灵规则）！🀄\n房间号：${roomCode}\n点击链接直接加入：${link}`;
         }
         
+        function isWeChat() {
+            return /MicroMessenger/i.test(navigator.userAgent);
+        }
+
         // 打开分享弹窗
         function openShareModal() {
             const modal = document.getElementById('shareModal');
@@ -5843,6 +5884,29 @@
             // 设置文案
             document.getElementById('shareText').innerHTML = `来玩上海敲麻（哈灵规则）！🀄<br>房间号：<strong>${roomCode}</strong><br><small style="color: rgba(255,255,255,0.6);">点击链接直接加入</small>`;
             
+            // 原生分享按钮（微信/手机浏览器）
+            const nativeBtn = document.getElementById('nativeShareBtn');
+            const shareTip = document.getElementById('shareTip');
+            if (navigator.share) {
+                nativeBtn.style.display = 'block';
+                if (isWeChat()) {
+                    nativeBtn.innerHTML = '<i class="fas fa-paper-plane"></i> 发送给微信好友';
+                    shareTip.style.display = 'block';
+                    shareTip.textContent = '点击上方绿色按钮，可直接分享到微信聊天，无需离开页面';
+                } else {
+                    nativeBtn.innerHTML = '<i class="fas fa-share-alt"></i> 分享给好友';
+                    shareTip.style.display = 'none';
+                }
+            } else {
+                nativeBtn.style.display = 'none';
+                if (isWeChat()) {
+                    shareTip.style.display = 'block';
+                    shareTip.textContent = '复制文案后，切回微信粘贴发送。房间会保留10分钟等你回来！';
+                } else {
+                    shareTip.style.display = 'none';
+                }
+            }
+
             // 生成二维码
             const qrcodeContainer = document.getElementById('shareQrcode');
             qrcodeContainer.innerHTML = '';
@@ -5861,6 +5925,20 @@
             }
             
             modal.classList.add('active');
+        }
+
+        // 原生分享（微信/手机浏览器均支持）
+        function nativeShare() {
+            const roomCode = currentRoom || document.getElementById('displayRoomCode').textContent;
+            const link = getShareLink();
+
+            navigator.share({
+                title: '来玩上海敲麻！🀄',
+                text: `来玩上海敲麻（哈灵规则）！房间号：${roomCode}`,
+                url: link
+            }).then(() => {
+                showToast('分享成功！等好友加入吧');
+            }).catch(() => {});
         }
         
         // 关闭分享弹窗
@@ -6266,7 +6344,7 @@
         function leaveRoom() {
             socket.emit('leave_room');
             currentRoom = null;
-            sessionStorage.removeItem('mj_currentRoom');
+            localStorage.removeItem('mj_room_session');
             isReady = false;
             document.getElementById('roomScreen').classList.remove('active');
             document.getElementById('lobbyScreen').classList.add('active');
@@ -7105,7 +7183,7 @@
                 document.getElementById('chatArea').style.display = 'none';
                 document.body.classList.remove('in-game');
                 currentRoom = null;
-                sessionStorage.removeItem('mj_currentRoom');
+                localStorage.removeItem('mj_room_session');
                 // 隐藏聊天按钮并清空聊天记录
                 hideChatButton();
                 clearChatMessages();
