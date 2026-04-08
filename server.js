@@ -3394,6 +3394,7 @@ gomokuIO.on('connection', (socket) => {
         room.addPlayer(socket, username, avatar);
         socket.emit('room_joined', { 
             roomCode: room.code,
+            gameRunning: room.gameRunning,
             players: room.players.map(p => ({
                 username: p.username, avatar: p.avatar || '', color: p.color, ready: p.ready
             }))

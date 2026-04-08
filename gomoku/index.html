@@ -1898,7 +1898,9 @@
                 currentRoom = data.roomCode;
                 sessionStorage.setItem('gomoku_room', data.roomCode);
                 document.getElementById('displayRoomCode').textContent = data.roomCode;
-                switchScreen('roomScreen');
+                if (!data.gameRunning) {
+                    switchScreen('roomScreen');
+                }
                 updateRoomPlayers(data.players);
             });
             
