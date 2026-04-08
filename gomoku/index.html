@@ -783,7 +783,7 @@
             align-items: center;
             justify-content: center;
         }
-        .chat-toggle-btn.active { display: flex; }
+        .chat-toggle-btn.active { display: none; }
         .chat-badge {
             position: absolute;
             top: -5px; right: -5px;
@@ -814,6 +814,7 @@
             flex-direction: column;
         }
         .chat-panel.active { display: flex; }
+        .chat-panel.always-open { display: flex; }
 
         .chat-panel-header {
             display: flex;
@@ -826,11 +827,7 @@
             font-size: 0.9rem;
         }
         .chat-panel-close {
-            background: none;
-            border: none;
-            color: #fff;
-            font-size: 1.2rem;
-            cursor: pointer;
+            display: none;
         }
 
         .chat-messages {
@@ -847,6 +844,7 @@
         }
         .chat-msg .chat-sender {
             font-weight: bold;
+            font-size: 0.6rem;
         }
         .chat-msg .chat-sender.black { color: #a78bfa; }
         .chat-msg .chat-sender.white { color: #38bdf8; }
@@ -1825,12 +1823,14 @@
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            const chatBtn = document.getElementById('chatToggleBtn');
+            const chatPanel = document.getElementById('chatPanel');
             if (screenId === 'roomScreen' || screenId === 'gameScreen') {
-                chatBtn.classList.add('active');
+                chatPanel.classList.add('always-open');
+                chatUnread = 0;
+                updateChatBadge();
             } else {
-                chatBtn.classList.remove('active');
-                document.getElementById('chatPanel').classList.remove('active');
+                chatPanel.classList.remove('always-open');
+                chatPanel.classList.remove('active');
                 document.getElementById('chatMessages').innerHTML = '';
                 chatUnread = 0;
                 updateChatBadge();
