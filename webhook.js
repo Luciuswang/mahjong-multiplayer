@@ -10,7 +10,7 @@ const crypto = require('crypto');
 // 配置
 const WEBHOOK_PORT = 9000;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'mahjong-auto-deploy-2024';
-const PROJECT_PATH = '/root/mahjong-multiplayer';
+const PROJECT_PATH = '/opt/mahjong-multiplayer';
 
 // 验证 GitHub 签名
 function verifySignature(payload, signature) {
