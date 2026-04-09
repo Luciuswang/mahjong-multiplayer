@@ -7234,40 +7234,48 @@
             document.getElementById('eyeComfortBtn')?.classList.add('active');
         }
 
-        // 新手引导
+        // 新手引导（localStorage + 服务端 IP 双重判断）
         (function initOnboarding() {
             if (localStorage.getItem('mj_onboarded')) return;
-            const steps = [
-                { title: '欢迎来到上海敲麻', text: '这是一个多人在线麻将游戏，支持哈灵规则。\n先输入你的昵称，然后创建或加入房间开始游戏。' },
-                { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕上会弹出对应按钮。' },
-                { title: '邀请好友', text: '创建房间后，点击「邀请」按钮可以生成二维码或链接分享给好友，扫码即可加入。' }
-            ];
-            let cur = 0;
-            function render() {
-                let ov = document.getElementById('_onboardOv');
-                if (!ov) {
-                    ov = document.createElement('div');
-                    ov.id = '_onboardOv';
-                    ov.className = 'onboard-overlay';
-                    document.body.appendChild(ov);
+            fetch('/api/check-visitor').then(r => r.json()).then(d => {
+                if (d.returning) { localStorage.setItem('mj_onboarded', '1'); return; }
+                showOnboarding();
+            }).catch(() => showOnboarding());
+
+            function showOnboarding() {
+                const steps = [
+                    { title: '欢迎来到上海敲麻', text: '这是一个多人在线麻将游戏，支持哈灵规则。\n先输入你的昵称，然后创建或加入房间开始游戏。' },
+                    { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕上会弹出对应按钮。' },
+                    { title: '邀请好友', text: '创建房间后，点击「邀请」按钮可以生成二维码或链接分享给好友，扫码即可加入。' }
+                ];
+                let cur = 0;
+                function render() {
+                    let ov = document.getElementById('_onboardOv');
+                    if (!ov) {
+                        ov = document.createElement('div');
+                        ov.id = '_onboardOv';
+                        ov.className = 'onboard-overlay';
+                        document.body.appendChild(ov);
+                    }
+                    const s = steps[cur];
+                    const dots = steps.map((_, i) => `<div class="onboard-step${i === cur ? ' active' : ''}"></div>`).join('');
+                    ov.innerHTML = `<div class="onboard-card">
+                        <h3>${s.title}</h3>
+                        <div class="onboard-steps">${dots}</div>
+                        <p>${s.text.replace(/\n/g, '<br>')}</p>
+                        <button id="_onboardNext">${cur < steps.length - 1 ? '下一步' : '开始游戏'}</button>
+                    </div>`;
+                    document.getElementById('_onboardNext').onclick = () => {
+                        cur++;
+                        if (cur >= steps.length) {
+                            ov.remove();
+                            localStorage.setItem('mj_onboarded', '1');
+                            fetch('/api/mark-visited', { method: 'POST' }).catch(() => {});
+                        } else { render(); }
+                    };
                 }
-                const s = steps[cur];
-                const dots = steps.map((_, i) => `<div class="onboard-step${i === cur ? ' active' : ''}"></div>`).join('');
-                ov.innerHTML = `<div class="onboard-card">
-                    <h3>${s.title}</h3>
-                    <div class="onboard-steps">${dots}</div>
-                    <p>${s.text.replace(/\n/g, '<br>')}</p>
-                    <button id="_onboardNext">${cur < steps.length - 1 ? '下一步' : '开始游戏'}</button>
-                </div>`;
-                document.getElementById('_onboardNext').onclick = () => {
-                    cur++;
-                    if (cur >= steps.length) {
-                        ov.remove();
-                        localStorage.setItem('mj_onboarded', '1');
-                    } else { render(); }
-                };
+                render();
             }
-            render();
         })();
 
         // Toast提示 — level: 'info'(default) | 'error' | 'success' | 'warning'

@@ -4142,38 +4142,48 @@
             document.getElementById('eyeComfortBtn')?.classList.add('active');
         }
 
-        // 新手引导
+        // 新手引导（localStorage + 服务端 IP 双重判断）
         (function initOnboarding() {
             if (localStorage.getItem('mahjong_sp_onboarded')) return;
-            const steps = [
-                { title: '欢迎来到上海敲麻', text: '这是一款单机麻将游戏，采用上海哈灵规则。\n不能吃牌、门清翻倍、花牌加分。' },
-                { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕下方会弹出对应按钮。' },
-                { title: '开始游戏', text: '点击「开始游戏」按钮即可开始。\n你可以在设置中调整语音和音效。祝你好运！' }
-            ];
-            let cur = 0;
-            function render() {
-                let ov = document.getElementById('_onboardOv');
-                if (!ov) {
-                    ov = document.createElement('div');
-                    ov.id = '_onboardOv';
-                    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;';
-                    document.body.appendChild(ov);
+            fetch('/api/check-visitor').then(r => r.json()).then(d => {
+                if (d.returning) { localStorage.setItem('mahjong_sp_onboarded', '1'); return; }
+                showOnboarding();
+            }).catch(() => showOnboarding());
+
+            function showOnboarding() {
+                const steps = [
+                    { title: '欢迎来到上海敲麻', text: '这是一款单机麻将游戏，采用上海哈灵规则。\n不能吃牌、门清翻倍、花牌加分。' },
+                    { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕下方会弹出对应按钮。' },
+                    { title: '开始游戏', text: '点击「开始游戏」按钮即可开始。\n你可以在设置中调整语音和音效。祝你好运！' }
+                ];
+                let cur = 0;
+                function render() {
+                    let ov = document.getElementById('_onboardOv');
+                    if (!ov) {
+                        ov = document.createElement('div');
+                        ov.id = '_onboardOv';
+                        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;';
+                        document.body.appendChild(ov);
+                    }
+                    const s = steps[cur];
+                    const dots = steps.map((_, i) => `<div style="width:8px;height:8px;border-radius:50%;background:${i===cur?'#a855f7':'rgba(255,255,255,0.2)'}"></div>`).join('');
+                    ov.innerHTML = `<div style="background:rgba(12,8,30,0.95);border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:30px;max-width:380px;width:90%;text-align:center;">
+                        <h3 style="margin:0 0 8px;font-size:1.3rem;color:#a855f7;">${s.title}</h3>
+                        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;">${dots}</div>
+                        <p style="font-size:0.95rem;line-height:1.6;margin:0 0 20px;color:rgba(255,255,255,0.8);">${s.text.replace(/\n/g,'<br>')}</p>
+                        <button id="_onboardNext" style="padding:10px 30px;border:none;border-radius:20px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:1rem;cursor:pointer;">${cur<steps.length-1?'下一步':'开始游戏'}</button>
+                    </div>`;
+                    document.getElementById('_onboardNext').onclick = () => {
+                        cur++;
+                        if (cur >= steps.length) {
+                            ov.remove();
+                            localStorage.setItem('mahjong_sp_onboarded', '1');
+                            fetch('/api/mark-visited', { method: 'POST' }).catch(() => {});
+                        } else { render(); }
+                    };
                 }
-                const s = steps[cur];
-                const dots = steps.map((_, i) => `<div style="width:8px;height:8px;border-radius:50%;background:${i===cur?'#a855f7':'rgba(255,255,255,0.2)'}"></div>`).join('');
-                ov.innerHTML = `<div style="background:rgba(12,8,30,0.95);border:1px solid rgba(168,85,247,0.3);border-radius:20px;padding:30px;max-width:380px;width:90%;text-align:center;">
-                    <h3 style="margin:0 0 8px;font-size:1.3rem;color:#a855f7;">${s.title}</h3>
-                    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;">${dots}</div>
-                    <p style="font-size:0.95rem;line-height:1.6;margin:0 0 20px;color:rgba(255,255,255,0.8);">${s.text.replace(/\n/g,'<br>')}</p>
-                    <button id="_onboardNext" style="padding:10px 30px;border:none;border-radius:20px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:1rem;cursor:pointer;">${cur<steps.length-1?'下一步':'开始游戏'}</button>
-                </div>`;
-                document.getElementById('_onboardNext').onclick = () => {
-                    cur++;
-                    if (cur >= steps.length) { ov.remove(); localStorage.setItem('mahjong_sp_onboarded','1'); }
-                    else { render(); }
-                };
+                render();
             }
-            render();
         })();
     </script>
 </body>

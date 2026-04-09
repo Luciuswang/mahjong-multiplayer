@@ -121,6 +121,24 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
+// 访客检查 API（新手引导用，基于 IP 判断是否老用户）
+app.get('/api/check-visitor', (req, res) => {
+    const ip = getClientIP(req);
+    const returning = (visitStats.onboardedIPs || []).includes(ip);
+    res.json({ returning });
+});
+app.post('/api/mark-visited', express.json(), (req, res) => {
+    const ip = getClientIP(req);
+    if (!visitStats.onboardedIPs) visitStats.onboardedIPs = [];
+    if (!visitStats.onboardedIPs.includes(ip)) {
+        visitStats.onboardedIPs.push(ip);
+        if (visitStats.onboardedIPs.length > 10000) {
+            visitStats.onboardedIPs = visitStats.onboardedIPs.slice(-8000);
+        }
+    }
+    res.json({ ok: true });
+});
+
 // 静态文件服务
 app.use(express.static(path.join(__dirname)));
 

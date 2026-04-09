@@ -2410,38 +2410,48 @@
             modal.classList.add('active');
         }
 
-        // 新手引导
+        // 新手引导（localStorage + 服务端 IP 双重判断）
         (function initOnboarding() {
             if (localStorage.getItem('gomoku_onboarded')) return;
-            const steps = [
-                { title: '欢迎来到五子棋', text: '支持双人对战和人机对战两种模式。\n先输入你的昵称，然后选择游戏模式。' },
-                { title: '游戏操作', text: '轮到你时，点击棋盘上的交叉点放置棋子。\n先连成五子的一方获胜！每局有一次悔棋机会。' }
-            ];
-            let cur = 0;
-            function render() {
-                let ov = document.getElementById('_onboardOv');
-                if (!ov) {
-                    ov = document.createElement('div');
-                    ov.id = '_onboardOv';
-                    ov.className = 'onboard-overlay';
-                    ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;';
-                    document.body.appendChild(ov);
+            fetch('/api/check-visitor').then(r => r.json()).then(d => {
+                if (d.returning) { localStorage.setItem('gomoku_onboarded', '1'); return; }
+                showOnboarding();
+            }).catch(() => showOnboarding());
+
+            function showOnboarding() {
+                const steps = [
+                    { title: '欢迎来到五子棋', text: '支持双人对战和人机对战两种模式。\n先输入你的昵称，然后选择游戏模式。' },
+                    { title: '游戏操作', text: '轮到你时，点击棋盘上的交叉点放置棋子。\n先连成五子的一方获胜！每局有一次悔棋机会。' }
+                ];
+                let cur = 0;
+                function render() {
+                    let ov = document.getElementById('_onboardOv');
+                    if (!ov) {
+                        ov = document.createElement('div');
+                        ov.id = '_onboardOv';
+                        ov.className = 'onboard-overlay';
+                        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:10000;display:flex;align-items:center;justify-content:center;';
+                        document.body.appendChild(ov);
+                    }
+                    const s = steps[cur];
+                    const dots = steps.map((_, i) => `<div style="width:8px;height:8px;border-radius:50%;background:${i===cur?'var(--gold)':'rgba(255,255,255,0.2)'}"></div>`).join('');
+                    ov.innerHTML = `<div style="background:rgba(15,10,35,0.95);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:30px;max-width:340px;width:90%;text-align:center;color:#fff;">
+                        <h3 style="color:var(--gold);margin:0 0 16px;font-size:1.2rem;">${s.title}</h3>
+                        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;">${dots}</div>
+                        <p style="font-size:0.95rem;line-height:1.6;margin:0 0 20px;color:rgba(255,255,255,0.8);">${s.text.replace(/\n/g,'<br>')}</p>
+                        <button id="_onboardNext" style="padding:10px 30px;border:none;border-radius:20px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:1rem;cursor:pointer;">${cur<steps.length-1?'下一步':'开始游戏'}</button>
+                    </div>`;
+                    document.getElementById('_onboardNext').onclick = () => {
+                        cur++;
+                        if (cur >= steps.length) {
+                            ov.remove();
+                            localStorage.setItem('gomoku_onboarded', '1');
+                            fetch('/api/mark-visited', { method: 'POST' }).catch(() => {});
+                        } else { render(); }
+                    };
                 }
-                const s = steps[cur];
-                const dots = steps.map((_, i) => `<div style="width:8px;height:8px;border-radius:50%;background:${i===cur?'var(--gold)':'rgba(255,255,255,0.2)'}"></div>`).join('');
-                ov.innerHTML = `<div style="background:rgba(15,10,35,0.95);border:1px solid rgba(168,85,247,0.3);border-radius:16px;padding:30px;max-width:340px;width:90%;text-align:center;color:#fff;">
-                    <h3 style="color:var(--gold);margin:0 0 16px;font-size:1.2rem;">${s.title}</h3>
-                    <div style="display:flex;gap:6px;justify-content:center;margin-bottom:20px;">${dots}</div>
-                    <p style="font-size:0.95rem;line-height:1.6;margin:0 0 20px;color:rgba(255,255,255,0.8);">${s.text.replace(/\n/g,'<br>')}</p>
-                    <button id="_onboardNext" style="padding:10px 30px;border:none;border-radius:20px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:1rem;cursor:pointer;">${cur<steps.length-1?'下一步':'开始游戏'}</button>
-                </div>`;
-                document.getElementById('_onboardNext').onclick = () => {
-                    cur++;
-                    if (cur >= steps.length) { ov.remove(); localStorage.setItem('gomoku_onboarded','1'); }
-                    else { render(); }
-                };
+                render();
             }
-            render();
         })();
 
         // Toast提示 — level: 'info'(default) | 'error' | 'success' | 'warning'
