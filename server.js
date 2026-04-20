@@ -177,6 +177,12 @@ const FLOWER_NAMES = {
 const gameRooms = new Map();
 const playerSockets = new Map();
 
+function normalizeVoice(voice) {
+    if (voice === 'female02') return 'female01';
+    if (voice === 'male02') return 'male';
+    return voice === 'male' ? 'male' : 'female01';
+}
+
 // ==================== 用户和好友系统 ====================
 const users = new Map();           // oderId -> userInfo
 const friendCodes = new Map();     // friendCode -> oderId
@@ -516,6 +522,7 @@ class MahjongRoom {
         if (this.players.length >= 4) {
             return null;
         }
+        voice = normalizeVoice(voice);
         
         // 检查是否是重连（相同用户名的离线玩家）
         const offlinePlayer = this.players.find(p => !p.isBot && p.offline && p.username === username);
@@ -651,13 +658,13 @@ class MahjongRoom {
         const aiAvatars = ['🤖', '🎮', '💻', '🎯'];
         
         // 动态分配 AI 语音，避开已有玩家的语音
-        const allVoices = ['female01', 'female02', 'male', 'male02'];
+        const allVoices = ['female01', 'male'];
         const usedVoices = this.players.map(p => p.voice);
         const availableVoices = allVoices.filter(v => !usedVoices.includes(v));
         // 如果没有可用的就按顺序分配
         const aiVoice = availableVoices.length > 0 
             ? availableVoices[0] 
-            : allVoices[seatIndex % 4];
+            : allVoices[seatIndex % 2];
         
         const aiPlayer = {
             id: 'ai_' + Date.now() + '_' + seatIndex,
@@ -2731,7 +2738,7 @@ io.on('connection', (socket) => {
         const room = new MahjongRoom(code, socket.id, username);
         gameRooms.set(code, room);
         
-        room.addPlayer(socket, username, avatar, voice || 'female01');
+        room.addPlayer(socket, username, avatar, normalizeVoice(voice));
         
         socket.emit('room_created', { roomCode: code });
     });
@@ -2760,7 +2767,7 @@ io.on('connection', (socket) => {
                 return;
             }
             console.log(`玩家 ${username} 断线重连中（游戏进行中），允许加入`);
-            room.addPlayer(socket, username, avatar, voice || 'female01');
+            room.addPlayer(socket, username, avatar, normalizeVoice(voice));
             socket.emit('room_joined', { roomCode: room.code });
             return;
         }
@@ -2781,7 +2788,7 @@ io.on('connection', (socket) => {
             }
         }
         
-        room.addPlayer(socket, username, avatar, voice || 'female01');
+        room.addPlayer(socket, username, avatar, normalizeVoice(voice));
         socket.emit('room_joined', { roomCode: room.code });
         console.log(`玩家 ${username} 成功加入房间 ${code}`);
     });

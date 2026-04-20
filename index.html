@@ -189,6 +189,11 @@
             font-size: 1rem;
         }
 
+        .voice-selector .voice-btn:nth-child(2),
+        .voice-selector .voice-btn:nth-child(4) {
+            display: none;
+        }
+
         .btn {
             display: block;
             width: 100%;
@@ -4065,11 +4070,15 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
+        function normalizeVoice(voice) {
+            if (voice === 'female02') return 'female01';
+            if (voice === 'male02') return 'male';
+            return voice === 'male' ? 'male' : 'female01';
+        }
+
         const VOICE_AVATAR_MAP = {
             'female01': 'img/avatar_female1.png',
-            'female02': 'img/avatar_female2.png',
-            'male':     'img/avatar_male1.png',
-            'male02':   'img/avatar_male2.png'
+            'male': 'img/avatar_male1.png'
         };
         function getMyAvatar() { return VOICE_AVATAR_MAP[myVoice] || 'img/avatar_male1.png'; }
         function avatarHTML(src, size) {
@@ -4565,7 +4574,7 @@
         
         // 根据玩家ID获取语音
         function getPlayerVoice(playerId) {
-            return playerVoices[playerId] || 'female01';
+            return normalizeVoice(playerVoices[playerId]);
         }
         
         // 根据座位索引获取玩家语音
@@ -4573,9 +4582,9 @@
             if (!gameState || !gameState.players) return 'female01';
             const player = gameState.players.find(p => p.seatIndex === seatIndex);
             if (player && player.voice) {
-                return player.voice;
+                return normalizeVoice(player.voice);
             }
-            return playerVoices[player?.id] || 'female01';
+            return normalizeVoice(playerVoices[player?.id]);
         }
         
         // 解锁移动设备音频
@@ -4653,6 +4662,7 @@
         
         // 播放牌的音频（支持多种语音）
         function playTileAudio(tile, voice = 'female01') {
+            voice = normalizeVoice(voice);
             const name = getTileAudioName(tile);
             const format = AUDIO_FORMATS[voice] || '.mp3';
             const volume = AUDIO_VOLUMES[voice] || 1.0;
@@ -4661,6 +4671,7 @@
         
         // 播放动作音频（支持多种语音）
         function playActionAudio(action, voice = 'female01') {
+            voice = normalizeVoice(voice);
             const format = AUDIO_FORMATS[voice] || '.mp3';
             const volume = AUDIO_VOLUMES[voice] || 1.0;
             playAudioFile(`audio/${voice}/actions/${action}${format}`, volume);
@@ -4679,6 +4690,7 @@
         // 游戏开始时预加载当前语音的动作音频
         // 静默预加载常用音频（游戏开始后在后台执行）
         function silentPreloadAudio(voice) {
+            voice = normalizeVoice(voice);
             const actions = ['peng', 'gang', 'hu', 'zimo'];
             const commonTiles = ['wan1', 'wan2', 'wan3', 'tong1', 'tong2', 'tong3', 'tiao1', 'tiao2', 'tiao3'];
             
@@ -5722,12 +5734,12 @@
         
         // 选择语音
         function selectVoice(voice) {
-            myVoice = voice;
+            myVoice = normalizeVoice(voice);
             // 更新按钮状态
-            document.getElementById('voiceFemale01').classList.toggle('active', voice === 'female01');
-            document.getElementById('voiceFemale02').classList.toggle('active', voice === 'female02');
-            document.getElementById('voiceMale').classList.toggle('active', voice === 'male');
-            document.getElementById('voiceMale02').classList.toggle('active', voice === 'male02');
+            document.getElementById('voiceFemale01').classList.toggle('active', myVoice === 'female01');
+            document.getElementById('voiceFemale02').classList.toggle('active', false);
+            document.getElementById('voiceMale').classList.toggle('active', myVoice === 'male');
+            document.getElementById('voiceMale02').classList.toggle('active', false);
             console.log('选择语音:', voice);
         }
         
@@ -6058,7 +6070,7 @@
             const card = btn.closest('.invite-card');
             card.querySelectorAll('.voice-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            myVoice = voice;
+            myVoice = normalizeVoice(voice);
         }
 
         function confirmInviteJoin() {
