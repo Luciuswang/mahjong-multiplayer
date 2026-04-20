@@ -118,6 +118,24 @@
         }
         .site-footer a:hover { color: rgba(255,255,255,0.6); }
 
+        .app-version-badge {
+            position: fixed;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 9999;
+            padding: 6px 10px;
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            border-radius: 999px;
+            background: rgba(8, 6, 26, 0.82);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.72);
+            font-size: 0.72rem;
+            line-height: 1.2;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+            pointer-events: none;
+        }
+
         .input-group {
             margin-bottom: 20px;
         }
@@ -3582,6 +3600,8 @@
     </div>
 
     <!-- 分享弹窗 -->
+    <div class="app-version-badge" id="appVersionBadge">Verifying build...</div>
+
     <div class="share-modal" id="shareModal" role="dialog" aria-modal="true">
         <div class="share-modal-content">
             <div class="share-modal-title">
@@ -4070,11 +4090,21 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
+        const APP_VERSION = '2026-04-20 ce5f3df';
+
+        function renderAppVersionBadge() {
+            const badge = document.getElementById('appVersionBadge');
+            if (!badge) return;
+            badge.textContent = `Build ${APP_VERSION} | ${location.hostname}${location.pathname}`;
+        }
+
         function normalizeVoice(voice) {
             if (voice === 'female02') return 'female01';
             if (voice === 'male02') return 'male';
             return voice === 'male' ? 'male' : 'female01';
         }
+
+        renderAppVersionBadge();
 
         const VOICE_AVATAR_MAP = {
             'female01': 'img/avatar_female1.png',
