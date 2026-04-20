@@ -1,0 +1,11 @@
+node_modules/
+gomoku/node_modules/
+
+visit_stats.json
+user_data.json
+
+*.log
+npm-debug.log*
+
+.DS_Store
+Thumbs.db
