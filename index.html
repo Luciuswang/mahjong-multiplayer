@@ -4090,12 +4090,12 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
-        const APP_VERSION = '2026-04-20 ce5f3df';
+        const APP_BUILD_LABEL = '2026-04-21 ui';
 
         function renderAppVersionBadge() {
             const badge = document.getElementById('appVersionBadge');
             if (!badge) return;
-            badge.textContent = `Build ${APP_VERSION} | ${location.hostname}${location.pathname}`;
+            badge.textContent = `UI ${APP_BUILD_LABEL} | ${location.hostname}${location.pathname}`;
         }
 
         function normalizeVoice(voice) {
