@@ -1411,12 +1411,28 @@
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(168,85,247,0.2);
             border-radius: 20px;
-            padding: 30px;
-            text-align: center;
             max-width: 500px;
             width: 90%;
             max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .round-result-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
+            padding: 30px 30px 12px;
+        }
+
+        .round-result-footer {
+            flex: 0 0 auto;
+            padding: 16px 30px 24px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(12,8,28,0.72) 0%, rgba(12,8,28,0.96) 28%);
+            box-shadow: 0 -12px 30px rgba(0,0,0,0.28);
         }
         
         .round-result-title {
@@ -1990,6 +2006,18 @@
                 width: 95%;
                 padding: 15px;
                 max-height: 85vh;
+            }
+
+            .round-result-content {
+                padding: 0;
+            }
+
+            .round-result-scroll {
+                padding: 15px 15px 10px;
+            }
+
+            .round-result-footer {
+                padding: 12px 15px calc(15px + env(safe-area-inset-bottom, 0px));
             }
             
             .round-result-title,
@@ -3804,55 +3832,58 @@
     <!-- 单局结算弹窗 -->
     <div class="round-result-modal" id="roundResultModal" role="dialog" aria-modal="true">
         <div class="round-result-content">
-            <h2 class="round-result-title" id="roundResultTitle">本局结算</h2>
-            
-            <div id="roundWinnerInfo" style="font-size: 1.2rem; margin-bottom: 15px;">
-                <span id="winnerName"></span> <span id="winType"></span>
-            </div>
-            
-            <!-- 番数明细 -->
-            <div class="fan-detail-list" id="fanDetailList">
-                <h4 style="color: var(--gold); margin-bottom: 10px;">番数明细</h4>
-                <div id="fanItems"></div>
-                <div class="total-score-row">
-                    <span>总番数</span>
-                    <span id="totalFanDisplay">0番</span>
+            <div class="round-result-scroll" id="roundResultScroll">
+                <h2 class="round-result-title" id="roundResultTitle">本局结算</h2>
+                
+                <div id="roundWinnerInfo" style="font-size: 1.2rem; margin-bottom: 15px;">
+                    <span id="winnerName"></span> <span id="winType"></span>
+                </div>
+                
+                <!-- 番数明细 -->
+                <div class="fan-detail-list" id="fanDetailList">
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">番数明细</h4>
+                    <div id="fanItems"></div>
+                    <div class="total-score-row">
+                        <span>总番数</span>
+                        <span id="totalFanDisplay">0番</span>
+                    </div>
+                </div>
+                
+                <!-- 花数明细 -->
+                <div class="fan-detail-list" id="huaDetailList">
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">花数明细</h4>
+                    <div id="huaItems"></div>
+                    <div class="total-score-row">
+                        <span>总花数</span>
+                        <span id="totalHuaDisplay">0花</span>
+                    </div>
+                </div>
+                
+                <!-- 积分变化 -->
+                <div class="score-change-list">
+                    <h4 style="color: var(--gold); margin-bottom: 10px;">积分变化</h4>
+                    <div id="scoreChangeItems"></div>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                    第 <span id="roundEndCurrent">1</span>/<span id="roundEndTotal">10</span> 局
                 </div>
             </div>
-            
-            <!-- 花数明细 -->
-            <div class="fan-detail-list" id="huaDetailList">
-                <h4 style="color: var(--gold); margin-bottom: 10px;">花数明细</h4>
-                <div id="huaItems"></div>
-                <div class="total-score-row">
-                    <span>总花数</span>
-                    <span id="totalHuaDisplay">0花</span>
+            <div class="round-result-footer" id="roundResultFooter">
+                <!-- 倒计时和准备状态 -->
+                <div id="nextRoundCountdown" style="padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
+                    <div style="font-size: 1.2rem; color: var(--gold); margin-bottom: 10px;">
+                        ⏱ 下一局开始: <span id="countdownSeconds">30</span>秒
+                    </div>
+                    <div id="playersReadyStatus" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                        <!-- 动态生成玩家准备状态 -->
+                    </div>
                 </div>
+                
+                <button class="btn" id="continueNextBtn" onclick="continueNextRound()" style="margin-top: 12px;">
+                    <i class="fas fa-play"></i> 继续下一局
+                </button>
             </div>
-            
-            <!-- 积分变化 -->
-            <div class="score-change-list">
-                <h4 style="color: var(--gold); margin-bottom: 10px;">积分变化</h4>
-                <div id="scoreChangeItems"></div>
-            </div>
-            
-            <div style="margin-top: 20px; font-size: 0.9rem; color: rgba(255,255,255,0.7);">
-                第 <span id="roundEndCurrent">1</span>/<span id="roundEndTotal">10</span> 局
-            </div>
-            
-            <!-- 倒计时和准备状态 -->
-            <div id="nextRoundCountdown" style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                <div style="font-size: 1.2rem; color: var(--gold); margin-bottom: 10px;">
-                    ⏱ 下一局开始: <span id="countdownSeconds">30</span>秒
-                </div>
-                <div id="playersReadyStatus" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-                    <!-- 动态生成玩家准备状态 -->
-                </div>
-            </div>
-            
-            <button class="btn" id="continueNextBtn" onclick="continueNextRound()" style="margin-top: 20px;">
-                <i class="fas fa-play"></i> 继续下一局
-            </button>
         </div>
     </div>
     
@@ -4516,22 +4547,37 @@
         // 已显示过听牌选择的标记（避免重复弹出）
         let tingChoiceShown = false;
         let pendingTingList = [];
+
+        function getTingOptionsForCurrentDraw(player) {
+            if (!player || !player.hand || !lastDrawnTileId) return [];
+
+            const meldN = player.melds?.length || 0;
+            const expectedSize = 14 - meldN * 3;
+            if (player.hand.length !== expectedSize) return [];
+
+            const drawnTileIndex = player.hand.findIndex(t => t.id === lastDrawnTileId);
+            if (drawnTileIndex === -1) return [];
+
+            // 已经自摸时优先让胡牌逻辑出现，不抢占操作。
+            if (canHuHand(player.hand, meldN)) return [];
+
+            const handAfterDiscard = [...player.hand];
+            handAfterDiscard.splice(drawnTileIndex, 1);
+            return checkTingPai(handAfterDiscard, meldN);
+        }
         
         // 检查并显示听牌状态
         function checkAndShowTing() {
             if (!gameState) return;
             if (isTing) return; // 已经听牌了
             if (tingChoiceShown) return; // 已经显示过选择了
+            if (!lastDrawnTileId) return;
+            if (gameState.currentPlayerIndex !== mySeatIndex || gameState.turnPhase !== 'discard') return;
             
             const myPlayer = gameState.players.find(p => p.seatIndex === mySeatIndex);
             if (!myPlayer || !myPlayer.hand) return;
-            
-            // 只有13张牌时检测听牌（或10张有1碰，7张有2碰...）
-            const expectedSize = 13 - (myPlayer.melds?.length || 0) * 3;
-            if (myPlayer.hand.length !== expectedSize) return;
-            
-            const meldN = myPlayer.melds?.length || 0;
-            const newTingList = checkTingPai(myPlayer.hand, meldN);
+
+            const newTingList = getTingOptionsForCurrentDraw(myPlayer);
             
             if (newTingList.length > 0) {
                 // 保存待选听牌列表
@@ -4557,6 +4603,7 @@
         function confirmTing() {
             isTing = true;
             tingList = pendingTingList;
+            pendingTingList = [];
             
             // 通知服务器确认听牌
             if (socket) {
@@ -4566,12 +4613,19 @@
             
             // 语音播报
             speakTing();
+
+            // 直接高亮刚摸的牌，明确下一步要打它。
+            selectedTileId = lastDrawnTileId;
+            const myPlayer = gameState?.players?.find(p => p.seatIndex === mySeatIndex);
+            if (myPlayer?.hand) {
+                renderMyHand(myPlayer.hand);
+            }
             
             // 关闭对话框
             document.getElementById('tingChoiceModal').classList.remove('active');
             
             const tingNames = tingList.map(t => formatTileNameMp(t)).join('、');
-            showToast(`🎯 已听牌！听：${tingNames}`, 3000);
+            showToast(`🎯 已听牌！听：${tingNames}，请打出刚摸的牌`, 3000);
         }
         
         // 取消听牌（继续打）
@@ -4579,7 +4633,7 @@
             // 关闭对话框，不进入听牌状态
             document.getElementById('tingChoiceModal').classList.remove('active');
             pendingTingList = [];
-            // tingChoiceShown 保持 true，本局不再提示
+            // tingChoiceShown 保持 true，本次摸牌不再重复提示
             showToast('继续打牌', 1500);
         }
         
@@ -5393,6 +5447,8 @@
 
             socket.on('tile_drawn', (data) => {
                 lastDrawnTileId = data.tile.id; // 记录刚摸的牌
+                tingChoiceShown = false;
+                pendingTingList = [];
                 showToast(`摸到: ${getTileName(data.tile)}`);
                 
                 // 重新渲染手牌以显示新牌高亮
@@ -5401,6 +5457,12 @@
                     if (myPlayer && myPlayer.hand) {
                         renderMyHand(myPlayer.hand);
                     }
+                }
+
+                if (!isTing) {
+                    setTimeout(() => {
+                        checkAndShowTing();
+                    }, 200);
                 }
                 
                 // 听牌后自动出牌：延迟执行，先等待服务器检查是否能胡牌
@@ -6794,13 +6856,6 @@
             
             socket.emit('discard_tile', { tileId: selectedTileId });
             selectedTileId = null;
-            
-            // 出牌后检测听牌（延迟等待服务器更新）
-            setTimeout(() => {
-                if (!isTing) {
-                    checkAndShowTing();
-                }
-            }, 500);
         }
 
         // 执行动作
@@ -7056,10 +7111,14 @@
             // 如果是最后一局，隐藏继续按钮和倒计时区域
             const continueBtn = document.getElementById('continueNextBtn');
             const countdownArea = document.getElementById('nextRoundCountdown');
+            const roundResultFooter = document.getElementById('roundResultFooter');
+            continueBtn.innerHTML = '<i class="fas fa-play"></i> 继续下一局';
+            continueBtn.disabled = false;
+            continueBtn.style.opacity = '1';
             if (currentRound >= totalRounds) {
-                continueBtn.style.display = 'none';
-                countdownArea.style.display = 'none';
+                roundResultFooter.style.display = 'none';
             } else {
+                roundResultFooter.style.display = 'block';
                 continueBtn.style.display = 'block';
                 countdownArea.style.display = 'block';
                 
@@ -7069,6 +7128,11 @@
                 
                 // 初始化玩家准备状态（显示4个等待中）
                 updatePlayersReadyStatus([]);
+            }
+
+            const roundResultScroll = document.getElementById('roundResultScroll');
+            if (roundResultScroll) {
+                roundResultScroll.scrollTop = 0;
             }
             
             document.getElementById('roundResultModal').classList.add('active');
@@ -7681,4 +7745,3 @@
     </script>
 </body>
 </html>
-

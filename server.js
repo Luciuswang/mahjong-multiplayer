@@ -1344,6 +1344,13 @@ class MahjongRoom {
         if (tileIndex === -1) {
             return { error: '没有这张牌' };
         }
+
+        if (player.isTing) {
+            const lastDrawnTileId = this.gameState.lastDrawnTile?.id;
+            if (!lastDrawnTileId || tileId !== lastDrawnTileId) {
+                return { error: '听牌后只能打刚摸的牌' };
+            }
+        }
         
         const tile = player.hand.splice(tileIndex, 1)[0];
         player.discards.push(tile);
@@ -3538,4 +3545,3 @@ server.listen(PORT, () => {
     console.log(`⚫ 五子棋多人服务器运行在端口 ${PORT} (命名空间: /gomoku)`);
     console.log(`🌐 打开浏览器访问: http://localhost:${PORT}`);
 });
-
