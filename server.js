@@ -1384,6 +1384,10 @@ class MahjongRoom {
             if (i === discardPlayerIndex) continue;
             
             const player = this.players[i];
+            if (!player || !Array.isArray(player.hand) || !Array.isArray(player.melds)) {
+                console.warn(`检查动作时跳过异常座位: ${i}, 房间 ${this.code}`);
+                continue;
+            }
             const actions = [];
             
             // 检查胡牌
