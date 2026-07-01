@@ -11,7 +11,7 @@ echo "🎣 设置 GitHub Webhook 自动部署..."
 echo "================================"
 
 # 1. 确保项目目录存在
-cd /root/mahjong-multiplayer
+cd /opt/mahjong-multiplayer
 
 # 2. 开放 webhook 端口
 echo -e "${YELLOW}[1/3] 开放防火墙端口 9000...${NC}"
