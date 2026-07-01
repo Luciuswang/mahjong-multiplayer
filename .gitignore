@@ -1,5 +1,6 @@
 node_modules/
 gomoku/node_modules/
+www/
 
 visit_stats.json
 user_data.json

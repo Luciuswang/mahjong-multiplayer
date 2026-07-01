@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "mobile:prepare": "node scripts/prepare-mobile-assets.js",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync",
+    "mobile:add:ios": "npx cap add ios",
+    "mobile:add:android": "npx cap add android"
   },
   "dependencies": {
     "compression": "^1.8.1",

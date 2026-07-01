@@ -1,0 +1,7 @@
+{
+  "appId": "com.codex.mahjong",
+  "appName": "上海敲麻",
+  "webDir": "www",
+  "backgroundColor": "#07120f",
+  "loggingBehavior": "debug"
+}

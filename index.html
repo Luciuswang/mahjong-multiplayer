@@ -8,24 +8,25 @@
     <link rel="preload" href="img/majiang.png" as="image" fetchpriority="high">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="app-config.js"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
-            --table-green: #0e0a1e;
-            --table-dark: #08061a;
-            --gold: #c084fc;
-            --gold-light: #d8b4fe;
+            --table-green: #12382f;
+            --table-dark: #071814;
+            --gold: #e6c36a;
+            --gold-light: #f3d98b;
             --tile-bg: #eef0f5;
             --tile-border: rgba(160,150,180,0.5);
             --red: #ef4444;
-            --blue: #7c3aed;
+            --blue: #2563eb;
             --green: #10b981;
-            --neon-primary: rgba(168, 85, 247, 0.6);
-            --neon-secondary: rgba(249, 115, 22, 0.5);
-            --neon-cyan: rgba(168, 85, 247, 0.5);
-            --neon-orange: rgba(249, 115, 22, 0.4);
-            --seat-self: #a855f7;
+            --neon-primary: rgba(20, 184, 166, 0.45);
+            --neon-secondary: rgba(230, 195, 106, 0.45);
+            --neon-cyan: rgba(6, 182, 212, 0.35);
+            --neon-orange: rgba(230, 195, 106, 0.35);
+            --seat-self: #14b8a6;
             --seat-right: #f97316;
             --seat-opposite: #06b6d4;
             --seat-left: #22c55e;
@@ -35,7 +36,7 @@
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background: #05030e;
+            background: #07120f;
             min-height: 100vh;
             color: #fff;
             overflow-x: hidden;
@@ -46,9 +47,9 @@
             position: fixed;
             inset: 0;
             background:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(120, 40, 200, 0.12) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
-                radial-gradient(ellipse 70% 40% at 50% 90%, rgba(100, 50, 180, 0.1) 0%, transparent 50%);
+                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(20, 184, 166, 0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 85% 20%, rgba(230, 195, 106, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse 70% 40% at 50% 90%, rgba(14, 116, 144, 0.10) 0%, transparent 50%);
             pointer-events: none;
             z-index: 0;
         }
@@ -461,16 +462,15 @@
         /* 麻将桌 - 3D 透视布局 */
         .mahjong-table {
             background:
-                radial-gradient(ellipse 120% 80% at 50% 40%, rgba(80, 40, 140, 0.08) 0%, transparent 60%),
-                radial-gradient(ellipse at center, #141028 0%, #0e0a20 40%, #08061a 100%);
-            border: 2px solid rgba(168, 85, 247, 0.3);
+                radial-gradient(ellipse 120% 80% at 50% 40%, rgba(20, 184, 166, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at center, #15483d 0%, #0f302a 45%, #071814 100%);
+            border: 2px solid rgba(230, 195, 106, 0.28);
             border-radius: 14px;
             box-shadow:
-                inset 0 0 60px rgba(100, 50, 180, 0.06),
-                inset 0 0 120px rgba(80, 30, 160, 0.03),
-                0 0 25px rgba(168, 85, 247, 0.15),
-                0 0 60px rgba(120, 50, 200, 0.08),
-                0 0 100px rgba(168, 85, 247, 0.04),
+                inset 0 0 60px rgba(0, 0, 0, 0.16),
+                inset 0 0 120px rgba(20, 184, 166, 0.04),
+                0 0 24px rgba(20, 184, 166, 0.10),
+                0 0 60px rgba(230, 195, 106, 0.06),
                 0 10px 40px rgba(0,0,0,0.7);
             width: 100%;
             display: grid;
@@ -489,7 +489,7 @@
             position: absolute;
             inset: -2px;
             border-radius: 16px;
-            background: linear-gradient(135deg, rgba(168,85,247,0.4), rgba(249,115,22,0.2), rgba(168,85,247,0.3));
+            background: linear-gradient(135deg, rgba(230,195,106,0.42), rgba(20,184,166,0.22), rgba(6,182,212,0.22));
             z-index: -1;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
@@ -620,8 +620,8 @@
             justify-content: center;
             gap: 8px;
             padding: 10px;
-            background: rgba(10, 5, 25, 0.6);
-            border: 1px solid rgba(168, 85, 247, 0.1);
+            background: rgba(5, 21, 18, 0.64);
+            border: 1px solid rgba(230, 195, 106, 0.12);
             border-radius: 10px;
             position: relative;
         }
@@ -632,7 +632,7 @@
             top: 50%; left: 50%;
             width: 70px; height: 70px;
             transform: translate(-50%, -50%);
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(230, 195, 106, 0.08) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
         }
@@ -660,14 +660,14 @@
         .my-hand-area {
             width: 100%;
             max-width: 620px;
-            background: rgba(12, 8, 30, 0.8);
-            border: 1px solid rgba(168, 85, 247, 0.15);
+            background: rgba(8, 24, 22, 0.86);
+            border: 1px solid rgba(230, 195, 106, 0.18);
             border-radius: 14px;
             padding: 12px;
             margin-top: 8px;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 -4px 20px rgba(168, 85, 247, 0.06);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
         }
 
         .my-hand-label {
@@ -681,9 +681,37 @@
 
         .my-hand {
             display: flex;
-            gap: 3px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 6px;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            overflow-x: auto;
+            overflow-y: visible;
+            padding: 10px 4px 16px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(230, 195, 106, 0.45) rgba(255,255,255,0.05);
+            scroll-snap-type: x proximity;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .my-hand::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .my-hand::-webkit-scrollbar-thumb {
+            background: rgba(230, 195, 106, 0.45);
+            border-radius: 999px;
+        }
+
+        .my-hand::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 999px;
+        }
+
+        .hand-action-hint {
+            margin-top: 4px;
+            color: rgba(255,255,255,0.58);
+            font-size: 0.78rem;
+            text-align: center;
         }
 
         .my-melds {
@@ -721,6 +749,10 @@
                 0 8px 16px rgba(0,0,0,0.45);
             position: relative;
             user-select: none;
+            flex: 0 0 auto;
+            scroll-snap-align: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .tile::after {
@@ -754,28 +786,46 @@
         }
 
         .tile:hover {
-            transform: translateY(-8px);
+            transform: translateY(-5px);
             box-shadow:
                 1px 2px 0 0 #d0cee0,
                 2px 4px 0 0 #a8a4be,
                 3px 6px 0 0 #8a85a0,
-                0 14px 24px rgba(0,0,0,0.5);
+                0 12px 20px rgba(0,0,0,0.38);
         }
 
         .tile.selected {
-            transform: translateY(-12px);
-            border-color: rgba(168, 85, 247, 0.7);
+            transform: translateY(-10px);
+            border-color: rgba(230, 195, 106, 0.95);
             box-shadow:
-                0 0 12px rgba(168, 85, 247, 0.5),
-                0 0 25px rgba(168, 85, 247, 0.2),
+                0 0 0 2px rgba(230, 195, 106, 0.55),
+                0 0 18px rgba(230, 195, 106, 0.38),
                 1px 2px 0 0 #d0cee0;
+        }
+
+        .tile.selected::before {
+            content: '待出';
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #d8a928, #f3d98b);
+            color: #2b1b00;
+            font-size: 10px;
+            line-height: 1;
+            padding: 3px 6px;
+            border-radius: 999px;
+            font-weight: 700;
+            z-index: 3;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
 
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
             margin-left: 25px;
-            border: 2px solid rgba(168, 85, 247, 0.7);
-            box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3);
+            border: 2px solid rgba(20, 184, 166, 0.85);
+            box-shadow: 0 0 12px rgba(20, 184, 166, 0.42), 0 0 22px rgba(20, 184, 166, 0.20);
             animation: newTilePulse 1.2s ease-in-out infinite;
             position: relative;
         }
@@ -785,7 +835,7 @@
             position: absolute;
             top: -10px;
             right: -10px;
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
             color: white;
             font-size: 10px;
             padding: 2px 5px;
@@ -795,8 +845,8 @@
         }
 
         @keyframes newTilePulse {
-            0%, 100% { box-shadow: 0 0 12px rgba(168, 85, 247, 0.6), 0 0 25px rgba(168, 85, 247, 0.3); }
-            50% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(168, 85, 247, 0.4); }
+            0%, 100% { box-shadow: 0 0 12px rgba(20, 184, 166, 0.42), 0 0 22px rgba(20, 184, 166, 0.20); }
+            50% { box-shadow: 0 0 18px rgba(20, 184, 166, 0.62), 0 0 32px rgba(20, 184, 166, 0.28); }
         }
         
         /* 每个座位的弃牌区 */
@@ -1020,9 +1070,17 @@
         }
 
         .action-btn.discard {
-            background: linear-gradient(135deg, #059669, #065f46);
-            color: white;
-            box-shadow: 0 0 14px rgba(5, 150, 105, 0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+            background: linear-gradient(135deg, #d8a928, #9a6b12);
+            color: #201500;
+            box-shadow: 0 0 14px rgba(230, 195, 106, 0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+
+        .action-btn.discard:disabled {
+            background: rgba(255,255,255,0.10);
+            color: rgba(255,255,255,0.42);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Toast提示 */
@@ -1956,7 +2014,7 @@
             /* 手牌区域优化 - 竖屏友好 */
             .my-hand-area {
                 flex-shrink: 0;
-                padding: 10px;
+                padding: 10px 8px calc(12px + env(safe-area-inset-bottom, 0px));
                 margin-top: 8px;
                 border-radius: 10px;
             }
@@ -1967,9 +2025,10 @@
             }
             
             .my-hand {
-                gap: 3px;
-                flex-wrap: wrap;
-                justify-content: center;
+                gap: 6px;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+                padding: 10px 6px 14px;
             }
             
             .my-melds {
@@ -1988,9 +2047,10 @@
             }
 
             .action-btn {
-                padding: 8px 16px;
+                padding: 10px 18px;
                 font-size: 0.95rem;
-                min-width: 55px;
+                min-width: 72px;
+                min-height: 44px;
                 border-radius: 14px;
             }
             
@@ -2044,8 +2104,8 @@
         /* 超小屏幕 */
         @media (max-width: 360px) {
             .tile {
-                width: 24px;
-                height: 34px;
+                width: 28px;
+                height: 39px;
                 font-size: 16px;
             }
             
@@ -2061,8 +2121,9 @@
             }
             
             .action-btn {
-                padding: 6px 12px;
+                padding: 9px 14px;
                 font-size: 0.8rem;
+                min-width: 66px;
             }
         }
         
@@ -3796,6 +3857,7 @@
         <div class="my-hand-area">
             <div class="my-hand-label">我的手牌</div>
             <div class="my-hand" id="myHand"></div>
+            <div class="hand-action-hint" id="handActionHint">点选一张牌，再点同张或“出牌”打出</div>
             <div class="my-melds" id="myMelds"></div>
             
             <div class="action-buttons" id="actionButtons">
@@ -4099,6 +4161,7 @@
         // 游戏状态
         let socket = null;
         let currentRoom = null;
+        const appConfig = window.MAHJONG_APP_CONFIG || {};
         // 从 localStorage 恢复房间号（2小时内有效）
         try {
             const saved = JSON.parse(localStorage.getItem('mj_room_session') || 'null');
@@ -5106,25 +5169,28 @@
         let connectionAttempts = 0;
         
         function connectServer() {
+            const configuredServerUrl = appConfig.serverUrl || localStorage.getItem('mj_server_url') || '';
+            const isNativeShell = window.location.protocol === 'capacitor:' || window.location.protocol === 'file:';
+
             // 检测是否在 GitHub Pages 等静态托管上
             const isStaticHost = window.location.hostname.includes('github.io') || 
                                  window.location.hostname.includes('gitee.io') ||
                                  window.location.hostname.includes('netlify.app') ||
                                  window.location.hostname.includes('vercel.app');
             
-            if (isStaticHost) {
-                // 静态托管无法运行 WebSocket 服务器，显示提示
+            if ((isStaticHost || isNativeShell) && !configuredServerUrl) {
+                // 静态托管或原生壳需要显式配置 WebSocket 后端。
                 showServerRequiredModal();
                 return;
             }
             
             // 自动检测服务器地址
             const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-            const serverUrl = isLocal ? `http://${window.location.hostname}:3000` : window.location.origin;
+            const serverUrl = configuredServerUrl || (isLocal ? `http://${window.location.hostname}:3000` : window.location.origin);
             
             // 检测是否通过子路径访问（如 /mahjong/）
             const basePath = window.location.pathname.replace(/\/index\.html$/, '').replace(/\/$/, '');
-            const socketPath = (basePath && !isLocal) ? `${basePath}/socket.io` : '/socket.io';
+            const socketPath = (!configuredServerUrl && basePath && !isLocal) ? `${basePath}/socket.io` : '/socket.io';
             
             socket = io(serverUrl, {
                 path: socketPath,
@@ -6619,6 +6685,10 @@
         // 渲染我的手牌 - 优化版（使用 DocumentFragment）
         function renderMyHand(hand) {
             const container = $('myHand') || document.getElementById('myHand');
+
+            if (selectedTileId && !hand.some(tile => tile.id === selectedTileId)) {
+                selectedTileId = null;
+            }
             
             // 使用 DocumentFragment 批量构建 DOM
             const fragment = document.createDocumentFragment();
@@ -6638,6 +6708,7 @@
             // 一次性替换所有内容
             container.innerHTML = '';
             container.appendChild(fragment);
+            updateDiscardButtonState();
         }
         
         // 手牌区域点击事件委托（减少事件监听器数量）
@@ -6729,7 +6800,7 @@
             });
         }
 
-        // 选择手牌（双击直接出牌）
+        // 选择手牌：首次点击选中，再点同一张牌按原有习惯直接出牌。
         function selectTile(tileId) {
             console.log('选牌:', tileId, '当前玩家:', gameState.currentPlayerIndex, '我的座位:', mySeatIndex, '阶段:', gameState.turnPhase);
             
@@ -6746,12 +6817,11 @@
             }
             
             if (selectedTileId === tileId) {
-                // 双击直接出牌
                 discardTile();
                 return;
-            } else {
-                selectedTileId = tileId;
             }
+
+            selectedTileId = tileId;
             
             document.querySelectorAll('#myHand .tile').forEach(el => {
                 el.classList.remove('selected');
@@ -6765,7 +6835,34 @@
                 }
             }
             
-            document.getElementById('discardBtn').disabled = !selectedTileId;
+            updateDiscardButtonState();
+        }
+
+        function updateDiscardButtonState() {
+            const discardBtn = document.getElementById('discardBtn');
+            if (!discardBtn) return;
+
+            const canDiscard =
+                !!selectedTileId &&
+                gameState &&
+                gameState.currentPlayerIndex === mySeatIndex &&
+                gameState.turnPhase === 'discard';
+
+            discardBtn.disabled = !canDiscard;
+            discardBtn.textContent = '出牌';
+
+            const hint = document.getElementById('handActionHint');
+            if (hint) {
+                if (!gameState || gameState.currentPlayerIndex !== mySeatIndex) {
+                    hint.textContent = '等待其他玩家行动';
+                } else if (gameState.turnPhase !== 'discard') {
+                    hint.textContent = '等待摸牌或响应';
+                } else if (selectedTileId) {
+                    hint.textContent = '已选中牌，再点同张或“出牌”打出';
+                } else {
+                    hint.textContent = '点选一张牌，再点同张或“出牌”打出';
+                }
+            }
         }
 
         // 更新动作按钮
@@ -6776,10 +6873,10 @@
             // 只在出牌阶段显示出牌按钮（摸牌是自动的）
             if (isMyTurn && gameState.turnPhase === 'discard') {
                 actionBtns.classList.add('active');
-                document.getElementById('discardBtn').disabled = !selectedTileId;
             } else {
                 actionBtns.classList.remove('active');
             }
+            updateDiscardButtonState();
         }
 
         // 显示响应按钮
@@ -6856,6 +6953,7 @@
             
             socket.emit('discard_tile', { tileId: selectedTileId });
             selectedTileId = null;
+            updateDiscardButtonState();
         }
 
         // 执行动作
@@ -7351,7 +7449,7 @@
             function showOnboarding() {
                 const steps = [
                     { title: '欢迎来到上海敲麻', text: '这是一个多人在线麻将游戏，支持哈灵规则。\n先输入你的昵称，然后创建或加入房间开始游戏。' },
-                    { title: '游戏操作', text: '轮到你时，点击手牌选中想要打出的牌，然后点击「出牌」按钮。\n当有碰/杠/胡的机会时，屏幕上会弹出对应按钮。' },
+                    { title: '游戏操作', text: '轮到你时，点击手牌选中想打出的牌，再点同一张牌或点击「出牌」。\n当有碰/杠/胡的机会时，屏幕上会弹出对应按钮。' },
                     { title: '邀请好友', text: '创建房间后，点击「邀请」按钮可以生成二维码或链接分享给好友，扫码即可加入。' }
                 ];
                 let cur = 0;
