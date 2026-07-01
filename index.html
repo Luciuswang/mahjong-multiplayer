@@ -30,6 +30,10 @@
             --seat-right: #f97316;
             --seat-opposite: #06b6d4;
             --seat-left: #22c55e;
+            --hand-tile-w: clamp(18px, 5.6vw, 45px);
+            --hand-tile-h: clamp(25px, 7.85vw, 63px);
+            --hand-gap: clamp(1px, 0.42vw, 5px);
+            --draw-gap: clamp(4px, 1.4vw, 18px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -409,6 +413,10 @@
             justify-content: flex-start;
             min-height: 100vh;
             min-height: 100dvh;
+            background:
+                radial-gradient(circle at 50% 5%, rgba(230, 195, 106, 0.08), transparent 26%),
+                radial-gradient(circle at 50% 55%, rgba(20, 184, 166, 0.10), transparent 42%),
+                linear-gradient(180deg, #07120f 0%, #06100e 100%);
         }
 
         .game-header {
@@ -416,11 +424,11 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 620px;
+            max-width: min(760px, calc(100vw - 16px));
             padding: 8px 15px;
-            background: rgba(12, 8, 28, 0.5);
-            border: 1px solid rgba(168, 85, 247, 0.08);
-            border-radius: 10px;
+            background: rgba(5, 21, 18, 0.62);
+            border: 1px solid rgba(230, 195, 106, 0.12);
+            border-radius: 12px;
             margin-bottom: 8px;
         }
 
@@ -456,7 +464,7 @@
             perspective: 1200px;
             perspective-origin: 50% 85%;
             width: 100%;
-            max-width: 620px;
+            max-width: min(760px, calc(100vw - 16px));
         }
 
         /* 麻将桌 - 3D 透视布局 */
@@ -482,6 +490,7 @@
             transform-style: preserve-3d;
             transform-origin: center bottom;
             position: relative;
+            overflow: hidden;
         }
 
         .mahjong-table::before {
@@ -489,7 +498,8 @@
             position: absolute;
             inset: -2px;
             border-radius: 16px;
-            background: linear-gradient(135deg, rgba(230,195,106,0.42), rgba(20,184,166,0.22), rgba(6,182,212,0.22));
+            background:
+                linear-gradient(135deg, rgba(230,195,106,0.42), rgba(20,184,166,0.22), rgba(6,182,212,0.22));
             z-index: -1;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask-composite: exclude;
@@ -502,7 +512,10 @@
             position: absolute;
             inset: 8px;
             border-radius: 8px;
-            border: 1px solid rgba(168, 85, 247, 0.06);
+            border: 1px solid rgba(230, 195, 106, 0.10);
+            background:
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 8px),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.035), transparent 48%);
             pointer-events: none;
         }
 
@@ -659,59 +672,52 @@
         /* 手牌区域 - 不受 3D 影响 */
         .my-hand-area {
             width: 100%;
-            max-width: 620px;
-            background: rgba(8, 24, 22, 0.86);
-            border: 1px solid rgba(230, 195, 106, 0.18);
-            border-radius: 14px;
-            padding: 12px;
+            max-width: min(760px, calc(100vw - 16px));
+            background:
+                linear-gradient(180deg, rgba(9, 34, 30, 0.94), rgba(5, 20, 18, 0.94)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.018) 0 1px, transparent 1px 8px);
+            border: 1px solid rgba(230, 195, 106, 0.22);
+            border-radius: 18px;
+            padding: 10px 12px 12px;
             margin-top: 8px;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.18);
+            box-shadow:
+                0 -4px 20px rgba(0, 0, 0, 0.22),
+                0 0 24px rgba(20, 184, 166, 0.10),
+                inset 0 0 30px rgba(230, 195, 106, 0.035);
         }
 
         .my-hand-label {
-            font-size: 0.85rem;
-            color: var(--gold);
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            width: max-content;
+            font-size: 0.78rem;
+            color: #2b1b00;
+            margin-bottom: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #f3d98b, #d8a928);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.22);
         }
 
         .my-hand {
             display: flex;
-            gap: 6px;
+            gap: var(--hand-gap);
             flex-wrap: nowrap;
-            justify-content: flex-start;
-            overflow-x: auto;
+            justify-content: center;
+            overflow-x: visible;
             overflow-y: visible;
-            padding: 10px 4px 16px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(230, 195, 106, 0.45) rgba(255,255,255,0.05);
-            scroll-snap-type: x proximity;
-            -webkit-overflow-scrolling: touch;
+            padding: 9px 0 8px;
+            width: 100%;
         }
 
-        .my-hand::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .my-hand::-webkit-scrollbar-thumb {
-            background: rgba(230, 195, 106, 0.45);
-            border-radius: 999px;
-        }
-
-        .my-hand::-webkit-scrollbar-track {
-            background: rgba(255,255,255,0.05);
-            border-radius: 999px;
+        .my-hand > .tile {
+            width: var(--hand-tile-w);
+            height: var(--hand-tile-h);
+            flex: 0 0 var(--hand-tile-w);
         }
 
         .hand-action-hint {
-            margin-top: 4px;
-            color: rgba(255,255,255,0.58);
-            font-size: 0.78rem;
-            text-align: center;
+            display: none;
         }
 
         .my-melds {
@@ -749,8 +755,8 @@
                 0 8px 16px rgba(0,0,0,0.45);
             position: relative;
             user-select: none;
-            flex: 0 0 auto;
-            scroll-snap-align: center;
+            flex: 0 1 45px;
+            min-width: 0;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
@@ -823,11 +829,15 @@
 
         /* 刚摸的牌 - 突出显示 */
         .tile.new-tile {
-            margin-left: 25px;
+            margin-left: var(--draw-gap);
             border: 2px solid rgba(20, 184, 166, 0.85);
             box-shadow: 0 0 12px rgba(20, 184, 166, 0.42), 0 0 22px rgba(20, 184, 166, 0.20);
             animation: newTilePulse 1.2s ease-in-out infinite;
             position: relative;
+        }
+
+        .my-hand > .tile.new-tile {
+            margin-left: var(--draw-gap);
         }
 
         .tile.new-tile::before {
@@ -995,14 +1005,15 @@
         .action-buttons {
             display: none;
             gap: 8px;
-            margin-top: 12px;
+            margin-top: 10px;
             justify-content: center;
-            background: rgba(12, 8, 30, 0.6);
+            background: rgba(4, 14, 13, 0.72);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(168, 85, 247, 0.1);
-            border-radius: 20px;
-            padding: 8px 14px;
+            border: 1px solid rgba(230, 195, 106, 0.14);
+            border-radius: 999px;
+            padding: 6px 12px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 22px rgba(0,0,0,0.22);
         }
 
         .action-buttons.active {
@@ -1830,9 +1841,9 @@
             .tile.small::after { height: 3px; bottom: -3px; }
             .tile.discarded { width: 24px; height: 33px; }
             .tile.discarded::after { height: 3px; bottom: -3px; }
-            .tile.new-tile { margin-left: 8px; }
+            .tile.new-tile { margin-left: var(--draw-gap); }
             .chat-area { display: none !important; }
-            .my-hand { gap: 2px; }
+            .my-hand { gap: var(--hand-gap); }
             .score-panel { gap: 8px; }
             .score-item { min-width: 60px; padding: 4px 10px; }
             .seat-avatar { width: 38px; height: 38px; border-radius: 10px; }
@@ -2014,21 +2025,39 @@
             /* 手牌区域优化 - 竖屏友好 */
             .my-hand-area {
                 flex-shrink: 0;
-                padding: 10px 8px calc(12px + env(safe-area-inset-bottom, 0px));
+                padding: 8px 8px calc(10px + env(safe-area-inset-bottom, 0px));
                 margin-top: 8px;
-                border-radius: 10px;
+                border-radius: 14px;
             }
             
             .my-hand-label {
-                font-size: 0.8rem;
-                margin-bottom: 6px;
+                font-size: 0.72rem;
+                margin-bottom: 4px;
+                padding: 2px 8px;
             }
             
             .my-hand {
-                gap: 6px;
+                gap: var(--hand-gap);
                 flex-wrap: nowrap;
-                justify-content: flex-start;
-                padding: 10px 6px 14px;
+                justify-content: center;
+                padding: 8px 0 7px;
+            }
+
+            .my-hand > .tile.selected {
+                transform: translateY(-7px);
+            }
+
+            .my-hand > .tile.selected::before {
+                top: -11px;
+                font-size: 8px;
+                padding: 2px 4px;
+            }
+
+            .my-hand > .tile.new-tile::before {
+                top: -8px;
+                right: -6px;
+                font-size: 8px;
+                padding: 1px 4px;
             }
             
             .my-melds {
@@ -2039,19 +2068,19 @@
             /* 操作按钮 */
             .action-buttons {
                 gap: 6px;
-                margin-top: 10px;
+                margin-top: 8px;
                 flex-wrap: wrap;
                 justify-content: center;
-                padding: 6px 10px;
-                border-radius: 16px;
+                padding: 5px 8px;
+                border-radius: 999px;
             }
 
             .action-btn {
-                padding: 10px 18px;
-                font-size: 0.95rem;
-                min-width: 72px;
-                min-height: 44px;
-                border-radius: 14px;
+                padding: 9px 16px;
+                font-size: 0.9rem;
+                min-width: 68px;
+                min-height: 42px;
+                border-radius: 999px;
             }
             
             /* 隐藏聊天 */
@@ -2103,6 +2132,13 @@
         
         /* 超小屏幕 */
         @media (max-width: 360px) {
+            :root {
+                --hand-tile-w: clamp(17px, 5.4vw, 20px);
+                --hand-tile-h: clamp(24px, 7.55vw, 28px);
+                --hand-gap: 1px;
+                --draw-gap: 3px;
+            }
+
             .tile {
                 width: 28px;
                 height: 39px;
@@ -2121,7 +2157,7 @@
             }
             
             .action-btn {
-                padding: 9px 14px;
+                padding: 8px 13px;
                 font-size: 0.8rem;
                 min-width: 66px;
             }
@@ -2492,20 +2528,23 @@
         
         /* 轮到自己时的边框发光 */
         .my-hand-area.my-turn {
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5),
-                        inset 0 0 15px rgba(168, 85, 247, 0.15);
-            border: 2px solid rgba(168, 85, 247, 0.6);
+            box-shadow: 0 0 22px rgba(230, 195, 106, 0.32),
+                        0 0 36px rgba(20, 184, 166, 0.16),
+                        inset 0 0 15px rgba(230, 195, 106, 0.08);
+            border: 2px solid rgba(230, 195, 106, 0.55);
             animation: myTurnPulse 1.5s ease-in-out infinite;
         }
         
         @keyframes myTurnPulse {
             0%, 100% {
-                box-shadow: 0 0 25px rgba(168, 85, 247, 0.5),
-                            inset 0 0 15px rgba(168, 85, 247, 0.15);
+                box-shadow: 0 0 22px rgba(230, 195, 106, 0.32),
+                            0 0 36px rgba(20, 184, 166, 0.16),
+                            inset 0 0 15px rgba(230, 195, 106, 0.08);
             }
             50% {
-                box-shadow: 0 0 40px rgba(168, 85, 247, 0.7),
-                            inset 0 0 25px rgba(168, 85, 247, 0.25);
+                box-shadow: 0 0 34px rgba(230, 195, 106, 0.46),
+                            0 0 50px rgba(20, 184, 166, 0.22),
+                            inset 0 0 24px rgba(230, 195, 106, 0.12);
             }
         }
         
@@ -3857,7 +3896,6 @@
         <div class="my-hand-area">
             <div class="my-hand-label">我的手牌</div>
             <div class="my-hand" id="myHand"></div>
-            <div class="hand-action-hint" id="handActionHint">点选一张牌，再点同张或“出牌”打出</div>
             <div class="my-melds" id="myMelds"></div>
             
             <div class="action-buttons" id="actionButtons">
