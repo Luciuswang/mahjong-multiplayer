@@ -636,6 +636,8 @@ class MahjongRoom {
             flowers: [],
             score: 0,
             isTing: false,
+            pendingTingList: [],
+            pendingTingHandKey: null,
             offline: false,
             offlineTime: null
         };
@@ -682,7 +684,9 @@ class MahjongRoom {
             discards: [],
             flowers: [],
             score: 0,
-            isTing: false
+            isTing: false,
+            pendingTingList: [],
+            pendingTingHandKey: null
         };
         
         this.players.push(aiPlayer);
@@ -917,6 +921,9 @@ class MahjongRoom {
             player.discards = [];
             player.flowers = [];
             player.isTing = false;
+            player.tingList = [];
+            player.pendingTingList = [];
+            player.pendingTingHandKey = null;
             player.ready = false;  // 重置准备状态，以便下一局结束后能重新准备
             
             const cardCount = index === dealerIndex ? 14 : 13;
@@ -1255,6 +1262,9 @@ class MahjongRoom {
             this.endRound('draw', -1, -1, false, false);
             return;
         }
+
+        player.pendingTingList = [];
+        player.pendingTingHandKey = null;
         
         // 【新增】记录刚摸的牌（用于超时自动出牌）
         this.gameState.lastDrawnTile = tile;
@@ -1368,6 +1378,8 @@ class MahjongRoom {
             tile: tile,
             tileName: getTileName(tile)
         });
+
+        this.offerTingAfterDiscard(player, tile);
         
         // 检查其他玩家是否可以碰、杠、胡
         this.checkActionsAfterDiscard(tile, player.seatIndex);
@@ -2067,6 +2079,100 @@ class MahjongRoom {
         }
 
         return false;
+    }
+
+    allTilesForTing() {
+        const list = [];
+        for (const type of TILE_TYPES) {
+            for (const value of TILE_VALUES) {
+                list.push({ type, value });
+            }
+        }
+        for (const h of HONOR_VALUES) {
+            list.push({ type: 'honor', value: h });
+        }
+        return list;
+    }
+
+    getTingHandKey(player) {
+        const handKey = sortTiles(player.hand || []).map(tileKey).join('|');
+        const meldKey = (player.melds || []).map(meld => {
+            const tiles = (meld.tiles || []).map(tileKey).sort().join(',');
+            return `${meld.type}:${tiles}`;
+        }).join('|');
+        return `${handKey}#${meldKey}`;
+    }
+
+    checkTingPai(hand, melds = []) {
+        if (!Array.isArray(hand) || !Array.isArray(melds)) return [];
+        const totalTiles = hand.length + melds.length * 3;
+        if (totalTiles !== 13) return [];
+
+        const seen = new Set();
+        const tingTiles = [];
+        for (const testTile of this.allTilesForTing()) {
+            const key = tileKey(testTile);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            if (this.canHu([...hand, testTile], melds)) {
+                tingTiles.push(testTile);
+            }
+        }
+        return tingTiles;
+    }
+
+    offerTingAfterDiscard(player, discardedTile) {
+        if (!player || player.isTing) return;
+
+        const tingList = this.checkTingPai(player.hand, player.melds);
+        player.pendingTingList = tingList;
+        player.pendingTingHandKey = tingList.length > 0 ? this.getTingHandKey(player) : null;
+
+        if (tingList.length === 0 || player.isBot || player.offline || !player.socket) return;
+
+        player.socket.emit('ting_available', {
+            tingList,
+            tingTiles: tingList.map(t => getTileName(t)),
+            discardedTile,
+            discardedTileName: getTileName(discardedTile)
+        });
+    }
+
+    confirmTing(socketId) {
+        const player = this.players.find(p => p.id === socketId);
+        if (!player) return { error: '玩家不存在' };
+        if (player.isTing) return { success: true, alreadyTing: true };
+
+        const currentTingList = this.checkTingPai(player.hand, player.melds);
+        if (currentTingList.length === 0) {
+            player.pendingTingList = [];
+            player.pendingTingHandKey = null;
+            return { error: '当前手牌不能叫听' };
+        }
+
+        const currentHandKey = this.getTingHandKey(player);
+        if (player.pendingTingHandKey && player.pendingTingHandKey !== currentHandKey) {
+            player.pendingTingList = [];
+            player.pendingTingHandKey = null;
+            return { error: '手牌已变化，不能按之前的听牌结果叫听' };
+        }
+
+        player.isTing = true;
+        player.tingList = currentTingList;
+        player.pendingTingList = [];
+        player.pendingTingHandKey = null;
+
+        console.log(`玩家 ${player.username} 确认听牌，听牌列表:`, player.tingList.length, '张');
+
+        this.broadcast('player_ting_declared', {
+            playerIndex: player.seatIndex,
+            username: player.username,
+            tingCount: player.tingList.length,
+            tingTiles: player.tingList.map(t => getTileName(t))
+        });
+        this.broadcastGameState();
+
+        return { success: true, tingList: player.tingList };
     }
 
     isQingYiSeAll(allTiles) {
@@ -2903,22 +3009,9 @@ io.on('connection', (socket) => {
     socket.on('confirm_ting', (data) => {
         const room = playerSockets.get(socket.id);
         if (room && room.gameRunning) {
-            const player = room.players.find(p => p.id === socket.id);
-            if (player) {
-                const wasTing = player.isTing;
-                player.isTing = true;
-                player.tingList = data.tingList || [];
-                console.log(`玩家 ${player.username} 确认听牌，听牌列表:`, player.tingList.length, '张');
-
-                if (!wasTing) {
-                    room.broadcast('player_ting_declared', {
-                        playerIndex: player.seatIndex,
-                        username: player.username,
-                        tingCount: player.tingList.length,
-                        tingTiles: player.tingList.map(t => getTileName(t))
-                    });
-                    room.broadcastGameState();
-                }
+            const result = room.confirmTing(socket.id);
+            if (result && result.error) {
+                socket.emit('action_error', { message: result.error });
             }
         }
     });

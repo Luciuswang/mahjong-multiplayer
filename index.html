@@ -5263,6 +5263,7 @@
         // 已显示过听牌选择的标记（避免重复弹出）
         let tingChoiceShown = false;
         let pendingTingList = [];
+        let confirmingTingList = [];
 
         function getTingOptionsForCurrentDraw(player) {
             if (!player || !player.hand || !lastDrawnTileId) return [];
@@ -5306,9 +5307,13 @@
         }
         
         // 显示听牌选择对话框
-        function showTingChoiceModal(tingTiles) {
+        function showTingChoiceModal(tingTiles, context = {}) {
             const tingNames = tingTiles.map(t => formatTileNameMp(t)).join('、');
+            const sourceText = context.discardedTileName
+                ? `<div style="margin-bottom:8px;color:rgba(255,255,255,0.75);">打出 <strong>${context.discardedTileName}</strong> 后可以叫听</div>`
+                : '';
             document.getElementById('tingTilesInfo').innerHTML = `
+                ${sourceText}
                 <div style="margin-bottom:10px;">听：<strong style="color:var(--gold)">${tingNames}</strong></div>
                 <div style="font-size:0.9rem;color:rgba(255,255,255,0.7);">共 ${tingTiles.length} 张</div>
             `;
@@ -5317,31 +5322,20 @@
         
         // 确认听牌
         function confirmTing() {
-            isTing = true;
-            tingList = pendingTingList;
+            confirmingTingList = pendingTingList;
             pendingTingList = [];
             
             // 通知服务器确认听牌
             if (socket) {
-                socket.emit('confirm_ting', { tingList: tingList });
+                socket.emit('confirm_ting');
                 console.log('通知服务器确认听牌');
-            }
-            
-            // 语音播报
-            speakTing();
-
-            // 直接高亮刚摸的牌，明确下一步要打它。
-            selectedTileId = lastDrawnTileId;
-            const myPlayer = gameState?.players?.find(p => p.seatIndex === mySeatIndex);
-            if (myPlayer?.hand) {
-                renderMyHand(myPlayer.hand);
             }
             
             // 关闭对话框
             document.getElementById('tingChoiceModal').classList.remove('active');
             
-            const tingNames = tingList.map(t => formatTileNameMp(t)).join('、');
-            showToast(`🎯 已听牌！听：${tingNames}，请打出刚摸的牌`, 3000);
+            const tingNames = confirmingTingList.map(t => formatTileNameMp(t)).join('、');
+            showToast(`🎯 叫听确认中：${tingNames}`, 1800, 'warning');
         }
         
         // 取消听牌（继续打）
@@ -5349,8 +5343,9 @@
             // 关闭对话框，不进入听牌状态
             document.getElementById('tingChoiceModal').classList.remove('active');
             pendingTingList = [];
+            confirmingTingList = [];
             // tingChoiceShown 保持 true，本次摸牌不再重复提示
-            showToast('继续打牌', 1500);
+            showToast('本次不叫听', 1500);
         }
         
         // ==================== 音频播放系统 ====================
@@ -6049,6 +6044,7 @@
                 tingList = [];
                 tingChoiceShown = false;
                 pendingTingList = [];
+                confirmingTingList = [];
                 lastDrawnTileId = null;
                 selectedTileId = null;
                 
@@ -6163,6 +6159,7 @@
                 lastDrawnTileId = data.tile.id; // 记录刚摸的牌
                 tingChoiceShown = false;
                 pendingTingList = [];
+                confirmingTingList = [];
                 
                 // 重新渲染手牌以显示新牌高亮
                 if (gameState) {
@@ -6172,12 +6169,6 @@
                     }
                 }
 
-                if (!isTing) {
-                    setTimeout(() => {
-                        checkAndShowTing();
-                    }, 200);
-                }
-                
                 // 听牌后自动出牌：延迟执行，先等待服务器检查是否能胡牌
                 if (isTing && lastDrawnTileId) {
                     console.log('已听牌，等待服务器检查胡牌...');
@@ -6221,12 +6212,33 @@
                 speakDiscard(data.tile, playerVoice);
             });
 
+            socket.on('ting_available', (data) => {
+                if (isTing || tingChoiceShown) return;
+
+                const serverTingList = Array.isArray(data.tingList) ? data.tingList : [];
+                if (serverTingList.length === 0) return;
+
+                pendingTingList = serverTingList;
+                tingChoiceShown = true;
+                showTingChoiceModal(serverTingList, {
+                    discardedTileName: data.discardedTileName
+                });
+
+                showToast('🎯 打出这张后可以叫听', 2600, 'warning');
+                playBeep(988, 120);
+            });
+
             socket.on('player_ting_declared', (data) => {
                 const isMe = data.playerIndex === mySeatIndex;
                 const tingNames = Array.isArray(data.tingTiles) ? data.tingTiles.join('、') : '';
 
                 if (isMe) {
                     isTing = true;
+                    if (confirmingTingList.length > 0) {
+                        tingList = confirmingTingList;
+                    }
+                    pendingTingList = [];
+                    confirmingTingList = [];
                     document.querySelector('.my-hand-area')?.classList.add('is-ting');
                 }
 
@@ -6271,7 +6283,8 @@
             
             socket.on('action_error', (data) => {
                 console.log('动作错误:', data.message);
-                showToast('操作超时，请等待下次机会');
+                confirmingTingList = [];
+                showToast(data.message || '操作失败，请等待下次机会');
                 hideResponseButtons();
             });
 

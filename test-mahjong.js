@@ -160,6 +160,37 @@ function canHu(hand, melds) {
     return checkWinningHand([...hand]);
 }
 
+function allTilesForTing() {
+    const list = [];
+    for (const type of TILE_TYPES) {
+        for (const value of TILE_VALUES) {
+            list.push({ type, value });
+        }
+    }
+    for (const h of HONOR_VALUES) {
+        list.push({ type: 'honor', value: h });
+    }
+    return list;
+}
+
+function checkTingPai(hand, melds = []) {
+    if (!Array.isArray(hand) || !Array.isArray(melds)) return [];
+    const totalTiles = hand.length + melds.length * 3;
+    if (totalTiles !== 13) return [];
+
+    const seen = new Set();
+    const tingTiles = [];
+    for (const testTile of allTilesForTing()) {
+        const key = tileKey(testTile);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (canHu([...hand, testTile], melds)) {
+            tingTiles.push(testTile);
+        }
+    }
+    return tingTiles;
+}
+
 function canFormAllPeng(tiles, hasPair = false) {
     if (tiles.length === 0) return hasPair;
     if (tiles.length === 1) return false;
@@ -422,6 +453,20 @@ test('canHu: 边界 789顺子', () => {
 test('canHu: 混合刻子+顺子', () => {
     const hand = [W(1),W(1),W(1), W(2),W(3),W(4), Ti(5),Ti(5),Ti(5), To(1),To(2),To(3), To(9),To(9)];
     assert.strictEqual(canHu(hand, []), true);
+});
+
+// --- 4.1 出牌后听牌检测 ---
+console.log('\n[出牌后听牌检测]');
+
+test('checkTingPai: 出牌后剩13张应立即识别听牌', () => {
+    const handAfterDiscard = [W(1),W(1), W(2),W(3),W(4), Ti(2),Ti(3),Ti(4), To(5),To(6),To(7), H('dong'),H('dong')];
+    const result = checkTingPai(handAfterDiscard, []);
+    assert.ok(result.some(t => tileKey(t) === 'dong'), '应听东风');
+});
+
+test('checkTingPai: 14张完整手牌不作为叫听候选', () => {
+    const hand = [W(1),W(1), W(2),W(3),W(4), Ti(2),Ti(3),Ti(4), To(5),To(6),To(7), H('dong'),H('dong'),H('dong')];
+    assert.deepStrictEqual(checkTingPai(hand, []), []);
 });
 
 // --- 5. 七对子 ---
