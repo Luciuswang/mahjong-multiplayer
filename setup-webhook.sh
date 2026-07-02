@@ -21,8 +21,13 @@ echo "y" | ufw enable || true
 # 3. 启动 webhook 服务
 echo -e "${YELLOW}[2/3] 启动 Webhook 服务...${NC}"
 pm2 delete webhook 2>/dev/null || true
-pm2 start webhook.js --name webhook
+sudo fuser -k 9000/tcp 2>/dev/null || true
+pm2 start webhook.js --name webhook --time
 pm2 save
+
+echo -e "${YELLOW}[3/3] 检查 Webhook 健康状态...${NC}"
+sleep 1
+curl -fsS http://127.0.0.1:9000/health >/dev/null
 
 # 4. 获取服务器 IP
 PUBLIC_IP=$(curl -s ifconfig.me || curl -s icanhazip.com || echo "你的服务器IP")
