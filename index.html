@@ -34,7 +34,8 @@
             --hand-tile-w: clamp(19px, 5.45vw, 45px);
             --hand-gap: clamp(1px, 0.42vw, 5px);
             --draw-gap: clamp(4px, 1.4vw, 18px);
-            --discard-tile-w: clamp(20px, 3.2vw, 32px);
+            --opponent-tile-w: clamp(12px, 1.65vw, 18px);
+            --discard-tile-w: clamp(18px, 2.85vw, 30px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -515,7 +516,7 @@
                 0 10px 40px rgba(0,0,0,0.7);
             width: 100%;
             display: grid;
-            grid-template-rows: auto minmax(0, 1fr);
+            grid-template-rows: minmax(64px, 17%) minmax(0, 1fr);
             grid-template-columns: 1fr;
             padding: 12px;
             gap: 6px;
@@ -563,9 +564,13 @@
         .opponents-row {
             display: flex;
             justify-content: space-around;
+            align-items: flex-start;
             gap: 5px;
-            transform: scaleY(1.08);
-            transform-origin: center bottom;
+            min-height: 0;
+            transform: translateY(-2px) scaleY(0.88);
+            transform-origin: center top;
+            position: relative;
+            z-index: 3;
         }
 
         /* 玩家区域 */
@@ -579,11 +584,24 @@
             min-width: 0;
         }
 
+        .opponents-row .seat {
+            justify-content: flex-start;
+            padding: 2px 5px 0;
+            max-height: 100%;
+        }
+
         .seat-info {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 8px;
+        }
+
+        .opponents-row .seat-info {
+            gap: 5px;
+            margin-bottom: 3px;
+            transform: scale(0.88);
+            transform-origin: center top;
         }
 
         .seat-avatar {
@@ -657,6 +675,17 @@
             gap: 2px;
             flex-wrap: wrap;
             justify-content: center;
+        }
+
+        .opponents-row .seat-tiles {
+            width: min(124px, 30vw);
+            max-height: 70px;
+            gap: 1px;
+            align-content: flex-start;
+            overflow: hidden;
+            transform: perspective(420px) rotateX(22deg) scale(0.88);
+            transform-origin: center top;
+            filter: drop-shadow(0 8px 10px rgba(0,0,0,0.18));
         }
 
         /* 中央出牌区域 */
@@ -937,11 +966,11 @@
             display: flex;
             flex-wrap: wrap;
             align-content: flex-start;
-            gap: 3px;
+            gap: 2px;
             max-width: none;
             min-height: calc(var(--discard-tile-w) * 1.4);
-            max-height: 36%;
-            padding: 6px;
+            max-height: 42%;
+            padding: 4px;
             margin: 0;
             border-color: rgba(230, 195, 106, 0.14);
             background: rgba(2, 13, 12, 0.46);
@@ -960,31 +989,31 @@
         }
 
         .discard-top {
-            top: 5%;
+            top: 3%;
             left: 50%;
-            width: 44%;
+            width: 48%;
             transform: translateX(-50%);
             justify-content: center;
         }
 
         .discard-left {
-            left: 6%;
-            top: 33%;
-            width: 31%;
+            left: 3%;
+            top: 28%;
+            width: 35%;
             justify-content: flex-start;
         }
 
         .discard-right {
-            right: 6%;
-            top: 33%;
-            width: 31%;
+            right: 3%;
+            top: 28%;
+            width: 35%;
             justify-content: flex-end;
         }
 
         .discard-self {
             left: 50%;
-            bottom: 5%;
-            width: 58%;
+            bottom: 3%;
+            width: 66%;
             transform: translateX(-50%);
             justify-content: center;
         }
@@ -1072,6 +1101,11 @@
             width: 28px;
             height: auto;
             aspect-ratio: var(--tile-aspect);
+        }
+
+        .opponents-row .tile.small {
+            width: var(--opponent-tile-w);
+            flex: 0 0 var(--opponent-tile-w);
         }
 
         .seat-info.ting::after {
@@ -2024,6 +2058,7 @@
             .tile { width: 34px; height: auto; }
             .tile::after { height: 4px; bottom: -4px; }
             .tile.small { width: 20px; height: auto; }
+            .opponents-row .tile.small { width: var(--opponent-tile-w); }
             .tile.small::after { height: 3px; bottom: -3px; }
             .tile.discarded { width: 24px; height: auto; }
             .tile.discarded::after { height: 3px; bottom: -3px; }
@@ -2046,6 +2081,7 @@
         /* 响应式 - 手机竖屏优化 */
         @media (max-width: 480px) {
             :root {
+                --opponent-tile-w: clamp(10px, 3.2vw, 14px);
                 --discard-tile-w: clamp(16px, 4.5vw, 20px);
             }
 
@@ -2139,6 +2175,7 @@
                 height: 100%;
                 padding: 5px;
                 gap: 3px;
+                grid-template-rows: minmax(52px, 15%) minmax(0, 1fr);
                 border-width: 2px;
                 border-radius: 10px;
                 transform: rotateX(8deg);
@@ -2147,10 +2184,17 @@
             /* 对手区横向排列 */
             .opponents-row {
                 gap: 3px;
+                transform: translateY(-2px) scaleY(0.82);
             }
             
             .opponents-row .seat {
                 padding: 3px;
+            }
+
+            .opponents-row .seat-tiles {
+                width: min(82px, 30vw);
+                max-height: 48px;
+                transform: perspective(320px) rotateX(24deg) scale(0.84);
             }
             
             /* 座位优化 */
@@ -2200,7 +2244,7 @@
             }
 
             .tile.small {
-                width: 15px;
+                width: var(--opponent-tile-w);
                 height: auto;
                 font-size: 10px;
             }
@@ -2255,25 +2299,25 @@
             }
 
             .discard-top {
-                top: 4%;
-                width: 48%;
+                top: 3%;
+                width: 52%;
             }
 
             .discard-left {
                 left: 4%;
-                top: 32%;
-                width: 34%;
+                top: 27%;
+                width: 36%;
             }
 
             .discard-right {
                 right: 4%;
-                top: 32%;
-                width: 34%;
+                top: 27%;
+                width: 36%;
             }
 
             .discard-self {
-                bottom: 4%;
-                width: 62%;
+                bottom: 3%;
+                width: 70%;
             }
             
             .my-discards {
@@ -2431,6 +2475,8 @@
                 --hand-tile-w: clamp(24px, 4.4vw, 45px);
                 --hand-gap: clamp(1px, 0.28vw, 4px);
                 --draw-gap: clamp(5px, 0.9vw, 14px);
+                --opponent-tile-w: clamp(11px, 1.75vw, 16px);
+                --discard-tile-w: clamp(15px, 2.45vw, 22px);
             }
 
             .game-screen.active {
@@ -2507,6 +2553,7 @@
                 height: 100%;
                 padding: 5px;
                 gap: 3px;
+                grid-template-rows: minmax(48px, 15%) minmax(0, 1fr);
                 transform: rotateX(6deg);
             }
 
@@ -2549,13 +2596,45 @@
                 height: 22px;
             }
 
+            .opponents-row {
+                transform: translateY(-2px) scaleY(0.78);
+            }
+
+            .opponents-row .seat-tiles {
+                width: min(96px, 24vw);
+                max-height: 50px;
+                transform: perspective(340px) rotateX(25deg) scale(0.82);
+            }
+
             .discard-stage .discard-zone {
                 max-width: none;
                 padding: 2px;
             }
 
+            .discard-top {
+                top: 2%;
+                width: 46%;
+            }
+
+            .discard-left {
+                top: 25%;
+                left: 3%;
+                width: 35%;
+            }
+
+            .discard-right {
+                top: 25%;
+                right: 3%;
+                width: 35%;
+            }
+
+            .discard-self {
+                bottom: 2%;
+                width: 68%;
+            }
+
             .tile.small {
-                width: 14px;
+                width: var(--opponent-tile-w);
             }
 
             .tile.discarded {
@@ -4626,7 +4705,7 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
-        const APP_BUILD_LABEL = '2026-07-02 discards-ting';
+        const APP_BUILD_LABEL = '2026-07-02 discard-space';
 
         function renderAppVersionBadge() {
             const badge = document.getElementById('appVersionBadge');
