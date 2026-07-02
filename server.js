@@ -964,7 +964,8 @@ class MahjongRoom {
                     d: p.discards.length,     // discardsCount
                     m: p.melds.length,        // meldsCount
                     f: p.flowers?.length || 0, // flowersCount
-                    o: p.offline || false     // offline
+                    o: p.offline || false,    // offline
+                    t: p.isTing || false      // ting
                 })),
                 c: this.gameState.currentPlayerIndex,  // current
                 t: this.gameState.turnPhase,           // phase
@@ -1403,7 +1404,7 @@ class MahjongRoom {
             
             console.log(`玩家 ${player.username} 手中有 ${sameCount} 张 ${getTileName(tile)}, isBot=${player.isBot}, socket=${!!player.socket}, offline=${player.offline}`);
             
-            if (sameCount === 3) {
+            if (sameCount === 3 && !player.isTing) {
                 actions.push('gang');
             }
             
@@ -2904,9 +2905,20 @@ io.on('connection', (socket) => {
         if (room && room.gameRunning) {
             const player = room.players.find(p => p.id === socket.id);
             if (player) {
+                const wasTing = player.isTing;
                 player.isTing = true;
                 player.tingList = data.tingList || [];
                 console.log(`玩家 ${player.username} 确认听牌，听牌列表:`, player.tingList.length, '张');
+
+                if (!wasTing) {
+                    room.broadcast('player_ting_declared', {
+                        playerIndex: player.seatIndex,
+                        username: player.username,
+                        tingCount: player.tingList.length,
+                        tingTiles: player.tingList.map(t => getTileName(t))
+                    });
+                    room.broadcastGameState();
+                }
             }
         }
     });

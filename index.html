@@ -34,6 +34,7 @@
             --hand-tile-w: clamp(19px, 5.45vw, 45px);
             --hand-gap: clamp(1px, 0.42vw, 5px);
             --draw-gap: clamp(4px, 1.4vw, 18px);
+            --discard-tile-w: clamp(20px, 3.2vw, 32px);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -514,7 +515,7 @@
                 0 10px 40px rgba(0,0,0,0.7);
             width: 100%;
             display: grid;
-            grid-template-rows: auto 1fr auto;
+            grid-template-rows: auto minmax(0, 1fr);
             grid-template-columns: 1fr;
             padding: 12px;
             gap: 6px;
@@ -681,6 +682,27 @@
             background: radial-gradient(circle, rgba(230, 195, 106, 0.08) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
+        }
+
+        .discard-stage {
+            position: relative;
+            min-height: 0;
+            height: 100%;
+            border-radius: 10px;
+            background:
+                linear-gradient(180deg, rgba(4, 18, 16, 0.18), rgba(4, 18, 16, 0.34)),
+                repeating-linear-gradient(135deg, rgba(255,255,255,0.014) 0 1px, transparent 1px 9px);
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .discard-stage .deck-info {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            white-space: nowrap;
         }
 
         .discard-area {
@@ -910,6 +932,63 @@
             max-width: 200px;
         }
 
+        .discard-zone {
+            position: absolute;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 3px;
+            max-width: none;
+            min-height: calc(var(--discard-tile-w) * 1.4);
+            max-height: 36%;
+            padding: 6px;
+            margin: 0;
+            border-color: rgba(230, 195, 106, 0.14);
+            background: rgba(2, 13, 12, 0.46);
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.24);
+            z-index: 2;
+            overflow: hidden;
+        }
+
+        .discard-zone .tile {
+            width: var(--discard-tile-w);
+            flex: 0 0 var(--discard-tile-w);
+        }
+
+        .discard-zone:empty {
+            opacity: 0.25;
+        }
+
+        .discard-top {
+            top: 5%;
+            left: 50%;
+            width: 44%;
+            transform: translateX(-50%);
+            justify-content: center;
+        }
+
+        .discard-left {
+            left: 6%;
+            top: 33%;
+            width: 31%;
+            justify-content: flex-start;
+        }
+
+        .discard-right {
+            right: 6%;
+            top: 33%;
+            width: 31%;
+            justify-content: flex-end;
+        }
+
+        .discard-self {
+            left: 50%;
+            bottom: 5%;
+            width: 58%;
+            transform: translateX(-50%);
+            justify-content: center;
+        }
+
         .opponents-row .seat-discards {
             margin-top: 5px;
             max-width: 100px;
@@ -993,6 +1072,72 @@
             width: 28px;
             height: auto;
             aspect-ratio: var(--tile-aspect);
+        }
+
+        .seat-info.ting::after {
+            content: '听';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #2b1b00;
+            font-size: 0.76rem;
+            font-weight: 800;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.42);
+        }
+
+        .my-hand-area.is-ting {
+            border-color: rgba(251, 191, 36, 0.62);
+            box-shadow:
+                0 0 24px rgba(251, 191, 36, 0.20),
+                inset 0 0 28px rgba(251, 191, 36, 0.06);
+        }
+
+        .my-hand-area.is-ting .my-hand-label::after {
+            content: ' 已听';
+            margin-left: 6px;
+            color: #7a3d00;
+        }
+
+        .ting-callout {
+            position: fixed;
+            left: 50%;
+            top: 22%;
+            transform: translateX(-50%);
+            z-index: 4600;
+            min-width: 180px;
+            max-width: min(440px, calc(100vw - 32px));
+            padding: 14px 20px;
+            border: 1px solid rgba(251, 191, 36, 0.55);
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(68, 38, 8, 0.95), rgba(24, 16, 8, 0.95));
+            color: #fff7cc;
+            text-align: center;
+            box-shadow: 0 18px 44px rgba(0,0,0,0.42), 0 0 28px rgba(251, 191, 36, 0.22);
+            pointer-events: none;
+            animation: tingCallout 2.4s ease forwards;
+        }
+
+        .ting-callout-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+
+        .ting-callout-subtitle {
+            font-size: 0.86rem;
+            color: rgba(255, 247, 204, 0.82);
+        }
+
+        @keyframes tingCallout {
+            0% { opacity: 0; transform: translate(-50%, 10px) scale(0.92); }
+            14% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -12px) scale(0.98); }
         }
 
         .tile.small.back::after {
@@ -1900,6 +2045,10 @@
         
         /* 响应式 - 手机竖屏优化 */
         @media (max-width: 480px) {
+            :root {
+                --discard-tile-w: clamp(16px, 4.5vw, 20px);
+            }
+
             html, body {
                 overflow-x: hidden;
             }
@@ -2083,6 +2232,48 @@
                 min-height: 22px;
                 padding: 2px;
                 margin-top: 3px;
+            }
+
+            .discard-stage {
+                border-radius: 8px;
+            }
+
+            .discard-stage .deck-info {
+                padding: 6px 14px;
+                font-size: 0.86rem;
+                border-radius: 10px;
+            }
+
+            .discard-stage .discard-zone {
+                gap: 1px;
+                max-width: none;
+                min-height: calc(var(--discard-tile-w) * 1.38);
+                max-height: 35%;
+                padding: 2px;
+                margin: 0;
+                border-radius: 6px;
+            }
+
+            .discard-top {
+                top: 4%;
+                width: 48%;
+            }
+
+            .discard-left {
+                left: 4%;
+                top: 32%;
+                width: 34%;
+            }
+
+            .discard-right {
+                right: 4%;
+                top: 32%;
+                width: 34%;
+            }
+
+            .discard-self {
+                bottom: 4%;
+                width: 62%;
             }
             
             .my-discards {
@@ -2356,6 +2547,11 @@
             .seat-avatar {
                 width: 22px;
                 height: 22px;
+            }
+
+            .discard-stage .discard-zone {
+                max-width: none;
+                padding: 2px;
             }
 
             .tile.small {
@@ -4066,7 +4262,6 @@
                             <span class="seat-wind" id="wind-3">北</span>
                         </div>
                         <div class="seat-tiles" id="tiles-3"></div>
-                        <div class="seat-discards" id="discards-3"></div>
                     </div>
 
                     <!-- 对家（中间） -->
@@ -4077,7 +4272,6 @@
                             <span class="seat-wind" id="wind-2">西</span>
                         </div>
                         <div class="seat-tiles" id="tiles-2"></div>
-                        <div class="seat-discards" id="discards-2"></div>
                     </div>
 
                     <!-- 右家 -->
@@ -4088,15 +4282,16 @@
                             <span class="seat-wind" id="wind-1">南</span>
                         </div>
                         <div class="seat-tiles" id="tiles-1"></div>
-                        <div class="seat-discards" id="discards-1"></div>
                     </div>
                 </div>
 
-                <!-- 中央出牌区域 -->
-                <div class="table-center">
+                <!-- 桌面弃牌区：四家弃牌摆在各自门前 -->
+                <div class="discard-stage">
+                    <div class="seat-discards discard-zone discard-left" id="discards-3"></div>
+                    <div class="seat-discards discard-zone discard-top" id="discards-2"></div>
+                    <div class="seat-discards discard-zone discard-right" id="discards-1"></div>
+                    <div class="seat-discards discard-zone discard-self my-discards" id="discards-0"></div>
                     <div class="deck-info">🀄 剩余: <span id="centerDeckCount">0</span></div>
-                    <!-- 我的出牌区 -->
-                    <div class="seat-discards my-discards" id="discards-0"></div>
                 </div>
             </div>
         </div>
@@ -4218,19 +4413,19 @@
     <!-- 听牌选择对话框 -->
     <div class="ting-choice-modal" id="tingChoiceModal">
         <div class="ting-choice-content">
-            <h3 class="ting-choice-title">🎯 可以听牌</h3>
+            <h3 class="ting-choice-title">🎯 可以叫听</h3>
             <div class="ting-tiles-info" id="tingTilesInfo">
                 <!-- 听牌信息动态生成 -->
             </div>
             <div class="ting-choice-buttons">
                 <button class="btn ting-btn" onclick="confirmTing()">
-                    <i class="fas fa-check"></i> 听牌
+                    <i class="fas fa-check"></i> 叫听
                 </button>
                 <button class="btn secondary" onclick="cancelTing()">
                     <i class="fas fa-times"></i> 继续打
                 </button>
             </div>
-            <div class="ting-hint">听牌后只能打刚摸的牌，但可以胡任意一张听的牌</div>
+            <div class="ting-hint">叫听后会全桌提示；之后只能打刚摸的牌，胡牌需手动点击</div>
         </div>
     </div>
 
@@ -4431,7 +4626,7 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
-        const APP_BUILD_LABEL = '2026-07-02 fullscreen';
+        const APP_BUILD_LABEL = '2026-07-02 discards-ting';
 
         function renderAppVersionBadge() {
             const badge = document.getElementById('appVersionBadge');
@@ -5826,6 +6021,20 @@
                 speakDiscard(data.tile, playerVoice);
             });
 
+            socket.on('player_ting_declared', (data) => {
+                const isMe = data.playerIndex === mySeatIndex;
+                const tingNames = Array.isArray(data.tingTiles) ? data.tingTiles.join('、') : '';
+
+                if (isMe) {
+                    isTing = true;
+                    document.querySelector('.my-hand-area')?.classList.add('is-ting');
+                }
+
+                showTingCallout(data.username, tingNames, isMe);
+                showToast(`${isMe ? '你' : data.username} 叫听！`, 2600, 'warning');
+                speakTing();
+            });
+
             socket.on('action_available', (data) => {
                 console.log('收到可执行动作:', data.actions);
                 
@@ -5835,32 +6044,19 @@
                 
                 // 检查是否可以胡牌（包括点炮胡和自摸胡）
                 const canHu = data.actions.includes('hu') || data.actions.includes('hu_zimo');
-                
-                // 只有胡且没有其他选项（暗杠/加杠）时才自动胡
-                const hasGangOption = data.actions.includes('an_gang') || data.actions.includes('jia_gang');
-                
-                if (canHu && !hasGangOption) {
-                    // 只能胡，自动胡牌
-                    const huAction = data.actions.includes('hu_zimo') ? 'hu_zimo' : 'hu';
-                    const huType = data.actions.includes('hu_zimo') ? '自摸' : '点炮';
-                    console.log(`可以${huType}胡牌，自动胡牌！`);
-                    showToast(`🎉 ${huType}胡牌！`);
-                    setTimeout(() => {
-                        doAction(huAction);
-                    }, 500);
+
+                if (canHu) {
+                    const huType = data.actions.includes('hu_zimo') ? '自摸' : '胡牌';
+                    showToast(`可以${huType}，请手动选择`, 5000, 'success');
+                    playBeep(1046, 120);
+                    showResponseButtons(data.actions, data);
                     return;
                 }
                 
-                // 如果听牌状态，自动过（不碰不杠）
+                // 听牌后不能碰杠；非胡牌响应自动过，但胡牌必须手动点。
                 if (isTing) {
-                    // 但如果能胡还是要胡
-                    if (canHu) {
-                        const huAction = data.actions.includes('hu_zimo') ? 'hu_zimo' : 'hu';
-                        setTimeout(() => { doAction(huAction); }, 300);
-                    } else {
-                        console.log('已听牌，自动过');
-                        setTimeout(() => { doAction('pass'); }, 300);
-                    }
+                    console.log('已听牌，非胡牌响应自动过');
+                    setTimeout(() => { doAction('pass'); }, 300);
                     return;
                 }
                 
@@ -6837,6 +7033,7 @@
                 const needUpdate = !prevPlayer ||
                     prevPlayer.handCount !== player.handCount ||
                     prevPlayer.offline !== player.offline ||
+                    prevPlayer.isTing !== player.isTing ||
                     gameState.currentPlayerIndex !== prev?.currentPlayerIndex;
                     
                 if (needUpdate) {
@@ -6859,6 +7056,9 @@
             const prevMyPlayer = prev?.players?.find(p => p.seatIndex === mySeatIndex);
             
             if (myPlayer && myPlayer.hand) {
+                isTing = isTing || !!myPlayer.isTing;
+                document.querySelector('.my-hand-area')?.classList.toggle('is-ting', isTing);
+
                 const handChanged = !prevMyPlayer || 
                     !prevMyPlayer.hand ||
                     myPlayer.hand.length !== prevMyPlayer.hand.length ||
@@ -6917,6 +7117,7 @@
             const seatInfo = avatarEl.closest('.seat-info') || avatarEl.parentElement;
             if (seatInfo) {
                 seatInfo.classList.toggle('offline', player.offline === true);
+                seatInfo.classList.toggle('ting', player.isTing === true);
             }
 
             // 显示手牌数量（背面）
@@ -7041,10 +7242,25 @@
                 
                 container.innerHTML = '';
                 player.discards.forEach(tile => {
-                    const tileEl = createTileElement(tile, { small: true });
+                    const tileEl = createTileElement(tile, { discarded: true });
                     container.appendChild(tileEl);
                 });
             });
+        }
+
+        function showTingCallout(playerName, tingNames = '', isMe = false) {
+            document.querySelectorAll('.ting-callout').forEach(el => el.remove());
+
+            const callout = document.createElement('div');
+            callout.className = 'ting-callout';
+            const title = isMe ? '你已叫听' : `${playerName || '玩家'} 叫听`;
+            const subtitle = tingNames ? `听：${tingNames}` : '已进入听牌状态';
+            callout.innerHTML = `
+                <div class="ting-callout-title">${title}</div>
+                <div class="ting-callout-subtitle">${subtitle}</div>
+            `;
+            document.body.appendChild(callout);
+            setTimeout(() => callout.remove(), 2600);
         }
 
         // 选择手牌：首次点击选中，再点同一张牌按原有习惯直接出牌。
@@ -7221,6 +7437,16 @@
             } else if (action === 'hu' || action === 'hu_zimo') {
                 showActionEffect(action);
                 playActionAudio('hu', myVoice);
+            } else if (action === 'pass' && isTing && lastDrawnTileId &&
+                gameState?.currentPlayerIndex === mySeatIndex &&
+                gameState?.turnPhase === 'discard') {
+                setTimeout(() => {
+                    if (isTing && lastDrawnTileId && gameState?.currentPlayerIndex === mySeatIndex) {
+                        selectedTileId = lastDrawnTileId;
+                        showToast('已听牌，打出刚摸的牌', 1200);
+                        discardTile();
+                    }
+                }, 350);
             }
         }
         
