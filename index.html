@@ -3200,11 +3200,130 @@
         .game-chat-toggle {
             display: none !important;
         }
-        body.in-game .game-chat-toggle.chat-toggle-btn.active {
-            display: flex !important;
-        }
         body.in-game .lobby-chat-toggle {
             display: none !important;
+        }
+
+        .game-social-dock {
+            position: fixed;
+            top: clamp(92px, 18vh, 156px);
+            right: 0;
+            z-index: 1700;
+            display: none;
+            align-items: center;
+            transform: translateX(calc(100% - 22px));
+            transition: transform 0.24s ease, filter 0.24s ease;
+            filter: drop-shadow(0 10px 24px rgba(0,0,0,0.42));
+        }
+
+        body.in-game .game-social-dock {
+            display: flex;
+        }
+
+        .game-social-dock.open {
+            transform: translateX(0);
+        }
+
+        .game-social-tab {
+            width: 24px;
+            height: 64px;
+            border: 1px solid rgba(230, 195, 106, 0.62);
+            border-right: 0;
+            border-radius: 16px 0 0 16px;
+            background: linear-gradient(135deg, rgba(230,195,106,0.95), rgba(252,231,149,0.92));
+            color: #241407;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+
+        .game-social-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            padding: 10px 9px 10px 10px;
+            border: 1px solid rgba(230, 195, 106, 0.26);
+            border-right: 0;
+            border-radius: 16px 0 0 16px;
+            background: linear-gradient(180deg, rgba(11, 22, 20, 0.94), rgba(7, 12, 18, 0.9));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        body.in-game .game-social-dock .game-chat-toggle.chat-toggle-btn,
+        body.in-game .game-social-dock .game-friend-toggle {
+            position: relative;
+            left: auto;
+            right: auto;
+            bottom: auto;
+            display: flex !important;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.14);
+            color: #fff;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.28);
+        }
+
+        body.in-game .game-social-dock .game-chat-toggle.chat-toggle-btn {
+            background: linear-gradient(145deg, #7c3aed, #14b8a6);
+        }
+
+        body.in-game .game-social-dock .game-friend-toggle {
+            background: linear-gradient(145deg, #7c3aed, #a855f7);
+        }
+
+        body.in-game #friendBtnLobby {
+            display: none !important;
+        }
+
+        body.in-game .chat-panel {
+            left: auto;
+            right: 58px;
+            top: clamp(86px, 16vh, 140px);
+            bottom: auto;
+            width: min(330px, calc(100vw - 76px));
+            max-height: min(56vh, 430px);
+            border-color: rgba(230, 195, 106, 0.24);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.42);
+        }
+
+        body.in-game .friend-panel {
+            top: clamp(74px, 12vh, 118px);
+            right: -360px;
+            width: min(350px, calc(100vw - 58px));
+            height: min(76vh, 620px);
+            border-radius: 18px 0 0 18px;
+            border-top: 1px solid rgba(230, 195, 106, 0.18);
+            border-bottom: 1px solid rgba(230, 195, 106, 0.18);
+        }
+
+        body.in-game .friend-panel.active {
+            right: 0;
+        }
+
+        .game-social-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ef4444;
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.35);
         }
         
         /* 已移除独立表情入口：若浏览器/代理仍缓存旧 HTML，强制隐藏旧按钮 */
@@ -4531,11 +4650,20 @@
         </div>
     </div>
 
-    <!-- 对局中：聊天按钮（与大厅分离，避免重复 id） -->
-    <button type="button" class="chat-toggle-btn game-chat-toggle" id="gameChatToggleBtn" onclick="toggleGameChat()" aria-label="打开聊天">
-        <span class="chat-fab-icon" aria-hidden="true">💬</span>
-        <span class="chat-badge" id="chatBadge" style="display: none;">0</span>
-    </button>
+    <!-- 对局中：右侧折叠社交入口，避免挡住手牌和操作按钮 -->
+    <div class="game-social-dock" id="gameSocialDock">
+        <button type="button" class="game-social-tab" onclick="toggleGameSocialDock()" aria-label="展开聊天和好友">◀</button>
+        <div class="game-social-actions">
+            <button type="button" class="chat-toggle-btn game-chat-toggle" id="gameChatToggleBtn" onclick="toggleGameChat()" aria-label="打开聊天">
+                <span class="chat-fab-icon" aria-hidden="true">💬</span>
+                <span class="chat-badge game-social-badge" id="chatBadge" style="display: none;">0</span>
+            </button>
+            <button type="button" class="game-friend-toggle" id="gameFriendToggleBtn" onclick="toggleFriendPanel()" aria-label="打开好友">
+                <i class="fas fa-user-friends"></i>
+                <span class="friend-badge game-social-badge" id="gameOnlineFriendBadge" style="display: none;">0</span>
+            </button>
+        </div>
+    </div>
     
     <!-- 对局中聊天面板 -->
     <div class="chat-panel" id="chatPanel">
@@ -4705,7 +4833,7 @@
         let myVoice = 'female01'; // 我的语音类型
         let playerVoices = {}; // 存储所有玩家的语音类型
 
-        const APP_BUILD_LABEL = '2026-07-02 discard-space';
+        const APP_BUILD_LABEL = '2026-07-02 social-clean-hud';
 
         function renderAppVersionBadge() {
             const badge = document.getElementById('appVersionBadge');
@@ -4790,6 +4918,7 @@
             const panel = document.getElementById('friendPanel');
             panel.classList.toggle('active');
             if (panel.classList.contains('active')) {
+                setGameSocialDockOpen(true);
                 // 刷新好友列表和统计数据
                 if (socket) {
                     socket.emit('get_friends');
@@ -4923,13 +5052,16 @@
         // 更新在线好友数量徽章
         function updateOnlineFriendBadge() {
             const onlineCount = friendList.filter(f => f.isOnline).length;
-            const badge = document.getElementById('onlineFriendBadge');
-            if (onlineCount > 0) {
-                badge.textContent = onlineCount;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
+            ['onlineFriendBadge', 'gameOnlineFriendBadge'].forEach(id => {
+                const badge = document.getElementById(id);
+                if (!badge) return;
+                if (onlineCount > 0) {
+                    badge.textContent = onlineCount > 99 ? '99+' : onlineCount;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
         }
         // ==================== 结束好友系统变量 ====================
 
@@ -5968,7 +6100,6 @@
                 
                 // 【增强】处理重连
                 if (data.isReconnect) {
-                    showToast('🔄 已重新连接！继续游戏...', 3000, 'success');
                     console.log('断线重连成功，座位:', mySeatIndex, '当前轮到:', gameState.currentPlayerIndex);
                     
                     // 如果轮到自己，触发自动摸牌或显示出牌提示
@@ -5977,15 +6108,12 @@
                             setTimeout(() => autoDrawTile(), 500);
                         }
                     }
-                } else {
-                    showToast(`第 ${data.currentRound || 1}/${data.totalRounds || 10} 局开始！`);
                 }
             });
             
             // 【新增】轮到你的回合（重连后通知）
             socket.on('your_turn', (data) => {
                 console.log('轮到你了:', data);
-                showToast(`🎯 ${data.message}`, 3000);
                 
                 if (data.phase === 'draw') {
                     // 自动摸牌
@@ -6009,7 +6137,6 @@
                 
                 // 【UI改进】轮到自己时显示提示和发光效果
                 if (isMyTurn && gameState.turnPhase === 'discard' && phaseChanged) {
-                    showTurnIndicator(true);
                     updateMyTurnEffect(true);
                 } else if (!isMyTurn || gameState.turnPhase !== 'discard') {
                     updateMyTurnEffect(false);
@@ -6036,7 +6163,6 @@
                 lastDrawnTileId = data.tile.id; // 记录刚摸的牌
                 tingChoiceShown = false;
                 pendingTingList = [];
-                showToast(`摸到: ${getTileName(data.tile)}`);
                 
                 // 重新渲染手牌以显示新牌高亮
                 if (gameState) {
@@ -6062,7 +6188,6 @@
                     setTimeout(() => {
                         if (pendingAutoDiscard && pendingAutoDiscardTileId) {
                             console.log('未收到胡牌选项，自动出牌');
-                            showToast('听牌中，自动出牌...');
                             selectedTileId = pendingAutoDiscardTileId;
                             discardTile();
                             pendingAutoDiscard = false;
@@ -6074,7 +6199,6 @@
             
             // 摸到花牌自动补花
             socket.on('flower_drawn', (data) => {
-                showToast(`🌸 摸到花牌：${data.flowerName}，补花中...`, 2000);
                 playBeep(880, 100); // 播放提示音
                 
                 // 更新花牌显示
@@ -6089,9 +6213,6 @@
                 const playerName = player?.username || '玩家';
                 const playerVoice = player?.voice || getPlayerVoiceBySeat(data.playerIndex);
                 const isMe = data.playerIndex === mySeatIndex;
-                if (!isMe) {
-                    showToast(`${playerName}: ${data.tileName}`);
-                }
                 // 根据座位距离调整音量：自己最大，左右家中等，对家最小
                 const seatDist = Math.abs(data.playerIndex - mySeatIndex);
                 const dist = Math.min(seatDist, 4 - seatDist);
@@ -6190,7 +6311,6 @@
             // 【新增】自动出牌通知
             socket.on('auto_discard', (data) => {
                 console.log('超时自动出牌:', data.tile);
-                showToast('⏰ ' + data.message);
                 stopDiscardCountdown();
             });
 
@@ -6971,6 +7091,7 @@
             const gameBtn = document.getElementById('gameChatToggleBtn');
             if (lobbyBtn) lobbyBtn.classList.add('active');
             if (gameBtn) gameBtn.classList.remove('active');
+            setGameSocialDockOpen(false);
         }
         
         function hideChatButton() {
@@ -6980,6 +7101,8 @@
             if (gameBtn) gameBtn.classList.remove('active');
             document.getElementById('lobbyChatContainer')?.classList.remove('active');
             document.getElementById('chatPanel')?.classList.remove('active');
+            document.getElementById('friendPanel')?.classList.remove('active');
+            setGameSocialDockOpen(false);
             chatOpen = false;
             chatPanelOpen = false;
             closeAllChatPickers();
@@ -7063,6 +7186,7 @@
             document.getElementById('lobbyChatToggleBtn')?.classList.remove('active');
             document.getElementById('gameChatToggleBtn')?.classList.add('active');
             document.getElementById('lobbyChatContainer')?.classList.remove('active');
+            setGameSocialDockOpen(false);
             chatOpen = false;
             
             // 【修复】关闭可能存在的弹窗
@@ -7522,7 +7646,6 @@
                 setTimeout(() => {
                     if (isTing && lastDrawnTileId && gameState?.currentPlayerIndex === mySeatIndex) {
                         selectedTileId = lastDrawnTileId;
-                        showToast('已听牌，打出刚摸的牌', 1200);
                         discardTile();
                     }
                 }, 350);
@@ -7923,6 +8046,8 @@
             document.getElementById('lobbyChatToggleBtn')?.classList.add('active');
             document.getElementById('gameChatToggleBtn')?.classList.remove('active');
             document.getElementById('chatPanel')?.classList.remove('active');
+            document.getElementById('friendPanel')?.classList.remove('active');
+            setGameSocialDockOpen(false);
             chatPanelOpen = false;
             
             // 重置积分
@@ -7949,6 +8074,19 @@
         // 聊天面板状态
         let chatPanelOpen = false;
         let unreadMessages = 0;
+
+        function setGameSocialDockOpen(open) {
+            const dock = document.getElementById('gameSocialDock');
+            if (!dock) return;
+            dock.classList.toggle('open', open);
+            const tab = dock.querySelector('.game-social-tab');
+            if (tab) tab.textContent = open ? '▶' : '◀';
+        }
+
+        function toggleGameSocialDock() {
+            const dock = document.getElementById('gameSocialDock');
+            setGameSocialDockOpen(!dock?.classList.contains('open'));
+        }
         
         // 对局中聊天面板
         function toggleGameChat() {
@@ -7956,6 +8094,7 @@
             const panel = document.getElementById('chatPanel');
             
             if (chatPanelOpen) {
+                setGameSocialDockOpen(true);
                 panel.classList.add('active');
                 unreadMessages = 0;
                 updateChatBadge();
@@ -7973,7 +8112,7 @@
             const badge = document.getElementById('chatBadge');
             if (unreadMessages > 0) {
                 badge.textContent = unreadMessages > 99 ? '99+' : unreadMessages;
-                badge.style.display = 'block';
+                badge.style.display = 'flex';
             } else {
                 badge.style.display = 'none';
             }
@@ -8314,11 +8453,22 @@
             setTimeout(() => bubble.remove(), 2000);
         }
         
+        function shouldSuppressInGameToast(message) {
+            if (!document.body.classList.contains('in-game')) return false;
+            const text = String(message || '').replace(/[🎯🌸⏰🔄✅⚠️]/g, '').trim();
+            const keepImportant = /(吃|碰|杠|胡|自摸|叫听|已听牌|可以.*胡|可以.*自摸|手动选择)/.test(text);
+            if (keepImportant) return false;
+            return /^(摸到|轮到|第\s*\d+\/\d+\s*局开始|听牌中|已听牌，打出|操作超时|出牌超时|请等待摸牌|不是你的回合)/.test(text)
+                || /的回合$/.test(text)
+                || /^[^:：]{1,12}[:：]\s*[\u4e00-\u9fa5]{1,4}$/.test(text);
+        }
+
         // 覆盖原有的 showToast 函数，添加动画效果
         const originalShowToast = showToast;
-        showToast = function(message, duration = 2000) {
+        showToast = function(message, duration = 2000, level = 'info') {
+            if (shouldSuppressInGameToast(message)) return;
             const toast = document.createElement('div');
-            toast.className = 'toast';
+            toast.className = 'toast' + (level !== 'info' ? ' toast-' + level : '');
             toast.textContent = message;
             toast.style.animation = 'none';
             toast.style.opacity = '0';
@@ -8339,6 +8489,47 @@
                 setTimeout(() => toast.remove(), 300);
             }, duration);
         };
+
+        function hideInjectedResourceNotice(root = document.body) {
+            if (!root) return;
+            const nodes = root instanceof Element
+                ? [root, ...root.querySelectorAll('*')]
+                : Array.from(document.body.querySelectorAll('*'));
+
+            nodes.forEach(el => {
+                if (el === document.body || el === document.documentElement) return;
+                const text = (el.textContent || '').replace(/\s+/g, '');
+                if (!/已检测到\d+个资源/.test(text)) return;
+
+                let target = el;
+                let parent = el.parentElement;
+                for (let i = 0; parent && i < 6; i++, parent = parent.parentElement) {
+                    const style = window.getComputedStyle(parent);
+                    const z = Number.parseInt(style.zIndex, 10);
+                    if (style.position === 'fixed' || style.position === 'absolute' || z > 1000) {
+                        target = parent;
+                    }
+                }
+                target.style.setProperty('display', 'none', 'important');
+                target.style.setProperty('pointer-events', 'none', 'important');
+            });
+        }
+
+        function initInjectedResourceNoticeGuard() {
+            hideInjectedResourceNotice();
+            const observer = new MutationObserver(mutations => {
+                const added = mutations.flatMap(m => Array.from(m.addedNodes || []));
+                if (!added.length) return;
+                requestAnimationFrame(() => {
+                    added.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            hideInjectedResourceNotice(node);
+                        }
+                    });
+                });
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        }
         
         // 增强游戏状态更新，添加动画效果
         const originalUpdateGameUI = scheduleUpdate;
@@ -8348,6 +8539,7 @@
         // 页面加载时初始化粒子效果
         document.addEventListener('DOMContentLoaded', () => {
             initParticles();
+            initInjectedResourceNoticeGuard();
             
             // 为手牌添加点击波纹效果
             document.addEventListener('click', (e) => {
